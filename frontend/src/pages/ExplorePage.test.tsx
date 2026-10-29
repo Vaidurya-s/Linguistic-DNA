@@ -1,19 +1,59 @@
-import { render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import ExplorePage from './ExplorePage.tsx'
 
-describe('ExplorePage', () => {
-  afterEach(() => vi.unstubAllGlobals())
+const json = (body: unknown) => Promise.resolve(new Response(JSON.stringify(body)))
 
-  it('reports the API as reachable when /health answers', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{"status":"ok"}')))
-    render(<ExplorePage />)
-    expect(await screen.findByText('ok')).toBeInTheDocument()
+const searchResponse = {
+  query: 'dānt',
+  normalized_query: 'dānt',
+  detected_script: 'Latin',
+  language_hints: ['pan'],
+  matches: [
+    {
+      id: 'lx_1', form: 'dānt', native_form: null, language_id: 'pan', language_name: 'Punjabi',
+      group: 'Indo-Aryan', gloss: 'tooth', reconstruction_status: 'attested', is_proto: false,
+      match_type: 'exact', score: null, relationship_count: 1, duplicate_count: 1,
+    },
+  ],
+  spelling_candidates: [
+    {
+      id: 'lx_2', form: 'dānti', native_form: null, language_id: 'mar', language_name: 'Marathi',
+      group: 'Indo-Aryan', gloss: null, reconstruction_status: 'attested', is_proto: false,
+      match_type: 'spelling_candidate', score: 0.57, relationship_count: 0, duplicate_count: 1,
+    },
+  ],
+  warnings: [],
+}
+
+describe('ExplorePage', () => {
+  afterEach(() => {
+    cleanup()
+    vi.unstubAllGlobals()
   })
 
-  it('reports the API as unavailable when the request fails', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
+  it('shows the empty graph state before a search', () => {
+    vi.stubGlobal('fetch', vi.fn(() => json([])))
     render(<ExplorePage />)
-    expect(await screen.findByText('unavailable')).toBeInTheDocument()
+    expect(screen.getByText(/Search for a word and pick a match/)).toBeInTheDocument()
+  })
+
+  it('lists exact matches separately from spelling candidates', async () => {
+    vi.stubGlobal('fetch', vi.fn((url: string) => json(url.includes('/search') ? searchResponse : [])))
+    render(<ExplorePage />)
+    fireEvent.change(screen.getByLabelText('Word'), { target: { value: 'dānt' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+    expect(await screen.findByText(/Matches for/)).toBeInTheDocument()
+    expect(screen.getByText(/1 documented link/)).toBeInTheDocument()
+    expect(screen.getByText(/candidates, not evidence of relation/)).toBeInTheDocument()
+  })
+
+  it('shows an error when search fails', async () => {
+    vi.stubGlobal('fetch', vi.fn((url: string) =>
+      url.includes('/search') ? Promise.reject(new Error('offline')) : json([])))
+    render(<ExplorePage />)
+    fireEvent.change(screen.getByLabelText('Word'), { target: { value: 'x' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+    expect(await screen.findByText(/Search failed: offline/)).toBeInTheDocument()
   })
 })
