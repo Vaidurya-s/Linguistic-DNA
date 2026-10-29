@@ -1,4 +1,5 @@
 import csv
+import gzip
 from pathlib import Path
 
 from alembic import command
@@ -14,7 +15,7 @@ LSI = Path(__file__).parent / "fixtures" / "lsi_mini"
 
 
 def rows(path: Path) -> list[dict]:
-    with path.open(encoding="utf-8", newline="") as fh:
+    with gzip.open(path, "rt", encoding="utf-8", newline="") as fh:
         return list(csv.DictReader(fh))
 
 
@@ -23,14 +24,14 @@ def test_seed_contains_only_approved_datasets_and_reloads_cleanly(db, tmp_path):
     db.commit()
     manifest = build_public_seed(db, tmp_path)
 
-    lexemes = rows(tmp_path / "lexeme.csv")
+    lexemes = rows(tmp_path / "lexeme.csv.gz")
     assert lexemes and {r["dataset"] for r in lexemes} == {"lsi"}
     assert not any(
-        r["dataset_id"] in ("jambu", "cdial", "dedr") for r in rows(tmp_path / "source.csv")
+        r["dataset_id"] in ("jambu", "cdial", "dedr") for r in rows(tmp_path / "source.csv.gz")
     )
     attribution = (tmp_path / "ATTRIBUTION.md").read_text(encoding="utf-8")
     assert "Linguistic Survey of India" in attribution and "Jambu" not in attribution
-    assert set(manifest["sha256"]) >= {"lexeme.csv", "relationship.csv", "evidence.csv"}
+    assert set(manifest["sha256"]) >= {"lexeme.csv.gz", "relationship.csv.gz", "evidence.csv.gz"}
 
     seed_db = TEST_DB.rsplit("/", 1)[0] + "/lsg_seed_test"
     with connect(TEST_DB) as admin:

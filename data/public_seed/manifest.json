@@ -1,0 +1,37 @@
+{
+  "tables": {
+    "dataset_audit": 9,
+    "source": 5,
+    "language_family": 95,
+    "language": 59,
+    "language_alias": 76,
+    "language_script": 17,
+    "variety": 43,
+    "lexeme": 97021,
+    "concept": 169,
+    "lexeme_concept": 4619,
+    "relationship": 9190,
+    "evidence": 9190
+  },
+  "sha256": {
+    "concept.csv.gz": "7e10e1907c98b2bd93a85ba668b405876236a54d4ddae25275eb5556383a1144",
+    "dataset_audit.csv.gz": "85d51d62ac8b48cf5567950527f42b2deca315957adeb3e2f924075b07e23a84",
+    "evidence.csv.gz": "41a3e30e926ea4edd1f218db39efb363d9cd236513f332b2c57b899a92a54d5c",
+    "language.csv.gz": "4dab5faa4312b1c751ec73b68422376a1952eb27034af3020aae9ba85a2af987",
+    "language_alias.csv.gz": "a483e42d5afc3593d161dcd05e1691db73f3b7a186c0839d549767bb18944d6c",
+    "language_family.csv.gz": "cd2be89b90c716311514c0ea1c27335ca68a954b0d817bd550bde4318045d4df",
+    "language_script.csv.gz": "05c1cef17fb3f31e4bce8cb34713fc5b7c42ed90ad3c7d61826a848f1be6efec",
+    "lexeme.csv.gz": "bee8ae5b84ad2c95cddbdd17d084ce66690be1306ea723be835542389b7c21b7",
+    "lexeme_concept.csv.gz": "a5e0f68b553e154e3393b217615a5914ed4c7cd229a4316f3ff7472608f1a8c0",
+    "relationship.csv.gz": "515fea65909728dd90aa26455ee09304d3233bc50ea3d9ff612b0af4a1efb90b",
+    "source.csv.gz": "eae04291b21cf15814c743a76f0de8458af45c3c771eb575dc3afbf01899e33a",
+    "variety.csv.gz": "390fad70a334ecfd013c2638a8d3b6b659d0ff95c2c7ad67e301c39302f94da2"
+  },
+  "datasets": [
+    "asjp",
+    "concepticon",
+    "glottolog",
+    "lsi",
+    "wikidata-lexemes"
+  ]
+}

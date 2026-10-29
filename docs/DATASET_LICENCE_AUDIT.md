@@ -44,7 +44,27 @@ The card is inconsistent about the manually collected part: it says CC-BY, and i
 
 ## 3. Wikidata Lexemes in our languages
 
-_Filled in from the import of dump 20261028; see §6._
+Import of dump 20261028: 89,462 lexemes in our languages, plus 1,691 lexemes in 42 other languages that their statements point to.
+
+| Language | Lexemes | | Language | Lexemes |
+|---|---:|---|---|---:|
+| Malayalam | 67,388 | | Odia | 286 |
+| Bengali | 11,835 | | Gujarati | 124 |
+| Punjabi | 3,780 | | Telugu | 87 |
+| Hindi (via Hindustani Q11051) | 2,760 | | Marathi | 82 |
+| Tamil | 1,612 | | Kannada | 26 |
+| Sanskrit | 1,469 | | Assamese | 13 |
+
+Relationships:
+
+| Statement | Imported as | Count | Of which have no reference |
+|---|---|---:|---:|
+| P5191 "derived from lexeme" | `etymon` | 3,777 | 967 |
+| P5238 "combines lexemes" | `has_component` | 5,413 | 5,376 |
+
+87 statements pointed to lexemes missing from the dump and were skipped.
+
+Coverage is very uneven, and is shown as such. Wikidata is the only redistributable source of word-history links found so far, and it covers far fewer words than CDIAL or DEDR.
 
 ## 4. Development-only sources
 

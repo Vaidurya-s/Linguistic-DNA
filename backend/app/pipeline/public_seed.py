@@ -1,9 +1,10 @@
 """Build and load the public seed: only rows whose dataset and source the audit approves.
 
-The seed is a set of CSV files plus ATTRIBUTION.md and manifest.json. It is the only data a
-public deployment may load (docs/DATASET_LICENCE_AUDIT.md).
+The seed is a set of gzip-compressed CSV files plus ATTRIBUTION.md and manifest.json.
+It is the only data a public deployment may load (docs/DATASET_LICENCE_AUDIT.md).
 """
 
+import gzip
 import hashlib
 import json
 from pathlib import Path
@@ -110,23 +111,25 @@ def build_public_seed(conn: psycopg.Connection, out: Path = SEED_DIR) -> dict:
     with conn.transaction(), conn.cursor() as cur:
         cur.execute(SELECTION)
         for table, query in TABLES:
-            path = out / f"{table}.csv"
+            path = out / f"{table}.csv.gz"
+            # mtime=0 keeps the archive byte-identical when the data has not changed
             with (
-                path.open("wb") as fh,
+                gzip.GzipFile(path, "wb", mtime=0) as fh,
                 cur.copy(
                     f"COPY ({query} ORDER BY 1) TO STDOUT WITH (FORMAT csv, HEADER true)"
                 ) as copy,
             ):
                 for chunk in copy:
                     fh.write(chunk)
-            counts[table] = sum(1 for _ in path.open(encoding="utf-8")) - 1
+            with gzip.open(path, "rt", encoding="utf-8") as fh:
+                counts[table] = sum(1 for _ in fh) - 1
         cur.execute(USED_DATASETS)
         used = cur.fetchall()
     (out / "ATTRIBUTION.md").write_text(attribution(used), encoding="utf-8")
     manifest = {
         "tables": counts,
         "sha256": {
-            p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(out.glob("*.csv"))
+            p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(out.glob("*.csv.gz"))
         },
         "datasets": [u[0] for u in used],
     }
@@ -168,11 +171,11 @@ def load_public_seed(conn: psycopg.Connection, seed: Path = SEED_DIR) -> dict:
     counts = {}
     with conn.transaction(), conn.cursor() as cur:
         for table, _ in TABLES:
-            path = seed / f"{table}.csv"
-            with path.open(encoding="utf-8") as fh:
+            path = seed / f"{table}.csv.gz"
+            with gzip.open(path, "rt", encoding="utf-8") as fh:
                 cols = fh.readline().strip()
             with (
-                path.open("rb") as fh,
+                gzip.open(path, "rb") as fh,
                 cur.copy(
                     f"COPY {table} ({cols}) FROM STDIN WITH (FORMAT csv, HEADER true)"
                 ) as copy,
