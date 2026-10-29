@@ -28,7 +28,7 @@ from app.models.enums import (
     SourceConfidence,
 )
 from app.services.ids import lexeme_id, relationship_id
-from app.services.normalize import normalize_form
+from app.services.normalize import normalize_form, search_key
 
 DATASET = "jambu"
 AGGREGATE_SOURCE = "jambu"
@@ -79,7 +79,8 @@ TRANSFORMATIONS = [
     "Gloss: inline HTML markup stripped and entities unescaped",
     "edges.csv Child->Parent mapped to relationship source->target; kinds mapped to the "
     "controlled vocabulary, original kind kept in original_label",
-    "Edges without their own Source inherit the child form's citations (noted in evidence)",
+    "Edges without their own Source inherit the child form's citations, preferring those of "
+    "the parent's source (noted in evidence)",
     "Excluded: forms.Etymology, entry-texts.csv, comparisons.Evidence (verbatim text)",
 ]
 
@@ -144,6 +145,27 @@ def reconstruction_status(form: str, is_proto: bool, configured: bool) -> Recons
     if form.startswith(("√", "-")):  # roots and affixes are analytical units, not words
         return ReconstructionStatus.uncertain
     return ReconstructionStatus.attested if configured else ReconstructionStatus.unknown
+
+
+def inherited_citations(child_source: str, parent_source: str) -> list[Citation]:
+    """Citations for an edge that has none: prefer the child's citations of the work the
+    parent comes from (e.g. the CDIAL entry), else all of the child's citations."""
+    child = parse_citations(child_source)
+    parent_keys = {c.key for c in parse_citations(parent_source)}
+    shared = [c for c in child if c.key in parent_keys]
+    return shared or child
+
+
+_MD_LINK = re.compile(r"\[([^\]]+)\]\((https?://[^)\s]+)\)")
+_URL = re.compile(r"https?://[^\s)\]]+")
+
+
+def clean_reference(text: str) -> tuple[str, str | None]:
+    """Jambu bibliography entries are Markdown; return (plain title, first URL)."""
+    url_match = _URL.search(text)
+    plain = _MD_LINK.sub(r"\1", text)
+    plain = re.sub(r"\s*URL:\s*\S+", "", plain).replace("*", "")
+    return re.sub(r"\s+", " ", plain).strip(" ."), url_match.group(0) if url_match else None
 
 
 _SLUG = re.compile(r"[^a-z0-9]+")
@@ -332,6 +354,7 @@ class JambuImporter:
                     self.language_ids[jid],
                     form,
                     normalize_form(form),
+                    search_key(native or form),
                     native,
                     origin,
                     translit,
@@ -371,7 +394,7 @@ class JambuImporter:
             cites = parse_citations(e["Source"])
             note = None
             if not cites:
-                cites = parse_citations(forms[child]["Source"])
+                cites = inherited_citations(forms[child]["Source"], forms[parent]["Source"])
                 note = "Citation taken from the child form's record; the edge has no own source."
             if not cites:
                 cites = [Citation(AGGREGATE_SOURCE, None)]
@@ -460,16 +483,19 @@ class JambuImporter:
             )
         for key in sorted(self.sources_used):
             sid = self.source_map.get(key) or f"jambu-ref:{key}"
-            if sid in existing:
-                continue
+            if sid in existing and not sid.startswith("jambu-ref:"):
+                continue  # manifest sources are curated by hand; never overwrite them
+            created += sid not in existing
             existing.add(sid)
-            created += 1
+            title, url = clean_reference(self.references.get(key) or key)
             cur.execute(
-                "INSERT INTO source (id, title, reuse_status, parent_source_id, notes)"
-                " VALUES (%s, %s, %s, %s, %s)",
+                "INSERT INTO source (id, title, url, reuse_status, parent_source_id, notes)"
+                " VALUES (%s, %s, %s, %s, %s, %s)"
+                " ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, url = EXCLUDED.url",
                 (
                     sid,
-                    self.references.get(key) or key,
+                    title or key,
+                    url,
                     ReuseStatus.unknown.value,
                     AGGREGATE_SOURCE,
                     f"Jambu reference key '{key}'; not yet licence-reviewed",
@@ -514,6 +540,7 @@ LEXEME_COLS = (
     "language_id",
     "form",
     "normalized_form",
+    "search_key",
     "native_form",
     "native_form_origin",
     "transliteration",

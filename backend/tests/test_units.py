@@ -1,7 +1,13 @@
 import pytest
 
 from app.importers.common import Citation, SchemaMismatch, parse_citations, read_csv
-from app.importers.jambu import has_native_script, plain_gloss, reconstruction_status
+from app.importers.jambu import (
+    clean_reference,
+    has_native_script,
+    inherited_citations,
+    plain_gloss,
+    reconstruction_status,
+)
 from app.models.enums import ReconstructionStatus
 from app.services.ids import lexeme_id
 from app.services.normalize import normalize_form
@@ -70,3 +76,17 @@ def test_read_csv_rejects_missing_columns(tmp_path):
     p.write_text("ID,Form\n1,a\n", encoding="utf-8")
     with pytest.raises(SchemaMismatch):
         list(read_csv(p, ("ID", "Form", "Language_ID")))
+
+
+def test_inherited_citations_prefer_the_parents_work():
+    assert inherited_citations("bagri;CDIAL", "CDIAL;NIA") == [Citation("CDIAL", None)]
+    assert inherited_citations("bagri", "CDIAL") == [Citation("bagri", None)]
+
+
+def test_clean_reference_strips_markdown_and_extracts_url():
+    title, url = clean_reference(
+        "Eldose K. Mathai. Bagri survey. *Journal of Language Survey Reports*, 2011. "
+        "URL: [https://www.sil.org/x/43105](https://www.sil.org/x/43105)."
+    )
+    assert title == "Eldose K. Mathai. Bagri survey. Journal of Language Survey Reports, 2011"
+    assert url == "https://www.sil.org/x/43105"

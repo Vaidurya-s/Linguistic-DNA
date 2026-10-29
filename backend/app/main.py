@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import health
+from app.api import health, routes
 from app.config import settings
 
 app = FastAPI(title="Language Similarity Graph API", version="0.1.0")
@@ -12,3 +12,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(health.router, prefix="/api/v1")
+app.include_router(routes.router, prefix="/api/v1")

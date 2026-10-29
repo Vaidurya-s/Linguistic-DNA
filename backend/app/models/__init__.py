@@ -141,6 +141,14 @@ class Lexeme(Base):
     __table_args__ = (
         UniqueConstraint("dataset", "source_record_id"),
         Index("ix_lexeme_language_normalized", "language_id", "normalized_form"),
+        Index("ix_lexeme_search_key", "search_key"),
+        Index("ix_lexeme_native_form", "native_form"),
+        Index(
+            "ix_lexeme_search_key_trgm",
+            "search_key",
+            postgresql_using="gin",
+            postgresql_ops={"search_key": "gin_trgm_ops"},
+        ),
         Index(
             "ix_lexeme_normalized_trgm",
             "normalized_form",
@@ -154,6 +162,7 @@ class Lexeme(Base):
     variety_id: Mapped[str | None] = mapped_column(ForeignKey("variety.id"))
     form: Mapped[str] = mapped_column(Text)  # raw source representation
     normalized_form: Mapped[str] = mapped_column(Text)
+    search_key: Mapped[str] = mapped_column(Text, server_default="")  # loose romanised key
     lemma: Mapped[str | None] = mapped_column(Text)
     native_form: Mapped[str | None] = mapped_column(Text)
     native_form_origin: Mapped[NativeFormOrigin | None] = mapped_column(

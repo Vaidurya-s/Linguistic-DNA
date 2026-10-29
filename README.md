@@ -2,14 +2,18 @@
 
 An interactive, evidence-backed platform for exploring relationships between words across Indian languages: documented historical relationships, borrowing, orthographic and phonetic similarity, and semantic relations, presented as a navigable graph.
 
-**Status:** roadmap Weeks 1–2 are done:
+**Status:** a working local demo.
 
-- source audit;
-- schema;
-- repeatable import of Jambu and Glottolog into PostgreSQL;
-- validation and coverage reports.
+- **Weeks 1–2 (done):** source audit, schema, and a repeatable import of Jambu and Glottolog into PostgreSQL, with validation and coverage reports.
+- **Weeks 3–4 (first version):**
+  - search with exact, native-script and diacritic-insensitive matching; similar spellings are listed separately as candidates;
+  - a word-relationship graph you can expand node by node;
+  - an evidence panel showing each link's citations and licence status;
+  - a table view of the same links.
 
-The search API (Week 3) and the graph UI (Week 4) are next. There is no public dataset yet: most historical links come from sources whose reuse permission is still pending. See [`docs/DATASET_AUDIT.md`](docs/DATASET_AUDIT.md).
+The API serves `/api/v1/search`, `/lexemes/{id}`, `/graph/{id}`, `/relationships/{id}` and `/languages`. Interactive docs are at `http://localhost:8000/docs`.
+
+There is no public dataset or deployment yet: most historical links come from sources whose reuse permission is still pending. See [`docs/DATASET_AUDIT.md`](docs/DATASET_AUDIT.md).
 
 ## Documentation
 
