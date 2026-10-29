@@ -38,33 +38,58 @@ Audit date: 2026-10-29. Every input is pinned in [`data/manifests/downloads.json
 | Unnamed existing sources | Existing | 131,773 | BLOCKED: upstream not identified |
 | Mined | IndicCorp, Samanantar | 1,112,724 | BLOCKED: "We do not own any of the text from which this data has been extracted" |
 
+3,584 records (across all languages) spell the source `Ak-Freq`; they are treated as AK-Freq. AK-Uni (4,169 records) is not one of the approved components and is skipped.
+
 The card is inconsistent about the manually collected part: it says CC-BY, and in another sentence waives all rights to "manually collected data". The stricter CC-BY reading is used.
 
 **Neither LSI nor ASJP contains cognate judgments for our languages.** LSI has none at all. ASJP flags 43 forms as loans but names no donor. These datasets therefore add forms and concept-aligned meanings, but no historical links. The importers create no relationships from them; ASJP's loan flag is kept only as a tag.
 
 ## 3. Wikidata Lexemes in our languages
 
-Import of dump 20261028: 89,462 lexemes in our languages, plus 1,691 lexemes in 42 other languages that their statements point to.
+Import of dump 20261028: 89,772 lexemes in our languages, plus 1,527 lexemes in 40 other languages that their statements point to.
 
 | Language | Lexemes | | Language | Lexemes |
 |---|---:|---|---|---:|
-| Malayalam | 67,388 | | Odia | 286 |
-| Bengali | 11,835 | | Gujarati | 124 |
-| Punjabi | 3,780 | | Telugu | 87 |
-| Hindi (via Hindustani Q11051) | 2,760 | | Marathi | 82 |
-| Tamil | 1,612 | | Kannada | 26 |
-| Sanskrit | 1,469 | | Assamese | 13 |
+| Malayalam | 67,388 | | Nepali | 23 |
+| Bengali | 11,835 | | Bodo | 18 |
+| Punjabi | 3,780 | | Bhojpuri | 15 |
+| Hindi (via Hindustani Q11051) | 2,760 | | Pali | 14 |
+| Tamil | 1,612 | | Assamese | 13 |
+| Sanskrit | 1,469 | | Apabhramsha (Q616419) | 12 |
+| Odia | 286 | | Konkani | 7 |
+| Prakrit (Q192170) | 208 | | Dogri | 7 |
+| Gujarati | 124 | | Maithili | 3 |
+| Telugu | 87 | | Awadhi | 3 |
+| Marathi | 82 | | Marwari | 0 |
+| Kannada | 26 | | | |
 
 Relationships:
 
 | Statement | Imported as | Count | Of which have no reference |
 |---|---|---:|---:|
-| P5191 "derived from lexeme" | `etymon` | 3,777 | 967 |
+| P5191 "derived from lexeme" | `etymon` | 4,000 | 972 |
 | P5238 "combines lexemes" | `has_component` | 5,413 | 5,376 |
 
 87 statements pointed to lexemes missing from the dump and were skipped.
 
 Coverage is very uneven, and is shown as such. Wikidata is the only redistributable source of word-history links found so far, and it covers far fewer words than CDIAL or DEDR.
+
+### Coverage of the eight languages added in Tier 1
+
+Public seed, after the Tier 1 import. "With links" counts words that have at least one cited relationship.
+
+| Language | Glottocode | LSI | ASJP | Wikidata | Total words | With links |
+|---|---|---:|---:|---:|---:|---:|
+| Nepali | `nepa1254` | 218 | 122 | 23 | 363 | 13 |
+| Maithili | `mait1250` | 214 | 39 | 3 | 256 | 1 |
+| Bodo | `bodo1269` | 183 | 41 | 18 | 242 | 0 |
+| Awadhi | `awad1243` | 193 | 37 | 3 | 233 | 1 |
+| Konkani | `konk1267` (+ `goan1235`, `konk1270`) | 174 | 44 | 7 | 225 | 0 |
+| Marwari | `marw1260` | 200 | 24 | 0 | 224 | 0 |
+| Dogri | `dogr1250` | 174 | 28 | 7 | 209 | 1 |
+| Bhojpuri | `bhoj1244` | 0 | 58 | 15 | 73 | 4 |
+
+These languages are searchable and appear in meaning-based comparisons, but they have almost no word-history links. The wordlists add words and meanings, not relationships. Aksharantar spelling pairs were added for Nepali, Maithili, Dogri, Bodo and Konkani, from the approved components only.
 
 ## 4. Development-only sources
 
@@ -87,8 +112,8 @@ Their licence column records what the shortlist claims, not a verified fact. Eac
 | Gate condition | Status |
 |---|---|
 | All deployed dataset components have documented reuse permission | Met for the public seed, which contains APPROVED and APPROVED WITH CONDITIONS rows only. Not met for the development database. |
-| Native-script and romanised searches pass a multilingual regression suite | Met for the 11 target languages: `backend/tests/test_multilingual.py` (one native-script query per language, the alias path, and romanisation rules). |
+| Native-script and romanised searches pass a multilingual regression suite | Met for the 19 modern languages: `backend/tests/test_multilingual.py` (one native-script query per language, the alias path, and romanisation rules). |
 | Exact matches are not confused with compounds or approximate matches | Met: `form_kind`, separate result groups, and regression tests. |
 | Every documented historical relationship has traceable evidence | Met: validator checks, plus Wikidata statement IDs. |
 | Graph usable for dense results and on small screens | Met in the first version: duplicate merging, filters by type and language group, neighbour capping with "show all", a table synchronised with the selection, and a responsive layout. Needs usability testing. |
-| Demo and repository explain sources and limitations | Partly: this document; the methodology page is Phase 3. |
+| Demo and repository explain sources and limitations | Met: this document, the app's Data & methodology page (sources, licences, limitations, live coverage), and `docs/WRITEUP.md`. |

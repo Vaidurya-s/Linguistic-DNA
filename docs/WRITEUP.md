@@ -82,4 +82,23 @@ flowchart LR
 
 ## Numbers
 
-_Filled in from the final public seed._
+From the public seed in `data/public_seed` (14 MB compressed), which passes all 21 validator checks in public mode on a fresh load:
+
+| | |
+|---|---:|
+| Languages configured | 25 (19 modern in 3 families, 6 historical or reference layers) |
+| Words | 98,916 |
+| Cited relationships, each with evidence | 9,413 |
+| of which "from" (Wikidata P5191) | 4,000 |
+| of which "combines" (Wikidata P5238) | 5,413 |
+| Transliteration spelling pairs | 947,189 |
+| Concepts shared across wordlists | 169 |
+| Datasets in the seed, all approved by the audit | 8 |
+| Benchmark cases passing (unreviewed) | 22 / 22 |
+
+Coverage per language is very uneven:
+
+- **Large:** Malayalam 67,838 words, Bengali 12,662, Punjabi 4,227, Hindi 3,404.
+- **Small:** the eight Tier 1 languages each have 73–363 words, almost all from LSI and ASJP wordlists.
+
+The development database, which also holds the restricted Jambu import, has about 350k more words and 221k more relationships, none of which are published.
