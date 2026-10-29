@@ -4,10 +4,10 @@ import type { Language } from '../types/api.ts'
 
 const SOURCES = [
   {
-    name: 'Glottolog 5.2.1',
+    name: 'Glottolog 5.3',
     licence: 'CC BY 4.0',
     use: 'Language identity and family classification',
-    credit: 'Hammarström, Forkel, Haspelmath & Bank (2025), MPI for Evolutionary Anthropology',
+    credit: 'Hammarström, Forkel, Haspelmath & Bank (2026), MPI for Evolutionary Anthropology',
     url: 'https://glottolog.org',
   },
   {

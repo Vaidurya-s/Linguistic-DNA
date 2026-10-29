@@ -53,6 +53,8 @@ def _language_rows(conn: Connection) -> list[dict]:
                count(l.id) AS lexeme_count,
                count(l.id) FILTER (WHERE EXISTS (
                    SELECT 1 FROM relationship r WHERE r.source_lexeme_id = l.id
+                     AND r.status = 'documented') OR EXISTS (
+                   SELECT 1 FROM relationship r WHERE r.target_lexeme_id = l.id
                      AND r.status = 'documented')) AS linked_count
         FROM language g
         LEFT JOIN language_family f ON f.id = g.family_id

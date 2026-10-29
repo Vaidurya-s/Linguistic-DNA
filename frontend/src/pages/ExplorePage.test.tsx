@@ -2,6 +2,9 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import ExplorePage from './ExplorePage.tsx'
 
+// Cytoscape needs a real canvas, which jsdom lacks; these tests only check the data flow.
+vi.mock('../components/GraphCanvas.tsx', () => ({ default: () => null }))
+
 const json = (body: unknown) => Promise.resolve(new Response(JSON.stringify(body)))
 
 const searchResponse = {
@@ -58,6 +61,19 @@ describe('ExplorePage', () => {
     expect(screen.getByText(/candidates, not evidence of relation/)).toBeInTheDocument()
     expect(screen.getByText(/Stems, affixes and other forms/)).toBeInTheDocument()
     expect(screen.getByText(/stem \(combining form\)/)).toBeInTheDocument()
+  })
+
+  it('runs a shared link search and opens the first match with links', async () => {
+    const fetchMock = vi.fn((url: string) => {
+      if (url.includes('/search')) return json(searchResponse)
+      if (url.includes('/graph/')) return json({ root_id: 'lx_1', nodes: [], edges: [], truncated: false })
+      return json([])
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    render(<ExplorePage initialQuery="dānt" initialLanguage="pan" />)
+    expect(await screen.findByText(/Matches for/)).toBeInTheDocument()
+    await vi.waitFor(() =>
+      expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/graph/lx_1'))).toBe(true))
   })
 
   it('shows an error when search fails', async () => {

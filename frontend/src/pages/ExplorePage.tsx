@@ -102,28 +102,24 @@ export default function ExplorePage({ initialQuery = '', initialLanguage = '' }:
     getLanguages().then(setLanguages).catch(() => setLanguages([]))
   }, [])
 
-  const runSearch = useCallback(async (q: string, lang: string) => {
-    if (!q.trim()) return
+  const runSearch = useCallback(async (q: string, lang: string): Promise<SearchResponse | null> => {
+    if (!q.trim()) return null
     replaceParams('/explore', { q: q.trim(), lang: lang || undefined }) // shareable URL
     setBusy('Searching…')
     setError(null)
     try {
-      setResults(await searchLexemes(q.trim(), lang || undefined))
+      const res = await searchLexemes(q.trim(), lang || undefined)
+      setResults(res)
       setResultsOpen(true)
       setSelection(null) // the old word's details no longer match the new results
+      return res
     } catch (e) {
       setError(`Search failed: ${(e as Error).message}`)
+      return null
     } finally {
       setBusy(null)
     }
   }, [])
-
-  // Opening a shared link (#/explore?q=…) runs that search once the page is mounted.
-  useEffect(() => {
-    if (!initialQuery) return
-    const id = window.setTimeout(() => void runSearch(initialQuery, initialLanguage), 0)
-    return () => window.clearTimeout(id)
-  }, [initialQuery, initialLanguage, runSearch])
 
   const expand = useCallback(async (id: string, reset = false) => {
     setBusy('Loading connections…')
@@ -149,13 +145,25 @@ export default function ExplorePage({ initialQuery = '', initialLanguage = '' }:
     }
   }, [])
 
-  const pick = (m: SearchMatch) => {
+  const pick = useCallback((m: SearchMatch) => {
     setResultsOpen(false)
     setShowAll(new Set())
     setRootId(m.id)
     setSelection({ kind: 'node', id: m.id })
     void expand(m.id, true)
-  }
+  }, [expand])
+
+  // Opening a shared link (#/explore?q=…) runs that search once the page is mounted, and
+  // opens the first match that has documented links so the link lands on a graph.
+  useEffect(() => {
+    if (!initialQuery) return
+    const id = window.setTimeout(async () => {
+      const res = await runSearch(initialQuery, initialLanguage)
+      const first = res?.matches.find((m) => m.relationship_count > 0)
+      if (first) pick(first)
+    }, 0)
+    return () => window.clearTimeout(id)
+  }, [initialQuery, initialLanguage, runSearch, pick])
 
   const merged = useMemo(() => mergeDuplicates(nodes.values(), edges.values(), rootId), [nodes, edges, rootId])
   const presentTypes = useMemo(() => [...new Set(merged.edges.map((e) => e.type))].sort(), [merged])
