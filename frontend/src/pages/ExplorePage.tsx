@@ -169,9 +169,15 @@ export default function ExplorePage() {
     return next
   }
   const languageGroups = useMemo(() => {
+    // Modern languages grouped by family (alphabetically), historical layers last.
     const groups = new Map<string, Language[]>()
-    languages.forEach((l) => groups.set(l.role, [...(groups.get(l.role) ?? []), l]))
-    return groups
+    const label = (l: Language) => (l.role === 'modern' ? (l.group ?? 'Other') : 'Historical and reference')
+    const sorted = [...languages].sort((a, b) => a.name.localeCompare(b.name))
+    sorted.forEach((l) => groups.set(label(l), [...(groups.get(label(l)) ?? []), l]))
+    const order = [...groups.keys()].sort((a, b) =>
+      a === 'Historical and reference' ? 1 : b === 'Historical and reference' ? -1 : a.localeCompare(b),
+    )
+    return new Map(order.map((k) => [k, groups.get(k)!]))
   }, [languages])
 
   return (
@@ -208,11 +214,11 @@ export default function ExplorePage() {
           className="w-full max-w-full rounded-md border border-slate-300 px-2 py-2 sm:w-auto"
         >
           <option value="">Any language</option>
-          {[...languageGroups.entries()].map(([role, langs]) => (
-            <optgroup key={role} label={role}>
+          {[...languageGroups.entries()].map(([family, langs]) => (
+            <optgroup key={family} label={family}>
               {langs.map((l) => (
                 <option key={l.id} value={l.id}>
-                  {l.name} ({l.linked_count.toLocaleString()} linked)
+                  {l.name} ({l.lexeme_count.toLocaleString()} words)
                 </option>
               ))}
             </optgroup>

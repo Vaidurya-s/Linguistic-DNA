@@ -29,22 +29,20 @@ DATASET = "wikidata-lexemes"
 SOURCE_ID = "wikidata-lexemes"
 LANGUAGE_NAMES = REPO_ROOT / "data" / "config" / "wikidata_languages.csv"
 
-# Wikidata language item -> (configured language id, lemma spelling code to prefer)
-TARGET_LANGUAGES = {
-    "Q1568": ("hin", "hi"),
-    "Q11051": ("hin", "hi"),  # Hindi; Hindustani (Hindi lemmas only)
-    "Q9610": ("ben", "bn"),
-    "Q1571": ("mar", "mr"),
-    "Q5137": ("guj", "gu"),
-    "Q58635": ("pan", "pa"),
-    "Q33810": ("ory", "or"),
-    "Q29401": ("asm", "as"),
-    "Q5885": ("tam", "ta"),
-    "Q8097": ("tel", "te"),
-    "Q33673": ("kan", "kn"),
-    "Q36236": ("mal", "ml"),
-    "Q11059": ("san", "sa"),
-}
+# Hindi lexemes are mostly filed under Hindustani (Q11051); keep those with a Hindi lemma.
+HINDUSTANI = ("Q11051", "hin", "hi")
+
+
+def target_languages() -> dict[str, tuple[str, str | None]]:
+    """Wikidata language item -> (configured language id, lemma code to require or None)."""
+    from app.importers.jambu import load_languages
+
+    out = {
+        t.wikidata_qid: (t.id, t.wikidata_lemma or None) for t in load_languages() if t.wikidata_qid
+    }
+    out[HINDUSTANI[0]] = (HINDUSTANI[1], HINDUSTANI[2])
+    return out
+
 
 PROPERTY_LABELS = {"P5191": "derived from lexeme", "P5238": "combines lexemes"}
 
@@ -140,11 +138,12 @@ def load_language_names(path: Path = LANGUAGE_NAMES) -> dict[str, str]:
 
 def import_wikidata_lexemes(conn: psycopg.Connection, dump: Path, version: str) -> dict:
     names = load_language_names()
+    targets_cfg = target_languages()
     stats: dict[str, int] = {}
     targets: dict[str, dict] = {}
     wanted: set[str] = set()
     for e in iter_dump(dump):
-        lang = TARGET_LANGUAGES.get(e.get("language"))
+        lang = targets_cfg.get(e.get("language"))
         if not lang or not lemma_of(e, lang[1]):
             continue
         targets[e["id"]] = e
@@ -166,6 +165,7 @@ def import_wikidata_lexemes(conn: psycopg.Connection, dump: Path, version: str) 
                 psycopg.types.json.Jsonb(
                     [
                         "Lexemes in configured languages (by Wikidata language item), lemma only",
+                        "Target languages from data/config/languages.csv (wikidata_qid column)",
                         "Hindustani (Q11051) lexemes kept only when they have a Hindi lemma",
                         "Lexemes referenced by P5191/P5238 imported from any language",
                         "P5191 derived from -> etymon; P5238 combines lexemes -> has_component",
@@ -181,7 +181,7 @@ def import_wikidata_lexemes(conn: psycopg.Connection, dump: Path, version: str) 
         unknown_langs = set()
         lexemes = []
         for lid, e in {**referenced, **targets}.items():
-            target = TARGET_LANGUAGES.get(e.get("language"))
+            target = targets_cfg.get(e.get("language"))
             if lid in targets:
                 language_id, prefer = target
             else:

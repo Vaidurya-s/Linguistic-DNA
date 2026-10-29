@@ -8,7 +8,7 @@ FIXTURE = Path(__file__).parent / "fixtures" / "lsi_mini"
 
 def test_lsi_import_maps_doculects_and_concepts(db):
     stats = import_cldf_wordlist(db, FIXTURE, "lsi", "fixture")
-    assert stats["doculects"] == 2  # Japanese is not a configured language
+    assert stats["doculects"] == 9  # 2 + 7 Tier 1 languages; Japanese is not configured
     rows = db.execute(
         """SELECT l.language_id, l.variety_id, l.form, c.label FROM lexeme l
            JOIN lexeme_concept lc ON lc.lexeme_id = l.id JOIN concept c ON c.id = lc.concept_id

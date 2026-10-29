@@ -151,6 +151,46 @@
       "dest": "aksharantar/tel.zip"
     },
     {
+      "id": "aksharantar-nep",
+      "group": "public",
+      "kind": "http",
+      "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/nep.zip",
+      "sha256": "8bdcc5957d701ea36b63c00c713b43bc30902774b70736737d480e77929de92c",
+      "dest": "aksharantar/nep.zip"
+    },
+    {
+      "id": "aksharantar-mai",
+      "group": "public",
+      "kind": "http",
+      "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/mai.zip",
+      "sha256": "bef959e8b98c981d22c03c4a0e23cac25ca69b74c2cbc5bf8e5d0a2061ce3dfd",
+      "dest": "aksharantar/mai.zip"
+    },
+    {
+      "id": "aksharantar-doi",
+      "group": "public",
+      "kind": "http",
+      "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/doi.zip",
+      "sha256": "a5f79317baa51be6815d89b1e10fd86c5456fb2877b26bdfb5b979b102b33885",
+      "dest": "aksharantar/doi.zip"
+    },
+    {
+      "id": "aksharantar-brx",
+      "group": "public",
+      "kind": "http",
+      "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/brx.zip",
+      "sha256": "4117f9dab514ca613174fd0af6c79fcd74233c6f2a1916e8cc73de0f8ffc0d1b",
+      "dest": "aksharantar/brx.zip"
+    },
+    {
+      "id": "aksharantar-kok",
+      "group": "public",
+      "kind": "http",
+      "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/kok.zip",
+      "sha256": "c08a2896ef3b85f44937c6fcfa75fefdc0736ffb3deceaf0cf9cf64227cc85e9",
+      "dest": "aksharantar/kok.zip"
+    },
+    {
       "id": "jambu",
       "group": "restricted",
       "kind": "git",

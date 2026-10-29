@@ -1,18 +1,26 @@
-id,jambu_id,name,role,group,primary_script,glottocode
-hin,H,Hindi-Urdu,modern,Indo-Aryan,Deva,hind1269
-ben,B,Bengali,modern,Indo-Aryan,Beng,beng1280
-mar,M,Marathi,modern,Indo-Aryan,Deva,mara1378
-guj,G,Gujarati,modern,Indo-Aryan,Gujr,guja1252
-pan,P,Punjabi,modern,Indo-Aryan,Guru,panj1256
-ory,Or,Odia,modern,Indo-Aryan,Orya,oriy1255
-asm,A,Assamese,modern,Indo-Aryan,Beng,assa1263
-tam,Tamil,Tamil,modern,Dravidian,Taml,tami1289
-tel,Telugu,Telugu,modern,Dravidian,Telu,telu1262
-kan,Kannada,Kannada,modern,Dravidian,Knda,nucl1305
-mal,Malayalam,Malayalam,modern,Dravidian,Mlym,mala1464
-san,Sk,Sanskrit,historical,Indo-Aryan,Deva,sans1269
-oia,Indo-Aryan,Old Indo-Aryan (CDIAL headwords),reference,Indo-Aryan,Latn,sans1269
-pli,Pa,Pali,historical,Indo-Aryan,Latn,pali1273
-pra,Pk,Prakrit,historical,Indo-Aryan,Latn,maha1305
-x-apabhramsha,Ap,Apabhramsha,historical,Indo-Aryan,Latn,maha1305
-x-ashokan-prakrit,As,Ashokan Prakrit,historical,Indo-Aryan,Brah,maha1305
+id,jambu_id,name,role,group,primary_script,glottocode,extra_glottocodes,wikidata_qid,wikidata_lemma
+hin,H,Hindi-Urdu,modern,Indo-Aryan,Deva,hind1269,,Q1568,hi
+ben,B,Bengali,modern,Indo-Aryan,Beng,beng1280,,Q9610,bn
+mar,M,Marathi,modern,Indo-Aryan,Deva,mara1378,,Q1571,mr
+guj,G,Gujarati,modern,Indo-Aryan,Gujr,guja1252,,Q5137,gu
+pan,P,Punjabi,modern,Indo-Aryan,Guru,panj1256,,Q58635,pa
+ory,Or,Odia,modern,Indo-Aryan,Orya,oriy1255,,Q33810,or
+asm,A,Assamese,modern,Indo-Aryan,Beng,assa1263,,Q29401,as
+tam,Tamil,Tamil,modern,Dravidian,Taml,tami1289,,Q5885,ta
+tel,Telugu,Telugu,modern,Dravidian,Telu,telu1262,,Q8097,te
+kan,Kannada,Kannada,modern,Dravidian,Knda,nucl1305,,Q33673,kn
+mal,Malayalam,Malayalam,modern,Dravidian,Mlym,mala1464,,Q36236,ml
+san,Sk,Sanskrit,historical,Indo-Aryan,Deva,sans1269,,Q11059,sa
+oia,Indo-Aryan,Old Indo-Aryan (CDIAL headwords),reference,Indo-Aryan,Latn,sans1269,,,
+pli,Pa,Pali,historical,Indo-Aryan,Latn,pali1273,,Q36727,
+pra,Pk,Prakrit,historical,Indo-Aryan,Latn,maha1305,,,
+x-apabhramsha,Ap,Apabhramsha,historical,Indo-Aryan,Latn,maha1305,,,
+x-ashokan-prakrit,As,Ashokan Prakrit,historical,Indo-Aryan,Brah,maha1305,,,
+nep,N,Nepali,modern,Indo-Aryan,Deva,nepa1254,,Q33823,
+mai,Mth,Maithili,modern,Indo-Aryan,Deva,mait1250,,Q36109,
+doi,dog,Dogri,modern,Indo-Aryan,Deva,dogr1250,,Q32730,
+brx,,Bodo,modern,Sino-Tibetan,Deva,bodo1269,,Q33223,
+gom,Ko,Konkani,modern,Indo-Aryan,Deva,konk1267,goan1235;konk1270,Q34239,
+bho,Bhoj,Bhojpuri,modern,Indo-Aryan,Deva,bhoj1244,,Q33268,
+awa,Aw,Awadhi,modern,Indo-Aryan,Deva,awad1243,,Q29579,
+mwr,Marw,Marwari,modern,Indo-Aryan,Deva,marw1260,,,

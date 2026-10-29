@@ -1,4 +1,11 @@
 ID,Name,Glottocode,Glottolog_Name,ISO639P3code,Macroarea,Latitude,Longitude,Family,NameInSource,NumberInSource,Order,FamilyInSource,SubGroup
 JAPANESE,JAPANESE,nucl1643,Japanese,jpn,Eurasia,35.0,135.0,Japonic,Japanese,,1,,
+BODOORBARA,BODO_OR_BARA,bodo1269,Bodo-Mech,brx,Eurasia,26.1,92.0,Sino-Tibetan,Bodo,128.,161,Tibeto-Burman,Bodo
 TAMIL,TAMIL,tami1289,Tamil,tam,Eurasia,10.520219,78.825989,Dravidian,Tamil̤,285.,243,Dravidian,
+KONKANI,KONKANI,konk1267,Konkan Marathi,knn,Eurasia,18.404,73.994,Indo-European,Kōṅkaṇī,494.,321,"Indo-European Family, Aryan sub-family",Indo-Aryan
+BIHARIMAITHILI,BIHARI_MAITHILI,mait1250,Maithili,mai,Eurasia,26.3817,86.2211,Indo-European,"Bihārī, Mait’ilī",507.,324,"Indo-European Family, Aryan sub-family",Indo-Aryan
+EASTERNHINDIAWADHI,EASTERN_HINDI_AWADHI,awad1243,Awadhi,awa,Eurasia,27.5907,82.4663,Indo-European,"Eastern Hindī, Awad’ī",558.,338,"Indo-European Family, Aryan sub-family",Indo-Aryan
 WESTERNHINDIHINDOSTANI,WESTERN_HINDI_HINDOSTANI,hind1269,Hindi,hin,Eurasia,25.0,77.0,Indo-European,"Western Hindī, Hindōstānī",582.,341,"Indo-European Family, Aryan sub-family",Indo-Aryan
+DOGRI,DOGRI,dogr1250,Dogri,dgo,Eurasia,32.5534,75.7111,Indo-European,Ḍōgrī,648.,352,"Indo-European Family, Aryan sub-family",Indo-Aryan
+RAJASTHANIMARWARI,RAJASTHANI_MARWARI,marw1260,Marwari (India),rwr,Eurasia,27.002,75.0656,Indo-European,"Rājast’ānī, Mārwāṛi",713.,361,"Indo-European Family, Aryan sub-family",Indo-Aryan
+EASTERNPAHARIORKHASKURA,EASTERN_PAHARI_OR_KHAS_KURA,nepa1254,Nepali,npi,Eurasia,28.0,85.0,Indo-European,Eastern Pahāṛī/K’as-kurā,782.,370,"Indo-European Family, Aryan sub-family",Indo-Aryan

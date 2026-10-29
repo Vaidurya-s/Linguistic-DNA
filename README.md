@@ -2,21 +2,33 @@
 
 An interactive, evidence-backed platform for exploring relationships between words across Indian languages: documented historical relationships, borrowing, orthographic and phonetic similarity, and semantic relations, presented as a navigable graph.
 
-**Status:** Phase 1 (data correctness and licensing) of the [revised roadmap](#roadmap). A working local demo exists, and the public dataset is being assembled from audit-approved sources only.
+**Status:** Phase 2 done. Search works in native script and romanisation, the graph is usable for dense results, and the public seed holds only audit-approved data. **25 languages are supported**:
+
+| Group | Languages |
+|---|---|
+| Indo-Aryan | Assamese, Awadhi, Bengali, Bhojpuri, Dogri, Gujarati, Hindi-Urdu, Konkani, Maithili, Marathi, Marwari, Nepali, Odia, Punjabi |
+| Dravidian | Kannada, Malayalam, Tamil, Telugu |
+| Sino-Tibetan | Bodo |
+| Historical and reference | Sanskrit, Pali, Prakrit, Apabhramsha, Ashokan Prakrit, Old Indo-Aryan (CDIAL headwords) |
+
+Coverage varies a lot by language: see [`docs/DATASET_LICENCE_AUDIT.md`](docs/DATASET_LICENCE_AUDIT.md). The eight languages added last, Nepali through Marwari, mostly have short comparative wordlists, of 40 to 220 words each.
 
 The API serves `/api/v1/search`, `/lexemes/{id}`, `/graph/{id}`, `/relationships/{id}` and `/languages`; interactive docs are at `http://localhost:8000/docs`.
 
 ## Roadmap
 
-1. **Phase 1, data correctness and licensing (current).**
+1. **Phase 1, data correctness and licensing (done).**
    - Licence audit of the shortlisted datasets.
    - Imports of Glottolog, Concepticon, LSI, ASJP and Wikidata Lexemes, with provenance.
    - Exact matches separated from stems and compounds.
    - A public seed built only from approved data.
    - A seed benchmark awaiting human review.
-2. **Phase 2, script support and graph.** Transliteration aliases from Dakshina and the approved Aksharantar components, native-script search across all languages, and graph clutter control.
-3. **Phase 3, portfolio polish.** Landing page, methodology page, public demo, write-up.
-4. **Phase 4, expansion.** Starts only after the release gate below is met.
+2. **Phase 2, script support and graph (done), plus eight more Devanagari languages.** Transliteration aliases from Dakshina and the approved Aksharantar components, native-script search across all languages, and graph clutter control.
+3. **Phase 3, portfolio polish (next).** Landing page, methodology page, public demo, write-up.
+4. **Phase 4, expansion.** Starts only after the release gate below is met. Next in line:
+   - the remaining scheduled languages, which need new romanisers: Urdu, Kashmiri and Sindhi (Perso-Arabic), Santali (Ol Chiki), Manipuri (Meitei Mayek);
+   - Tulu, Kodava, Kurukh, Khasi, Mizo;
+   - up to 364 more languages of India that already have LSI or ASJP wordlists.
 
 **Release gate before Phase 4:**
 - every deployed dataset component has documented reuse permission;

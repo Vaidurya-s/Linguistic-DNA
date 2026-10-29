@@ -93,10 +93,10 @@ def prune_orphan_sources(conn: psycopg.Connection) -> int:
 
 def ensure_languages(conn: psycopg.Connection) -> int:
     """Register the configured target languages so any importer can run first."""
-    from app.importers.jambu import load_language_config  # local import: avoids a cycle
+    from app.importers.jambu import load_languages  # local import: avoids a cycle
 
     with conn.cursor() as cur:
-        langs = load_language_config().values()
+        langs = load_languages()
         for t in langs:
             cur.execute(
                 "INSERT INTO language (id, name, glottocode, role, is_proto, is_enabled,"

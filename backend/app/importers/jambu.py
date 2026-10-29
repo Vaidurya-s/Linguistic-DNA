@@ -95,6 +95,13 @@ class TargetLanguage:
     group: str
     primary_script: str
     glottocode: str
+    extra_glottocodes: str = ""  # ';'-separated codes other datasets use for the language
+    wikidata_qid: str = ""
+    wikidata_lemma: str = ""  # lemma spelling code to prefer, e.g. 'hi'
+
+    @property
+    def glottocodes(self) -> list[str]:
+        return [c for c in [self.glottocode, *self.extra_glottocodes.split(";")] if c]
 
 
 @dataclass
@@ -105,11 +112,17 @@ class ImportStats:
         self.counts[key] += n
 
 
-def load_language_config(path: Path = LANGUAGE_CONFIG) -> dict[str, TargetLanguage]:
+def load_languages(path: Path = LANGUAGE_CONFIG) -> list[TargetLanguage]:
+    """All configured target languages (data/config/languages.csv)."""
     rows = read_csv(
         path, ("id", "jambu_id", "name", "role", "group", "primary_script", "glottocode")
     )
-    return {r["jambu_id"]: TargetLanguage(**r) for r in rows}
+    return [TargetLanguage(**r) for r in rows]
+
+
+def load_language_config(path: Path = LANGUAGE_CONFIG) -> dict[str, TargetLanguage]:
+    """Configured languages that Jambu has, keyed by Jambu language ID."""
+    return {t.jambu_id: t for t in load_languages(path) if t.jambu_id}
 
 
 def load_source_map(path: Path = SOURCE_MAP) -> dict[str, str]:

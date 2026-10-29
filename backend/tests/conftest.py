@@ -66,3 +66,13 @@ def client(imported_db):
     yield TestClient(app)
     app.dependency_overrides.clear()
     engine.dispose()
+
+
+@pytest.fixture(scope="session")
+def lsi_imported(imported_db: str) -> str:
+    """The CC-BY LSI fixture, which also covers the Tier 1 languages."""
+    from app.importers.cldf_wordlist import import_cldf_wordlist
+
+    with connect(imported_db) as conn:
+        import_cldf_wordlist(conn, FIXTURES / "lsi_mini", "lsi", "fixture")
+    return imported_db

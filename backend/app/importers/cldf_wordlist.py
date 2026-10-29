@@ -12,7 +12,7 @@ import psycopg
 
 from app.importers.common import copy_rows, read_csv, sha256_file
 from app.importers.concepticon import ensure_concept
-from app.importers.jambu import LANGUAGE_CONFIG, TargetLanguage, load_language_config
+from app.importers.jambu import LANGUAGE_CONFIG, TargetLanguage, load_languages
 from app.models.enums import ReconstructionStatus
 from app.services.ids import lexeme_id
 from app.services.normalize import form_kind, normalize_form, search_key
@@ -42,12 +42,13 @@ LEXEME_COLS = (
 )
 
 
-def by_glottocode(targets: dict[str, TargetLanguage]) -> dict[str, TargetLanguage]:
+def by_glottocode(targets: list[TargetLanguage]) -> dict[str, TargetLanguage]:
     """Glottocode -> configured language, preferring real languages over reference layers."""
     out: dict[str, TargetLanguage] = {}
-    for t in targets.values():
-        if t.glottocode and (t.glottocode not in out or out[t.glottocode].role == "reference"):
-            out[t.glottocode] = t
+    for t in targets:
+        for code in t.glottocodes:
+            if code not in out or out[code].role == "reference":
+                out[code] = t
     return out
 
 
@@ -61,7 +62,7 @@ def import_cldf_wordlist(
 ) -> dict:
     """Import one dataset. ``transcription`` names a phonetic code the forms are written in
     (e.g. ASJPcode); such forms are stored as transcriptions, not as orthography."""
-    targets = by_glottocode(load_language_config(language_config))
+    targets = by_glottocode(load_languages(language_config))
     files = ("forms.csv", "languages.csv", "parameters.csv")
     checksums = {name: sha256_file(cldf_dir / name) for name in files}
     doculects = {

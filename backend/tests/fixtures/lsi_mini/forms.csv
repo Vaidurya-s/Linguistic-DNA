@@ -1,15 +1,43 @@
 ID,Local_ID,Language_ID,Parameter_ID,Value,Form,Segments,Comment,Source,Cognacy,Loan,Graphemes,Profile
 JAPANESE-5_five-1,,JAPANESE,5_five,itsutsu,itsutsu,i ts u ts u,,Grierson1928,,,^i ts u ts u $,JAPANESE
+BODOORBARA-5_five-1,,BODOORBARA,5_five,bā,bā,b ʌː,,Grierson1928,,,^b ā $,BODOORBARA
 TAMIL-5_five-1,,TAMIL,5_five,eindu,eindu,ei n̪ d̪ u,,Grierson1928,,,^ei n d u $,TAMIL
 TAMIL-5_five-2,,TAMIL,5_five,eim,eim,ei m,,Grierson1928,,,^ei m $,TAMIL
+KONKANI-5_five-1,,KONKANI,5_five,pā̃ṯs̱,pā̃ṯs̱,p ãː ts,,Grierson1928,,,^p ā̃ ṯs̱ $,KONKANI
+BIHARIMAITHILI-5_five-1,,BIHARIMAITHILI,5_five,pā̃ch,pā̃ch,p ãː tʃ,,Grierson1928,,,^p ā̃ ch $,BIHARIMAITHILI
+EASTERNHINDIAWADHI-5_five-1,,EASTERNHINDIAWADHI,5_five,pā̃ch,pā̃ch,p ãː tʃ,,Grierson1928,,,^p ā̃ ch $,EASTERNHINDIAWADHI
 WESTERNHINDIHINDOSTANI-5_five-1,,WESTERNHINDIHINDOSTANI,5_five,pā̃ch,pā̃ch,p ãː tʃ,,Grierson1928,,,^p ā̃ ch $,WESTERNHINDIHINDOSTANI
+DOGRI-5_five-1,,DOGRI,5_five,pañj,pañj,p ʌ ɲ dʒ,,Grierson1928,,,^p a ñ j $,DOGRI
+RAJASTHANIMARWARI-5_five-1,,RAJASTHANIMARWARI,5_five,pā̃ch,pā̃ch,p ãː tʃ,,Grierson1928,,,^p ā̃ ch $,RAJASTHANIMARWARI
+EASTERNPAHARIORKHASKURA-5_five-1,,EASTERNPAHARIORKHASKURA,5_five,pā̃ch,pā̃ch,p ãː tʃ,,Grierson1928,,,^p ā̃ ch $,EASTERNPAHARIORKHASKURA
 JAPANESE-1_one-1,,JAPANESE,1_one,hitotsu,hitotsu,h i t̪ o ts u,,Grierson1928,,,^h i t o ts u $,JAPANESE
+BODOORBARA-1_one-1,,BODOORBARA,1_one,sè,sè,s e,,Grierson1928,,,^s è $,BODOORBARA
+BODOORBARA-1_one-2,,BODOORBARA,1_one,sǔi,sǔi,s ŏ i,,Grierson1928,,,^s ǔ i $,BODOORBARA
+BODOORBARA-1_one-3,,BODOORBARA,1_one,sè,sè,s e,,Grierson1928,,,^s è $,BODOORBARA
+BODOORBARA-1_one-4,,BODOORBARA,1_one,sǔi,sǔi,s ŏ i,,Grierson1928,,,^s ǔ i $,BODOORBARA
 TAMIL-1_one-1,,TAMIL,1_one,ondru,ondru,o n̪ d̪ r u,,Grierson1928,,,^o n d r u $,TAMIL
 TAMIL-1_one-2,,TAMIL,1_one,oru,oru,o r u,,Grierson1928,,,^o r u $,TAMIL
 TAMIL-1_one-3,,TAMIL,1_one,ōr,ōr,oː r,,Grierson1928,,,^ō r $,TAMIL
+KONKANI-1_one-1,,KONKANI,1_one,yēk,yēk,j eː k,,Grierson1928,,,^y ē k $,KONKANI
+BIHARIMAITHILI-1_one-1,,BIHARIMAITHILI,1_one,ēk,ēk,eː k,,Grierson1928,,,^ē k $,BIHARIMAITHILI
+EASTERNHINDIAWADHI-1_one-1,,EASTERNHINDIAWADHI,1_one,ēk,ēk,eː k,,Grierson1928,,,^ē k $,EASTERNHINDIAWADHI
 WESTERNHINDIHINDOSTANI-1_one-1,,WESTERNHINDIHINDOSTANI,1_one,ēk,ēk,eː k,,Grierson1928,,,^ē k $,WESTERNHINDIHINDOSTANI
+DOGRI-1_one-1,,DOGRI,1_one,ik,ik,i k,,Grierson1928,,,^i k $,DOGRI
+RAJASTHANIMARWARI-1_one-1,,RAJASTHANIMARWARI,1_one,ēk,ēk,eː k,,Grierson1928,,,^ē k $,RAJASTHANIMARWARI
+EASTERNPAHARIORKHASKURA-1_one-1,,EASTERNPAHARIORKHASKURA,1_one,ek,ek,e k,,Grierson1928,,,^e k $,EASTERNPAHARIORKHASKURA
+EASTERNPAHARIORKHASKURA-1_one-2,,EASTERNPAHARIORKHASKURA,1_one,yek,yek,j e k,,Grierson1928,,,^y e k $,EASTERNPAHARIORKHASKURA
+EASTERNPAHARIORKHASKURA-1_one-3,,EASTERNPAHARIORKHASKURA,1_one,yak,yak,j ʌ k,,Grierson1928,,,^y a k $,EASTERNPAHARIORKHASKURA
+EASTERNPAHARIORKHASKURA-1_one-4,,EASTERNPAHARIORKHASKURA,1_one,auṭā,auṭā,au ʈ ʌː,,Grierson1928,,,^au ṭ ā $,EASTERNPAHARIORKHASKURA
 JAPANESE-2_two-1,,JAPANESE,2_two,futatsu,futatsu,f u t̪ ʌ ts u,,Grierson1928,,,^f u t a ts u $,JAPANESE
+BODOORBARA-2_two-1,,BODOORBARA,2_two,nè,nè,n̪ e,,Grierson1928,,,^n è $,BODOORBARA
+BODOORBARA-2_two-2,,BODOORBARA,2_two,nǔi,nǔi,n̪ ŏ i,,Grierson1928,,,^n ǔ i $,BODOORBARA
 TAMIL-2_two-1,,TAMIL,2_two,iraṇḍu,iraṇḍu,i r ʌ ɳ ɖ u,,Grierson1928,,,^i r a ṇ ḍ u $,TAMIL
 TAMIL-2_two-2,,TAMIL,2_two,iru,iru,i r u,,Grierson1928,,,^i r u $,TAMIL
 TAMIL-2_two-3,,TAMIL,2_two,īr,īr,iː r,,Grierson1928,,,^ī r $,TAMIL
+KONKANI-2_two-1,,KONKANI,2_two,dōn,dōn,d̪ oː n̪,,Grierson1928,,,^d ō n $,KONKANI
+BIHARIMAITHILI-2_two-1,,BIHARIMAITHILI,2_two,dū,dū,d̪ uː,,Grierson1928,,,^d ū $,BIHARIMAITHILI
+EASTERNHINDIAWADHI-2_two-1,,EASTERNHINDIAWADHI,2_two,dō,dō,d̪ oː,,Grierson1928,,,^d ō $,EASTERNHINDIAWADHI
 WESTERNHINDIHINDOSTANI-2_two-1,,WESTERNHINDIHINDOSTANI,2_two,dō,dō,d̪ oː,,Grierson1928,,,^d ō $,WESTERNHINDIHINDOSTANI
+DOGRI-2_two-1,,DOGRI,2_two,dō,dō,d̪ oː,,Grierson1928,,,^d ō $,DOGRI
+RAJASTHANIMARWARI-2_two-1,,RAJASTHANIMARWARI,2_two,dōy,dōy,d̪ oː j,,Grierson1928,,,^d ō y $,RAJASTHANIMARWARI
+EASTERNPAHARIORKHASKURA-2_two-1,,EASTERNPAHARIORKHASKURA,2_two,dui,dui,d̪ u i,,Grierson1928,,,^d u i $,EASTERNPAHARIORKHASKURA

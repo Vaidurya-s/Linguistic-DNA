@@ -298,12 +298,35 @@ def romanize_variants(text: str) -> list[str]:
             r = _romanize(text, drop, nasal)
             if r and r not in out:
                 out.append(r)
+    # Older sources (Grierson's LSI, Turner) write च as ch and छ as chh (Hunterian).
+    for r in list(out):
+        h = hunterian(r)
+        if h != r and h not in out:
+            out.append(h)
     return out
+
+
+def hunterian(iso: str) -> str:
+    """ISO 15919 c/ch -> Hunterian ch/chh, the convention of many older sources."""
+    return iso.replace("ch", "\x00").replace("c", "ch").replace("\x00", "chh")
 
 
 # Languages that do not pronounce some inherent vowels (by language, not script: Sanskrit
 # in Devanagari keeps them).
-SCHWA_DELETING_LANGUAGES = {"hin", "mar", "ben", "asm", "pan", "guj"}
+SCHWA_DELETING_LANGUAGES = {
+    "hin",
+    "mar",
+    "ben",
+    "asm",
+    "pan",
+    "guj",
+    "nep",
+    "mai",
+    "doi",
+    "bho",
+    "awa",
+    "mwr",
+}
 
 
 def native_search_key_source(text: str, language_id: str | None) -> str | None:

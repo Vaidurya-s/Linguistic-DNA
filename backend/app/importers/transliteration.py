@@ -42,6 +42,11 @@ AKSHARANTAR_LANGUAGES = {
     "san": "san",
     "tam": "tam",
     "tel": "tel",
+    "nep": "nep",
+    "mai": "mai",
+    "doi": "doi",
+    "brx": "brx",
+    "kok": "gom",
 }
 AKSHARANTAR_COMPONENTS = {  # record source -> dataset_audit id
     "AK-Freq": "aksharantar-manual",
