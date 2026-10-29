@@ -68,6 +68,7 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("rekey-search", help="recompute lexeme.search_key after a rule change")
     sub.add_parser("build-public-seed")
     sub.add_parser("load-public-seed")
+    sub.add_parser("ensure-seed", help="load the public seed if the database has no lexemes")
     args = parser.parse_args(argv)
     if args.cmd == "benchmark":
         return _benchmark(args.database_url)
@@ -100,6 +101,9 @@ def main(argv: list[str] | None = None) -> int:
             result = build_public_seed(conn)
         elif args.cmd == "load-public-seed":
             result = load_public_seed(conn)
+        elif args.cmd == "ensure-seed":
+            empty = conn.execute("SELECT NOT EXISTS (SELECT 1 FROM lexeme)").fetchone()[0]
+            result = load_public_seed(conn) if empty else {"skipped": "database already has data"}
         elif args.cmd == "import-dakshina":
             load_manifest(conn)
             result = import_dakshina(conn, args.tar)

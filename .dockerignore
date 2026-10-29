@@ -1,0 +1,9 @@
+data/raw
+**/node_modules
+**/.venv
+**/__pycache__
+**/*.egg-info
+frontend/dist
+reports
+.git
+.env

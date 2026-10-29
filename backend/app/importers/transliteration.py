@@ -50,6 +50,7 @@ AKSHARANTAR_LANGUAGES = {
 }
 AKSHARANTAR_COMPONENTS = {  # record source -> dataset_audit id
     "AK-Freq": "aksharantar-manual",
+    "Ak-Freq": "aksharantar-manual",  # upstream spells AK-Freq this way in some records
     "AK-NEI": "aksharantar-manual",
     "AK-NEF": "aksharantar-manual",
     "Wikidata": "aksharantar-wikidata",

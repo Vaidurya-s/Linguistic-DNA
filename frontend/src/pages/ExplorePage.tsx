@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getGraph, getLanguages, searchLexemes } from '../api/client.ts'
+import { replaceParams } from '../app/router.ts'
 import DetailsPanel from '../components/DetailsPanel.tsx'
 import GraphCanvas, { type Selection } from '../components/GraphCanvas.tsx'
 import {
@@ -13,7 +14,7 @@ import GraphLegend from '../components/GraphLegend.tsx'
 import { styleFor } from '../components/edgeStyles.ts'
 import type { GraphEdge, GraphNode, Language, SearchMatch, SearchResponse } from '../types/api.ts'
 
-const EXAMPLES = ['dānt', 'पानी', 'paani', 'ಹಗಲು', 'mā́lā']
+const EXAMPLES = ['पानी', 'paani', 'angara', 'bidyut', 'ಹಲ್ಲು']
 const NEIGHBOUR_LIMIT = 24
 
 const MATCH_LABEL: Record<string, string> = {
@@ -77,10 +78,12 @@ function MatchButton({ m, onPick }: { m: SearchMatch; onPick: (m: SearchMatch) =
   )
 }
 
-export default function ExplorePage() {
+type Props = { initialQuery?: string; initialLanguage?: string }
+
+export default function ExplorePage({ initialQuery = '', initialLanguage = '' }: Props) {
   const [languages, setLanguages] = useState<Language[]>([])
-  const [query, setQuery] = useState('')
-  const [languageId, setLanguageId] = useState('')
+  const [query, setQuery] = useState(initialQuery)
+  const [languageId, setLanguageId] = useState(initialLanguage)
   const [results, setResults] = useState<SearchResponse | null>(null)
   const [rootId, setRootId] = useState<string | null>(null)
   const [nodes, setNodes] = useState<Map<string, GraphNode>>(new Map())
@@ -101,6 +104,7 @@ export default function ExplorePage() {
 
   const runSearch = useCallback(async (q: string, lang: string) => {
     if (!q.trim()) return
+    replaceParams('/explore', { q: q.trim(), lang: lang || undefined }) // shareable URL
     setBusy('Searching…')
     setError(null)
     try {
@@ -113,6 +117,13 @@ export default function ExplorePage() {
       setBusy(null)
     }
   }, [])
+
+  // Opening a shared link (#/explore?q=…) runs that search once the page is mounted.
+  useEffect(() => {
+    if (!initialQuery) return
+    const id = window.setTimeout(() => void runSearch(initialQuery, initialLanguage), 0)
+    return () => window.clearTimeout(id)
+  }, [initialQuery, initialLanguage, runSearch])
 
   const expand = useCallback(async (id: string, reset = false) => {
     setBusy('Loading connections…')
@@ -183,10 +194,10 @@ export default function ExplorePage() {
   return (
     <main className="mx-auto max-w-7xl px-4 py-6 text-slate-900">
       <header className="mb-4">
-        <h1 className="text-2xl font-semibold">Language Similarity Graph</h1>
+        <h1 className="text-2xl font-semibold">Explore</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Explore documented relationships between words in Indian languages. Every link shown
-          here comes from a cited source; similar spellings are listed separately as candidates.
+          Every link shown comes from a cited source. Similar spellings are listed separately, as
+          candidates.
         </p>
       </header>
 
