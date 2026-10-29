@@ -13,13 +13,23 @@ const searchResponse = {
     {
       id: 'lx_1', form: 'dānt', native_form: null, language_id: 'pan', language_name: 'Punjabi',
       group: 'Indo-Aryan', gloss: 'tooth', reconstruction_status: 'attested', is_proto: false,
+      form_kind: 'word',
       match_type: 'exact', score: null, relationship_count: 1, duplicate_count: 1,
     },
   ],
+  related_forms: [
+    {
+      id: 'lx_3', form: 'dānta-', native_form: null, language_id: 'oia', language_name: 'Old Indo-Aryan',
+      group: 'Indo-Aryan', gloss: null, reconstruction_status: 'attested', is_proto: false,
+      form_kind: 'stem', match_type: 'loose', score: null, relationship_count: 0, duplicate_count: 1,
+    },
+  ],
+  compounds: [],
   spelling_candidates: [
     {
       id: 'lx_2', form: 'dānti', native_form: null, language_id: 'mar', language_name: 'Marathi',
       group: 'Indo-Aryan', gloss: null, reconstruction_status: 'attested', is_proto: false,
+      form_kind: 'word',
       match_type: 'spelling_candidate', score: 0.57, relationship_count: 0, duplicate_count: 1,
     },
   ],
@@ -46,6 +56,8 @@ describe('ExplorePage', () => {
     expect(await screen.findByText(/Matches for/)).toBeInTheDocument()
     expect(screen.getByText(/1 documented link/)).toBeInTheDocument()
     expect(screen.getByText(/candidates, not evidence of relation/)).toBeInTheDocument()
+    expect(screen.getByText(/Stems, affixes and other forms/)).toBeInTheDocument()
+    expect(screen.getByText(/stem \(combining form\)/)).toBeInTheDocument()
   })
 
   it('shows an error when search fails', async () => {

@@ -87,3 +87,10 @@ def test_lexeme_detail_and_languages(client):
     langs = client.get("/api/v1/languages").json()
     assert langs[0]["role"] == "modern"
     assert {"hin", "tam"} <= {lang["id"] for lang in langs}
+
+
+def test_stems_are_not_word_matches(client):
+    body = client.get("/api/v1/search", params={"q": "svatva"}).json()
+    assert body["matches"] == []
+    assert [(m["form"], m["form_kind"]) for m in body["related_forms"]] == [("svatva-", "stem")]
+    assert all(c["form_kind"] == "word" for c in body["spelling_candidates"])

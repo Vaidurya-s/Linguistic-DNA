@@ -21,10 +21,11 @@ export type LexemeSummary = {
   gloss: string | null
   reconstruction_status: 'attested' | 'reconstructed' | 'uncertain' | 'unknown'
   is_proto: boolean
+  form_kind: 'word' | 'stem' | 'affix' | 'root' | 'compound' | 'phrase'
 }
 
 export type SearchMatch = LexemeSummary & {
-  match_type: 'exact' | 'native_exact' | 'loose' | 'spelling_candidate'
+  match_type: 'exact' | 'native_exact' | 'loose' | 'spelling_candidate' | 'compound_of_match'
   score: number | null
   relationship_count: number
   duplicate_count: number
@@ -36,6 +37,8 @@ export type SearchResponse = {
   detected_script: string
   language_hints: string[]
   matches: SearchMatch[]
+  related_forms: SearchMatch[]
+  compounds: SearchMatch[]
   spelling_candidates: SearchMatch[]
   warnings: string[]
 }

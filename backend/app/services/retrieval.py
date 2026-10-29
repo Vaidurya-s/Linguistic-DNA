@@ -13,7 +13,7 @@ from app.services.normalize import normalize_form, search_key
 LEXEME_FIELDS = """
     l.id, l.form, l.native_form, l.language_id, g.name AS language_name,
     g.metadata_json->>'group' AS "group", l.gloss, l.reconstruction_status::text,
-    g.is_proto
+    g.is_proto, l.form_kind::text
 """
 
 
@@ -68,7 +68,7 @@ def search(conn: Connection, q: str, language_id: str | None, limit: int) -> dic
     warnings: list[str] = []
     params = {"q": normalized, "key": key, "lang": language_id, "limit": limit}
 
-    matches = _rows(
+    hits = _rows(
         conn,
         """
         WITH hits AS (
@@ -95,10 +95,15 @@ def search(conn: Connection, q: str, language_id: str | None, limit: int) -> dic
         FROM grouped l JOIN language g ON g.id = l.language_id
         WHERE g.is_enabled
         ORDER BY (l.match_type = 'loose'), l.rels DESC, g.name, l.form
-        LIMIT :limit
+        LIMIT :wide
     """,
-        params,
+        {**params, "wide": limit * 4},
     )
+    # Only whole words can be matches; stems, affixes, roots, phrases and compounds that
+    # happen to share the spelling are listed separately (they are different units).
+    matches = [h for h in hits if h["form_kind"] == "word"][:limit]
+    related_forms = [h for h in hits if h["form_kind"] != "word"][:limit]
+    compounds = _compounds_containing(conn, [m["id"] for m in matches], limit)
 
     candidates = []
     if len(key) >= 3:
@@ -116,6 +121,7 @@ def search(conn: Connection, q: str, language_id: str | None, limit: int) -> dic
                    1 AS duplicate_count
             FROM lexeme l JOIN language g ON g.id = l.language_id
             WHERE l.search_key % :key AND l.search_key <> :key AND g.is_enabled
+              AND l.form_kind = 'word'
               AND (CAST(:lang AS text) IS NULL OR l.language_id = :lang)
             ORDER BY l.language_id, l.form, score DESC
         """,
@@ -131,7 +137,7 @@ def search(conn: Connection, q: str, language_id: str | None, limit: int) -> dic
             f"Few records in this dataset carry {script} spellings; most forms are in scholarly "
             "romanisation. Try a romanised spelling."
         )
-    if not matches and not candidates:
+    if not matches and not related_forms and not candidates:
         warnings.append("No form in the indexed dataset matches this query.")
     return {
         "query": q,
@@ -139,9 +145,35 @@ def search(conn: Connection, q: str, language_id: str | None, limit: int) -> dic
         "detected_script": script,
         "language_hints": hints,
         "matches": matches,
+        "related_forms": related_forms,
+        "compounds": compounds,
         "spelling_candidates": candidates,
         "warnings": warnings,
     }
+
+
+def _compounds_containing(conn: Connection, ids: list[str], limit: int) -> list[dict]:
+    """Compounds documented (has_component) as containing one of the matched words."""
+    if not ids:
+        return []
+    return _rows(
+        conn,
+        """
+        SELECT DISTINCT ON (l.id) """
+        + LEXEME_FIELDS
+        + """, 'compound_of_match' AS match_type, NULL::float AS score,
+               (SELECT count(*) FROM relationship x
+                WHERE x.source_lexeme_id = l.id OR x.target_lexeme_id = l.id)
+                   AS relationship_count, 1 AS duplicate_count
+        FROM relationship r
+        JOIN lexeme l ON l.id = r.source_lexeme_id
+        JOIN language g ON g.id = l.language_id
+        WHERE r.type_id = 'has_component' AND r.target_lexeme_id = ANY(:ids)
+        ORDER BY l.id
+        LIMIT :limit
+    """,
+        {"ids": ids, "limit": limit},
+    )
 
 
 def get_lexeme(conn: Connection, lexeme_id: str) -> dict | None:

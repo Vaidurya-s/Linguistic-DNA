@@ -13,6 +13,34 @@ const MATCH_LABEL: Record<string, string> = {
   native_exact: 'exact (native script)',
   loose: 'matched ignoring diacritics',
   spelling_candidate: 'similar spelling — candidate only',
+  compound_of_match: 'documented compound containing a match',
+}
+
+const KIND_LABEL: Record<string, string> = {
+  stem: 'stem (combining form)',
+  affix: 'affix',
+  root: 'root',
+  compound: 'compound',
+  phrase: 'multi-word phrase',
+}
+
+function ResultGroup({ title, items, onPick, open = false }: {
+  title: string
+  items: SearchMatch[]
+  onPick: (m: SearchMatch) => void
+  open?: boolean
+}) {
+  if (items.length === 0) return null
+  return (
+    <details className="mt-3" open={open}>
+      <summary className="cursor-pointer text-sm font-semibold">
+        {title} ({items.length})
+      </summary>
+      <div className="mt-2 space-y-1.5">
+        {items.map((m) => <MatchButton key={m.id} m={m} onPick={onPick} />)}
+      </div>
+    </details>
+  )
 }
 
 function MatchButton({ m, onPick }: { m: SearchMatch; onPick: (m: SearchMatch) => void }) {
@@ -29,6 +57,7 @@ function MatchButton({ m, onPick }: { m: SearchMatch; onPick: (m: SearchMatch) =
       <span className="text-sm text-slate-600">{m.language_name}</span>
       {m.gloss && <span className="text-sm text-slate-600"> — “{m.gloss}”</span>}
       <span className="mt-0.5 block text-xs text-slate-500">
+        {m.form_kind !== 'word' && `${KIND_LABEL[m.form_kind] ?? m.form_kind} · `}
         {MATCH_LABEL[m.match_type]}
         {m.score !== null && ` (score ${m.score.toFixed(2)}, not a relatedness measure)`} ·{' '}
         {m.relationship_count} documented link{m.relationship_count === 1 ? '' : 's'}
@@ -226,16 +255,21 @@ export default function ExplorePage() {
                   </div>
                 </details>
               )}
-              {results.spelling_candidates.length > 0 && (
-                <details className="mt-3">
-                  <summary className="cursor-pointer text-sm font-semibold">
-                    Similar spellings ({results.spelling_candidates.length}) — candidates, not evidence of relation
-                  </summary>
-                  <div className="mt-2 space-y-1.5">
-                    {results.spelling_candidates.map((m) => <MatchButton key={m.id} m={m} onPick={pick} />)}
-                  </div>
-                </details>
+              {results.matches.length === 0 && (
+                <p className="mb-2 text-sm text-slate-600">No whole-word match for “{results.query}”.</p>
               )}
+              <ResultGroup
+                title="Stems, affixes and other forms with this spelling"
+                items={results.related_forms}
+                onPick={pick}
+                open={results.matches.length === 0}
+              />
+              <ResultGroup title="Compounds containing a match" items={results.compounds} onPick={pick} />
+              <ResultGroup
+                title="Similar spellings — candidates, not evidence of relation"
+                items={results.spelling_candidates}
+                onPick={pick}
+              />
             </section>
           )}
           <section id="details" className="scroll-mt-4 rounded-lg border border-slate-200 p-3">

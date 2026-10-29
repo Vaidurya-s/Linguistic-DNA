@@ -26,10 +26,12 @@ class LexemeSummary(BaseModel):
     gloss: str | None
     reconstruction_status: str
     is_proto: bool
+    form_kind: str
 
 
 class SearchMatch(LexemeSummary):
-    match_type: str  # exact | native_exact | loose | spelling_candidate
+    # exact | native_exact | loose | spelling_candidate | compound_of_match
+    match_type: str
     score: float | None = None
     relationship_count: int
     duplicate_count: int
@@ -40,7 +42,9 @@ class SearchResponse(BaseModel):
     normalized_query: str
     detected_script: str
     language_hints: list[str]
-    matches: list[SearchMatch]
+    matches: list[SearchMatch]  # whole words only
+    related_forms: list[SearchMatch]  # stems, affixes, roots, phrases, compounds
+    compounds: list[SearchMatch]  # documented compounds containing a matched word
     spelling_candidates: list[SearchMatch]
     warnings: list[str]
 
