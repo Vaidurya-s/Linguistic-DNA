@@ -1,17 +1,26 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getGraph, getLanguages, searchLexemes } from '../api/client.ts'
 import DetailsPanel from '../components/DetailsPanel.tsx'
-import GraphCanvas, { type DisplayNode, type Selection } from '../components/GraphCanvas.tsx'
+import GraphCanvas, { type Selection } from '../components/GraphCanvas.tsx'
+import {
+  applyFilters,
+  capNeighbours,
+  describeEdge,
+  groupOf,
+  mergeDuplicates,
+} from '../components/graphModel.ts'
 import GraphLegend from '../components/GraphLegend.tsx'
 import { styleFor } from '../components/edgeStyles.ts'
 import type { GraphEdge, GraphNode, Language, SearchMatch, SearchResponse } from '../types/api.ts'
 
-const EXAMPLES = ['dānt', 'mā́lā', 'ಹಗಲು', 'pani']
+const EXAMPLES = ['dānt', 'पानी', 'paani', 'ಹಗಲು', 'mā́lā']
+const NEIGHBOUR_LIMIT = 24
 
 const MATCH_LABEL: Record<string, string> = {
   exact: 'exact',
   native_exact: 'exact (native script)',
   loose: 'matched ignoring diacritics',
+  transliteration: 'matched through transliteration',
   spelling_candidate: 'similar spelling — candidate only',
   compound_of_match: 'documented compound containing a match',
 }
@@ -59,6 +68,7 @@ function MatchButton({ m, onPick }: { m: SearchMatch; onPick: (m: SearchMatch) =
       <span className="mt-0.5 block text-xs text-slate-500">
         {m.form_kind !== 'word' && `${KIND_LABEL[m.form_kind] ?? m.form_kind} · `}
         {MATCH_LABEL[m.match_type]}
+        {m.via && <span title="How this match was found"> ({m.via})</span>}
         {m.score !== null && ` (score ${m.score.toFixed(2)}, not a relatedness measure)`} ·{' '}
         {m.relationship_count} documented link{m.relationship_count === 1 ? '' : 's'}
         {m.duplicate_count > 1 && ` · ${m.duplicate_count} identical records grouped`}
@@ -81,6 +91,9 @@ export default function ExplorePage() {
   const [error, setError] = useState<string | null>(null)
   const [truncated, setTruncated] = useState(false)
   const [resultsOpen, setResultsOpen] = useState(true)
+  const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set())
+  const [hiddenGroups, setHiddenGroups] = useState<Set<string>>(new Set())
+  const [showAll, setShowAll] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     getLanguages().then(setLanguages).catch(() => setLanguages([]))
@@ -126,44 +139,34 @@ export default function ExplorePage() {
 
   const pick = (m: SearchMatch) => {
     setResultsOpen(false)
+    setShowAll(new Set())
     setRootId(m.id)
     setSelection({ kind: 'node', id: m.id })
     void expand(m.id, true)
   }
 
-  // Identical records (same language, form and meaning, e.g. repeated dialect-survey rows)
-  // are drawn as one node marked ×N. This is display-only; the records stay separate.
-  const { nodeList, edgeList, alias } = useMemo(() => {
-    const groups = new Map<string, DisplayNode>()
-    const alias = new Map<string, string>()
-    for (const n of nodes.values()) {
-      const key = `${n.language_id}|${n.form.trim()}|${n.gloss ?? ''}`
-      const existing = groups.get(key)
-      if (existing && n.id !== rootId) {
-        existing.records += 1
-        alias.set(n.id, existing.id)
-      } else if (existing && n.id === rootId) {
-        groups.set(key, { ...n, records: existing.records + 1 })
-        alias.set(existing.id, n.id)
-      } else {
-        groups.set(key, { ...n, records: 1 })
-      }
-    }
-    const resolve = (id: string) => {
-      let current = id
-      while (alias.has(current)) current = alias.get(current)!
-      return current
-    }
-    for (const id of alias.keys()) alias.set(id, resolve(id))
-    const seenEdges = new Map<string, GraphEdge>()
-    for (const e of edges.values()) {
-      const source = resolve(e.source)
-      const target = resolve(e.target)
-      const key = `${source}|${target}|${e.type}`
-      if (source !== target && !seenEdges.has(key)) seenEdges.set(key, { ...e, source, target })
-    }
-    return { nodeList: [...groups.values()], edgeList: [...seenEdges.values()], alias }
-  }, [nodes, edges, rootId])
+  const merged = useMemo(() => mergeDuplicates(nodes.values(), edges.values(), rootId), [nodes, edges, rootId])
+  const presentTypes = useMemo(() => [...new Set(merged.edges.map((e) => e.type))].sort(), [merged])
+  const presentGroups = useMemo(() => [...new Set(merged.nodes.map(groupOf))].sort(), [merged])
+  const { graph: shown, hidden } = useMemo(() => {
+    if (!rootId) return { graph: merged, hidden: new Map<string, number>() }
+    const filtered = applyFilters(
+      merged,
+      rootId,
+      new Set(presentTypes.filter((t) => !hiddenTypes.has(t))),
+      new Set(presentGroups.filter((g) => !hiddenGroups.has(g))),
+    )
+    return capNeighbours(filtered, rootId, expanded, NEIGHBOUR_LIMIT, showAll)
+  }, [merged, rootId, presentTypes, presentGroups, hiddenTypes, hiddenGroups, expanded, showAll])
+  const nodeList = shown.nodes
+  const edgeList = shown.edges
+  const byId = useMemo(() => new Map(merged.nodes.map((n) => [n.id, n])), [merged])
+  const toggle = (set: Set<string>, value: string) => {
+    const next = new Set(set)
+    if (next.has(value)) next.delete(value)
+    else next.add(value)
+    return next
+  }
   const languageGroups = useMemo(() => {
     const groups = new Map<string, Language[]>()
     languages.forEach((l) => groups.set(l.role, [...(groups.get(l.role) ?? []), l]))
@@ -282,6 +285,31 @@ export default function ExplorePage() {
         <section aria-label="Graph" className="min-w-0">
           {rootId ? (
             <>
+              <fieldset className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-700">
+                <legend className="sr-only">Filter the graph</legend>
+                <span className="font-semibold">Show:</span>
+                {presentTypes.map((type) => (
+                  <label key={type} className="flex items-center gap-1">
+                    <input
+                      type="checkbox"
+                      checked={!hiddenTypes.has(type)}
+                      onChange={() => setHiddenTypes((s) => toggle(s, type))}
+                    />
+                    {styleFor(type).short}
+                  </label>
+                ))}
+                <span className="ml-2 font-semibold">Languages:</span>
+                {presentGroups.map((group) => (
+                  <label key={group} className="flex items-center gap-1">
+                    <input
+                      type="checkbox"
+                      checked={!hiddenGroups.has(group)}
+                      onChange={() => setHiddenGroups((s) => toggle(s, group))}
+                    />
+                    {group === 'other' ? 'other / proto' : group}
+                  </label>
+                ))}
+              </fieldset>
               <GraphCanvas
                 nodes={nodeList}
                 edges={edgeList}
@@ -297,28 +325,43 @@ export default function ExplorePage() {
                   {truncated && ' · truncated, expand to see more'}
                 </span>
               </div>
+              {[...hidden.entries()].map(([hub, count]) => (
+                <p key={hub} className="mt-1 text-xs text-slate-600">
+                  {count} more links around <strong>{byId.get(hub)?.form}</strong> are hidden to keep the
+                  graph readable.{' '}
+                  <button type="button" className="underline" onClick={() => setShowAll((s) => toggle(s, hub))}>
+                    Show all
+                  </button>
+                </p>
+              ))}
               <details className="mt-4">
                 <summary className="cursor-pointer text-sm font-semibold">Links as a table</summary>
                 <table className="mt-2 w-full text-left text-sm">
                   <thead className="text-slate-500">
-                    <tr><th className="py-1">From</th><th>Relation</th><th>To</th><th>Source</th></tr>
+                    <tr><th className="py-1">Relation</th><th>Type</th><th>Source</th></tr>
                   </thead>
                   <tbody>
                     {edgeList.map((e) => {
-                      const s = nodes.get(alias.get(e.source) ?? e.source)
-                      const t = nodes.get(alias.get(e.target) ?? e.target)
+                      const selected = selection?.kind === 'edge' && selection.id === e.id
                       return (
-                        <tr key={e.id} className="border-t border-slate-100">
-                          <td className="py-1">{s?.form} <span className="text-slate-500">{s?.language_name}</span></td>
+                        <tr
+                          key={e.id}
+                          className={`border-t border-slate-100 ${selected ? 'bg-blue-50' : ''}`}
+                          aria-selected={selected}
+                        >
+                          <td className="py-1">{describeEdge(e.type, byId.get(e.source), byId.get(e.target))}</td>
                           <td>
-                            <button type="button" className="underline" onClick={() => {
+                            <button
+                              type="button"
+                              className="underline"
+                              onClick={() => {
                                 setSelection({ kind: 'edge', id: e.id })
                                 document.getElementById('details')?.scrollIntoView({ block: 'start' })
-                              }}>
+                              }}
+                            >
                               {styleFor(e.type).short}
                             </button>
                           </td>
-                          <td>{t?.form} <span className="text-slate-500">{t?.language_name}</span></td>
                           <td className="text-slate-600">{e.citation}</td>
                         </tr>
                       )

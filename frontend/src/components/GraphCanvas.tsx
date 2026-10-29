@@ -1,6 +1,7 @@
 import cytoscape, { type Core, type ElementDefinition } from 'cytoscape'
 import { useEffect, useRef } from 'react'
-import type { GraphEdge, GraphNode } from '../types/api.ts'
+import type { GraphEdge } from '../types/api.ts'
+import type { DisplayNode } from './graphModel.ts'
 import { GROUP_COLORS, OTHER_GROUP_COLOR, styleFor } from './edgeStyles.ts'
 
 export type Selection = { kind: 'node' | 'edge'; id: string } | null
@@ -14,7 +15,6 @@ type Props = {
   onExpand: (nodeId: string) => void
 }
 
-export type DisplayNode = GraphNode & { records: number }
 
 const nodeLabel = (n: DisplayNode) =>
   `${n.native_form && n.native_form !== n.form ? `${n.native_form} · ` : ''}${n.form}` +

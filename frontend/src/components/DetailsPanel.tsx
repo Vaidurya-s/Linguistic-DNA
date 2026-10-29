@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { getLexeme, getRelationship } from '../api/client.ts'
 import type { LexemeDetail, RelationshipDetail, Source } from '../types/api.ts'
 import type { Selection } from './GraphCanvas.tsx'
+import { describeEdge } from './graphModel.ts'
 
 const REUSE_LABEL: Record<string, string> = {
   approved: 'approved for reuse',
@@ -100,10 +101,7 @@ export default function DetailsPanel({ selection, onExpand, expanded }: Props) {
     return (
       <section aria-label="Relationship evidence">
         <h2 className="text-xl font-semibold">{rel.label}</h2>
-        <p className="mt-1 text-sm">
-          <strong>{rel.source_lexeme.form}</strong> ({rel.source_lexeme.language_name}) →{' '}
-          <strong>{rel.target_lexeme.form}</strong> ({rel.target_lexeme.language_name})
-        </p>
+        <p className="mt-1 text-sm font-medium">{describeEdge(rel.type, rel.source_lexeme, rel.target_lexeme)}</p>
         <p className="mt-1 text-sm text-slate-600">{rel.description}</p>
         <dl className="mt-3">
           <Field label="Status">

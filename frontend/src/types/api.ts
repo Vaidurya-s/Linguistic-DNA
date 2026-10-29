@@ -25,7 +25,14 @@ export type LexemeSummary = {
 }
 
 export type SearchMatch = LexemeSummary & {
-  match_type: 'exact' | 'native_exact' | 'loose' | 'spelling_candidate' | 'compound_of_match'
+  match_type:
+    | 'exact'
+    | 'native_exact'
+    | 'transliteration'
+    | 'loose'
+    | 'spelling_candidate'
+    | 'compound_of_match'
+  via?: string | null
   score: number | null
   relationship_count: number
   duplicate_count: number
