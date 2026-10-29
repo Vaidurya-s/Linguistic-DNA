@@ -87,8 +87,8 @@ Their licence column records what the shortlist claims, not a verified fact. Eac
 | Gate condition | Status |
 |---|---|
 | All deployed dataset components have documented reuse permission | Met for the public seed, which contains APPROVED and APPROVED WITH CONDITIONS rows only. Not met for the development database. |
-| Native-script and romanised searches pass a multilingual regression suite | Not yet: Phase 2, which adds the transliteration aliases. |
+| Native-script and romanised searches pass a multilingual regression suite | Met for the 11 target languages: `backend/tests/test_multilingual.py` (one native-script query per language, the alias path, and romanisation rules). |
 | Exact matches are not confused with compounds or approximate matches | Met: `form_kind`, separate result groups, and regression tests. |
 | Every documented historical relationship has traceable evidence | Met: validator checks, plus Wikidata statement IDs. |
-| Graph usable for dense results and on small screens | Partly: Phase 2. |
+| Graph usable for dense results and on small screens | Met in the first version: duplicate merging, filters by type and language group, neighbour capping with "show all", a table synchronised with the selection, and a responsive layout. Needs usability testing. |
 | Demo and repository explain sources and limitations | Partly: this document; the methodology page is Phase 3. |

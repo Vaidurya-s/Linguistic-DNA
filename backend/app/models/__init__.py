@@ -293,3 +293,22 @@ class Evidence(Base):
     citation: Mapped[str] = mapped_column(Text)
     locator: Mapped[str | None] = mapped_column(Text)
     evidence_note: Mapped[str | None] = mapped_column(Text)
+
+
+class TransliterationAlias(Base):
+    """A native-script spelling paired with a romanisation, from a transliteration dataset.
+
+    Used only to find records; an alias is never shown as a lexeme or as evidence.
+    """
+
+    __tablename__ = "transliteration_alias"
+    __table_args__ = (UniqueConstraint("language_id", "native", "roman", "dataset"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    language_id: Mapped[str] = mapped_column(ForeignKey("language.id"))
+    native: Mapped[str] = mapped_column(Text, index=True)
+    roman: Mapped[str] = mapped_column(Text)
+    roman_key: Mapped[str] = mapped_column(Text, index=True)  # search_key(roman)
+    dataset: Mapped[str] = mapped_column(ForeignKey("dataset_audit.id"))
+    weight: Mapped[int | None] = mapped_column(Integer)  # attestation count, where given
+    import_batch_id: Mapped[int | None] = mapped_column(ForeignKey("import_batch.id"))

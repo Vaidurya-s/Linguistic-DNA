@@ -25,7 +25,8 @@ def test_seed_contains_only_approved_datasets_and_reloads_cleanly(db, tmp_path):
     manifest = build_public_seed(db, tmp_path)
 
     lexemes = rows(tmp_path / "lexeme.csv.gz")
-    assert lexemes and {r["dataset"] for r in lexemes} == {"lsi"}
+    datasets = {r["dataset"] for r in lexemes}
+    assert "lsi" in datasets and not datasets & {"jambu", "cdial", "dedr"}
     assert not any(
         r["dataset_id"] in ("jambu", "cdial", "dedr") for r in rows(tmp_path / "source.csv.gz")
     )

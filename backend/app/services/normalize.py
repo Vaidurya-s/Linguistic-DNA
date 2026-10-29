@@ -49,3 +49,12 @@ def form_kind(raw: str, is_compound: bool = False) -> FormKind:
     if " " in form:
         return FormKind.phrase
     return FormKind.compound if is_compound else FormKind.word
+
+
+def lexeme_search_key(form: str, language_id: str | None) -> str:
+    """Loose key for a stored record. Forms written in a native script are keyed by their
+    romanisation, so romanised queries can find them (e.g. 'angara' -> अंगारा)."""
+    from app.services.transliterate import native_search_key_source  # avoids an import cycle
+
+    romanised = native_search_key_source(form, language_id)
+    return search_key(romanised) if romanised else search_key(form)

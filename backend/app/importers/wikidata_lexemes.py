@@ -23,7 +23,7 @@ from app.config import REPO_ROOT
 from app.importers.common import copy_rows, sha256_file
 from app.models.enums import Direction, ReconstructionStatus, RelationshipStatus
 from app.services.ids import lexeme_id, relationship_id
-from app.services.normalize import form_kind, normalize_form, search_key
+from app.services.normalize import form_kind, lexeme_search_key, normalize_form
 
 DATASET = "wikidata-lexemes"
 SOURCE_ID = "wikidata-lexemes"
@@ -208,7 +208,7 @@ def import_wikidata_lexemes(conn: psycopg.Connection, dump: Path, version: str) 
                     language_id,
                     lemma,
                     normalize_form(lemma),
-                    search_key(lemma),
+                    lexeme_search_key(lemma, language_id),
                     lemma,
                     "source",
                     english_gloss(e),

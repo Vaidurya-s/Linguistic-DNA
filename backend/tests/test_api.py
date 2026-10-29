@@ -1,24 +1,7 @@
-import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
 
-from app.db.deps import get_conn
 from app.main import app
 from app.services.ids import lexeme_id
-
-
-@pytest.fixture(scope="module")
-def client(imported_db):
-    engine = create_engine(imported_db)
-
-    def conn_override():
-        with engine.begin() as conn:
-            yield conn
-
-    app.dependency_overrides[get_conn] = conn_override
-    yield TestClient(app)
-    app.dependency_overrides.clear()
-    engine.dispose()
 
 
 def test_health():

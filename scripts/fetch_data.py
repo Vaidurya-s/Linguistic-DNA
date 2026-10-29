@@ -1,7 +1,6 @@
 """Download the pinned upstream datasets into data/raw/ (git-ignored).
 
-    python scripts/fetch_data.py                       # public datasets (default)
-    python scripts/fetch_data.py --group transliteration
+    python scripts/fetch_data.py                       # audit-approved datasets (default)
     python scripts/fetch_data.py --group restricted    # Jambu: local development only
     python scripts/fetch_data.py --group all
 
@@ -79,7 +78,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--dest", type=Path, default=RAW, help="download directory")
     parser.add_argument("--group", default="public",
-                        choices=["public", "transliteration", "restricted", "all"])
+                        choices=["public", "restricted", "all"])
     args = parser.parse_args()
     entries = json.loads(MANIFEST.read_text(encoding="utf-8"))["inputs"]
     failed = 0

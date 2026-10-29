@@ -7,7 +7,8 @@ GLOTTOLOG_CLDF ?= data/raw/glottolog-cldf/cldf
 WIKIDATA_DUMP ?= data/raw/wikidata/wikidata-20261028-lexemes.json.bz2
 
 .PHONY: setup db-up fetch-data fetch-dev-data migrate import-open import-jambu import-glottolog \
-        import-concepticon import-lsi import-asjp import-wikidata validate validate-public \
+        import-concepticon import-lsi import-asjp import-wikidata import-aliases validate \
+        validate-public \
         coverage benchmark public-seed load-public-seed fixture test lint
 
 setup:
@@ -19,7 +20,7 @@ setup:
 fetch-data:
 	python3 scripts/fetch_data.py --group public
 
-# Adds Jambu (development only; never redistributed) and the transliteration sources.
+# Adds Jambu (development only; never redistributed).
 fetch-dev-data:
 	python3 scripts/fetch_data.py --group all
 
@@ -37,7 +38,8 @@ import-glottolog:
 	cd backend && .venv/bin/python -m app.cli import-glottolog --cldf ../$(GLOTTOLOG_CLDF)
 
 # Every dataset the audit approves, in dependency order.
-import-open: import-concepticon import-lsi import-asjp import-wikidata import-glottolog
+import-open: import-concepticon import-lsi import-asjp import-wikidata import-aliases \
+             import-glottolog
 
 import-concepticon:
 	cd backend && .venv/bin/python -m app.cli import-concepticon --data ../data/raw/concepticon-data
@@ -49,6 +51,11 @@ import-lsi:
 import-asjp:
 	cd backend && .venv/bin/python -m app.cli import-wordlist --cldf ../data/raw/asjp/cldf \
 		--dataset asjp --version "v21.1 (cf4bf0d)" --transcription ASJPcode
+
+import-aliases:
+	cd backend && .venv/bin/python -m app.cli import-dakshina \
+		--tar ../data/raw/dakshina/dakshina_dataset_v1.0.tar
+	cd backend && .venv/bin/python -m app.cli import-aksharantar --dir ../data/raw/aksharantar
 
 import-wikidata:
 	cd backend && .venv/bin/python -m app.cli import-wikidata --dump ../$(WIKIDATA_DUMP) \

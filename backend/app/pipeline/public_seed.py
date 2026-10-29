@@ -43,6 +43,7 @@ SELECT d.id, d.name, d.component, d.version, d.licence_name, d.licence_url,
 FROM dataset_audit d
 WHERE d.id IN (SELECT id FROM ok_dataset) AND d.id IN (
     SELECT dataset FROM lexeme WHERE id IN (SELECT id FROM ok_lexeme)
+    UNION SELECT DISTINCT dataset FROM transliteration_alias
     UNION SELECT s.dataset_id FROM source s WHERE s.id IN (
         SELECT source_id FROM concept UNION SELECT source_id FROM language_family))
 ORDER BY d.id
@@ -102,6 +103,12 @@ TABLES = [
         "SELECT relationship_id, source_id, citation, locator, evidence_note"
         " FROM evidence WHERE relationship_id IN (SELECT id FROM ok_relationship)",
     ),
+    (
+        "transliteration_alias",
+        "SELECT language_id, native, roman, roman_key, dataset, weight, NULL AS import_batch_id"
+        " FROM transliteration_alias WHERE dataset IN (SELECT id FROM ok_dataset)"
+        " AND language_id IN (SELECT id FROM ok_language)",
+    ),
 ]
 
 
@@ -159,8 +166,8 @@ def attribution(rows: list[tuple]) -> str:
             lines.append(f"- Attribution: {attr}")
         if share_alike == "yes":
             lines.append(
-                "- **ShareAlike:** material adapted from this dataset must be shared "
-                "under the same licence."
+                "- **ShareAlike:** material adapted from this dataset (here, its rows in "
+                "`transliteration_alias.csv.gz`) must be shared under the same licence."
             )
         lines.append("")
     return "\n".join(lines)

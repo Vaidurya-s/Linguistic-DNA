@@ -14,11 +14,11 @@ There are two databases you can build:
 Raw inputs are never committed; `data/raw/` is git-ignored. They are pinned in [`data/manifests/downloads.json`](../data/manifests/downloads.json): git repositories by tag and commit, and files by SHA-256. To fetch them:
 
 ```bash
-make fetch-data        # public datasets (about 0.8 GB, mostly the Wikidata dump)
+make fetch-data        # audit-approved datasets (about 3.3 GB: Dakshina 1.9 GB, Aksharantar, Wikidata)
 ```
 
 ```bash
-make fetch-dev-data    # adds Jambu and the transliteration sources (about 5 GB in total)
+make fetch-dev-data    # adds the restricted Jambu data (about 5 GB in total)
 ```
 
 The script, `scripts/fetch_data.py`, uses only the Python standard library. It verifies every checksum and skips files that already match.
@@ -32,8 +32,8 @@ The script, `scripts/fetch_data.py`, uses only the Python standard library. It v
 | LSI (`lexibank/lsi`) | public | tag `v1.1`, commit `133bcfc` |
 | ASJP (`lexibank/asjp`) | public | tag `v21.1`, commit `cf4bf0d` |
 | Wikidata Lexemes dump | public | `wikidata-20261028-lexemes.json.bz2`, sha256 `49bc13d3…` |
-| Dakshina v1.0 | transliteration | sha256 `83530bec…` |
-| Aksharantar, 12 language zips | transliteration | HF revision `e418c1f`; sha256 per file |
+| Dakshina v1.0 | public | sha256 `83530bec…` |
+| Aksharantar, 12 language zips | public | HF revision `e418c1f`; sha256 per file |
 | Jambu CLDF and its LFS `forms.csv` | restricted | commit `665850c`; sha256 `b08eb1f0…` |
 
 Wikimedia keeps dated dumps for a limited time. If the pinned dump is gone, pick a newer date and update both `downloads.json` and `WIKIDATA_DUMP` in the Makefile.
@@ -61,7 +61,7 @@ make import-jambu validate
 | Step | What it does |
 |---|---|
 | `migrate` | Alembic migrations 0001–0003: schema, `pg_trgm`, vocabularies, the `dataset_audit` table and `lexeme.form_kind`. |
-| `import-open` | Concepticon, LSI, ASJP, Wikidata Lexemes, then Glottolog classification. Each step first loads the audit and source manifest and registers the configured languages. |
+| `import-open` | Concepticon, LSI, ASJP, Wikidata Lexemes, transliteration aliases (Dakshina and approved Aksharantar components), then Glottolog classification. Each step first loads the audit and source manifest and registers the configured languages. |
 | `import-jambu` | The restricted development import (§3). Prunes unused auto-created sources afterwards. |
 | `validate` | Data-quality and provenance checks, plus "every row traces to an audit record". Writes `reports/validation.json`. |
 | `validate-public` | Same, but rows from BLOCKED datasets also fail. This is the gate for any deployment. |
@@ -83,6 +83,8 @@ make import-jambu validate
 - Names of non-target languages are looked up once (`--fetch-language-names`) and committed in `data/config/wikidata_languages.csv`.
 
 **Concepts.** Jambu's concept IDs are Concepticon IDs (all 3,321 match ID and gloss), so all datasets share one concept space.
+
+**Transliteration search (Phase 2).** A query in any of the nine supported scripts is romanised by our own rule-based converter (`backend/app/services/transliterate.py`), following ISO 15919. It tries the readings the script leaves open: whether inherent vowels are pronounced, and whether anusvara is a nasal consonant or a nasalised vowel. The resulting loose keys are matched only within languages that use that script. A romanised query such as "paani" is looked up in the transliteration aliases (Dakshina, plus the approved Aksharantar components) to get native spellings, which then take the same path. Every such match has `match_type = transliteration` and a `via` explanation. Records stored only in a native script (most Wikidata lemmas) are keyed by their romanisation, using per-language vowel rules (Sanskrit keeps inherent vowels, Hindi drops some), so romanised queries reach them. After changing these rules, run `python -m app.cli rekey-search`.
 
 **Form kinds.** Every lexeme is classified as `word`, `stem`, `affix`, `root`, `compound` or `phrase`. Only words can be search matches; the other kinds are returned in their own result groups.
 

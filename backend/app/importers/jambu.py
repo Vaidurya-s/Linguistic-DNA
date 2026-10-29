@@ -29,7 +29,7 @@ from app.models.enums import (
     SourceConfidence,
 )
 from app.services.ids import lexeme_id, relationship_id
-from app.services.normalize import form_kind, normalize_form, search_key
+from app.services.normalize import form_kind, lexeme_search_key, normalize_form
 
 DATASET = "jambu"
 AGGREGATE_SOURCE = "jambu"
@@ -360,7 +360,7 @@ class JambuImporter:
                     self.language_ids[jid],
                     form,
                     normalize_form(form),
-                    search_key(native or form),
+                    lexeme_search_key(form, self.language_ids[jid]),
                     native,
                     origin,
                     translit,

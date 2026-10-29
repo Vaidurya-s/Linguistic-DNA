@@ -9,6 +9,11 @@ import unicodedata
 from sqlalchemy import Connection, text
 
 from app.services.normalize import normalize_form, search_key
+from app.services.transliterate import ISO15924, romanize_variants, script_of
+
+# Scholarly reference layers written in Latin but read from Devanagari sources.
+EXTRA_SCRIPT_LANGUAGES = {"Deva": ["oia", "pra", "pli", "x-apabhramsha", "x-ashokan-prakrit"]}
+MATCH_RANK = {"exact": 0, "native_exact": 1, "transliteration": 2, "loose": 3}
 
 LEXEME_FIELDS = """
     l.id, l.form, l.native_form, l.language_id, g.name AS language_name,
@@ -68,20 +73,33 @@ def search(conn: Connection, q: str, language_id: str | None, limit: int) -> dic
     warnings: list[str] = []
     params = {"q": normalized, "key": key, "lang": language_id, "limit": limit}
 
+    routes = transliteration_routes(conn, normalized, key)
     hits = _rows(
         conn,
         """
-        WITH hits AS (
+        WITH t(key, lang, via) AS (
+            SELECT * FROM unnest(CAST(:tkeys AS text[]), CAST(:tlangs AS text[]),
+                                 CAST(:tvias AS text[]))
+        ), hits AS (
             SELECT l.*, CASE WHEN l.normalized_form = :q THEN 'exact'
                              WHEN l.native_form = :q THEN 'native_exact'
-                             ELSE 'loose' END AS match_type
+                             ELSE 'loose' END AS match_type, NULL::text AS via
             FROM lexeme l
-            WHERE (l.normalized_form = :q OR l.native_form = :q OR l.search_key = :key)
+            WHERE (l.normalized_form = :q OR l.native_form = :q
+                   OR (:latin AND l.search_key = :key))
               AND (CAST(:lang AS text) IS NULL OR l.language_id = :lang)
+            UNION ALL
+            SELECT l.*, 'transliteration', t.via
+            FROM lexeme l JOIN t ON l.search_key = t.key AND l.language_id = t.lang
+            WHERE CAST(:lang AS text) IS NULL OR l.language_id = :lang
+        ), best AS (
+            SELECT DISTINCT ON (id) * FROM hits
+            ORDER BY id, CASE match_type WHEN 'exact' THEN 0 WHEN 'native_exact' THEN 1
+                                         WHEN 'transliteration' THEN 2 ELSE 3 END
         ), ranked AS (
             SELECT h.*, (SELECT count(*) FROM relationship r
                          WHERE r.source_lexeme_id = h.id OR r.target_lexeme_id = h.id) AS rels
-            FROM hits h
+            FROM best h
         ), grouped AS (
             SELECT DISTINCT ON (language_id, form, coalesce(gloss, '')) *,
                    count(*) OVER (PARTITION BY language_id, form, coalesce(gloss, '')) AS dups
@@ -90,14 +108,30 @@ def search(conn: Connection, q: str, language_id: str | None, limit: int) -> dic
         )
         SELECT """
         + LEXEME_FIELDS
-        + """, l.match_type, NULL::float AS score,
+        + """, l.match_type, l.via, NULL::float AS score,
                l.rels AS relationship_count, l.dups AS duplicate_count
         FROM grouped l JOIN language g ON g.id = l.language_id
         WHERE g.is_enabled
-        ORDER BY (l.match_type = 'loose'), l.rels DESC, g.name, l.form
         LIMIT :wide
     """,
-        {**params, "wide": limit * 4},
+        {
+            **params,
+            "wide": limit * 6,
+            # Native-script queries reach romanised records only via script-restricted
+            # transliteration routes, never via the bare loose key.
+            "latin": script_of(normalized) is None,
+            "tkeys": [r[0] for r in routes],
+            "tlangs": [r[1] for r in routes],
+            "tvias": [r[2] for r in routes],
+        },
+    )
+    hits.sort(
+        key=lambda h: (
+            MATCH_RANK.get(h["match_type"], 9),
+            -h["relationship_count"],
+            h["language_name"],
+            h["form"],
+        )
     )
     # Only whole words can be matches; stems, affixes, roots, phrases and compounds that
     # happen to share the spelling are listed separately (they are different units).
@@ -114,7 +148,7 @@ def search(conn: Connection, q: str, language_id: str | None, limit: int) -> dic
             SELECT DISTINCT ON (l.language_id, l.form) """
             + LEXEME_FIELDS
             + """,
-                   'spelling_candidate' AS match_type,
+                   'spelling_candidate' AS match_type, NULL::text AS via,
                    similarity(l.search_key, :key) AS score,
                    (SELECT count(*) FROM relationship r WHERE r.source_lexeme_id = l.id)
                        AS relationship_count,
@@ -152,6 +186,51 @@ def search(conn: Connection, q: str, language_id: str | None, limit: int) -> dic
     }
 
 
+def script_languages(conn: Connection, iso: str) -> list[str]:
+    rows = conn.execute(
+        text("""
+        SELECT ls.language_id FROM language_script ls JOIN language g ON g.id = ls.language_id
+        WHERE ls.script_id = :s AND g.is_enabled"""),
+        {"s": iso},
+    )
+    return [r[0] for r in rows] + EXTRA_SCRIPT_LANGUAGES.get(iso, [])
+
+
+def transliteration_routes(conn: Connection, normalized: str, key: str) -> list[tuple]:
+    """(search key, language, explanation) triples for matching across scripts.
+
+    Native-script input is romanised by rule for the languages that use that script.
+    Romanised input is looked up in the transliteration aliases (Dakshina, Aksharantar) to
+    find native spellings, which are then romanised the same way.
+    """
+    routes: list[tuple] = []
+    script = script_of(normalized)
+    if script:
+        langs = script_languages(conn, ISO15924[script])
+        for variant in romanize_variants(normalized):
+            for lang in langs:
+                routes.append((search_key(variant), lang, f"{normalized} → {variant} (by rule)"))
+    elif key:
+        aliases = conn.execute(
+            text("""
+            SELECT language_id, native, max(dataset) AS dataset, sum(coalesce(weight, 1)) AS w
+            FROM transliteration_alias WHERE roman_key = :k
+            GROUP BY language_id, native ORDER BY w DESC LIMIT 12"""),
+            {"k": key},
+        ).all()
+        for lang, native, dataset, _ in aliases:
+            for variant in romanize_variants(native)[:2]:
+                routes.append(
+                    (search_key(variant), lang, f"{normalized} → {native} ({dataset}) → {variant}")
+                )
+    seen, unique = set(), []
+    for r in routes:
+        if (r[0], r[1]) not in seen and r[0]:
+            seen.add((r[0], r[1]))
+            unique.append(r)
+    return unique
+
+
 def _compounds_containing(conn: Connection, ids: list[str], limit: int) -> list[dict]:
     """Compounds documented (has_component) as containing one of the matched words."""
     if not ids:
@@ -161,7 +240,7 @@ def _compounds_containing(conn: Connection, ids: list[str], limit: int) -> list[
         """
         SELECT DISTINCT ON (l.id) """
         + LEXEME_FIELDS
-        + """, 'compound_of_match' AS match_type, NULL::float AS score,
+        + """, 'compound_of_match' AS match_type, NULL::text AS via, NULL::float AS score,
                (SELECT count(*) FROM relationship x
                 WHERE x.source_lexeme_id = l.id OR x.target_lexeme_id = l.id)
                    AS relationship_count, 1 AS duplicate_count

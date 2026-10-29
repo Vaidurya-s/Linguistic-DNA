@@ -1,5 +1,5 @@
 {
-  "description": "Pinned upstream inputs. Fetch with: python scripts/fetch_data.py [--group public|transliteration|restricted|all]",
+  "description": "Pinned upstream inputs. Fetch with: python scripts/fetch_data.py [--group public|restricted|all]",
   "inputs": [
     {
       "id": "glottolog",
@@ -48,7 +48,7 @@
     },
     {
       "id": "dakshina",
-      "group": "transliteration",
+      "group": "public",
       "kind": "http",
       "url": "https://storage.googleapis.com/gresearch/dakshina/dakshina_dataset_v1.0.tar",
       "sha256": "83530bec211893d9df429298f42e63c350c25ad56f9f5172f85edb0575ee5b03",
@@ -56,7 +56,7 @@
     },
     {
       "id": "aksharantar-asm",
-      "group": "transliteration",
+      "group": "public",
       "kind": "http",
       "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/asm.zip",
       "sha256": "5ecd0dbbffdfa4026c0624106bbf3f95df3d79bbcdbb653a76fc74a759b909de",
@@ -64,7 +64,7 @@
     },
     {
       "id": "aksharantar-ben",
-      "group": "transliteration",
+      "group": "public",
       "kind": "http",
       "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/ben.zip",
       "sha256": "4ab6edcc6ab556040d8f43ee75eec73cc25af0cf72d09e4650dab26b196d5fe7",
@@ -72,7 +72,7 @@
     },
     {
       "id": "aksharantar-guj",
-      "group": "transliteration",
+      "group": "public",
       "kind": "http",
       "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/guj.zip",
       "sha256": "2b83105a76c8d9b93007fc6fb6b5593b9ef45e0ae7d753036fe7a2c82a4b6208",
@@ -80,7 +80,7 @@
     },
     {
       "id": "aksharantar-hin",
-      "group": "transliteration",
+      "group": "public",
       "kind": "http",
       "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/hin.zip",
       "sha256": "208c2d1b128234e6dc777b750779b4f5e6214ab43244039349b530bf9868bdaf",
@@ -88,7 +88,7 @@
     },
     {
       "id": "aksharantar-kan",
-      "group": "transliteration",
+      "group": "public",
       "kind": "http",
       "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/kan.zip",
       "sha256": "a0c18fa0a8bf06b34d413b09c3e7b9505b74ba3f7f1fa2ae724793fc3fc7d650",
@@ -96,7 +96,7 @@
     },
     {
       "id": "aksharantar-mal",
-      "group": "transliteration",
+      "group": "public",
       "kind": "http",
       "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/mal.zip",
       "sha256": "182a7c4e30cb6144e35accdddb5669c6001bc18d68184dec2ec34cdc8a6cce09",
@@ -104,7 +104,7 @@
     },
     {
       "id": "aksharantar-mar",
-      "group": "transliteration",
+      "group": "public",
       "kind": "http",
       "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/mar.zip",
       "sha256": "47aab4119094f44e907d017a26aff5a33590bb42e115f19e79b957c5eb0056ef",
@@ -112,7 +112,7 @@
     },
     {
       "id": "aksharantar-ori",
-      "group": "transliteration",
+      "group": "public",
       "kind": "http",
       "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/ori.zip",
       "sha256": "9095e8dc4221708ad02826e84c1bbb7e5033e1cbf4e4f7396272ded0947b7c0b",
@@ -120,7 +120,7 @@
     },
     {
       "id": "aksharantar-pan",
-      "group": "transliteration",
+      "group": "public",
       "kind": "http",
       "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/pan.zip",
       "sha256": "d4d13450866a02974fd887f124ec73bcd5afe71d3c2c859bb0e9faab2d95b48d",
@@ -128,7 +128,7 @@
     },
     {
       "id": "aksharantar-san",
-      "group": "transliteration",
+      "group": "public",
       "kind": "http",
       "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/san.zip",
       "sha256": "8cdc6e500743194116f9d40938c72f8995bd2e9073a7183bee9da3d3cb655168",
@@ -136,7 +136,7 @@
     },
     {
       "id": "aksharantar-tam",
-      "group": "transliteration",
+      "group": "public",
       "kind": "http",
       "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/tam.zip",
       "sha256": "d019cffcdc2264870a96b8ffaea0b66a3b175c8c7d56c095d9f6dd4bbeb313a2",
@@ -144,7 +144,7 @@
     },
     {
       "id": "aksharantar-tel",
-      "group": "transliteration",
+      "group": "public",
       "kind": "http",
       "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/tel.zip",
       "sha256": "08f1c2841f4d02fcc2a56362f7760ec16fc52d8a199029c68d44024ab0d22c1a",

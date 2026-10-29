@@ -21,6 +21,7 @@ from app.importers.concepticon import import_concepticon
 from app.importers.glottolog import import_glottolog
 from app.importers.jambu import JambuImporter
 from app.importers.manifest import load_manifest, prune_orphan_sources
+from app.importers.transliteration import import_aksharantar, import_dakshina
 from app.importers.wikidata_lexemes import fetch_language_names, import_wikidata_lexemes
 from app.pipeline.benchmark import run_benchmark
 from app.pipeline.coverage import coverage, to_markdown
@@ -54,12 +55,17 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="look up names of unfamiliar language items once (needs network)",
     )
+    dk = sub.add_parser("import-dakshina")
+    dk.add_argument("--tar", type=Path, required=True)
+    ak = sub.add_parser("import-aksharantar")
+    ak.add_argument("--dir", type=Path, required=True)
     g = sub.add_parser("import-glottolog")
     g.add_argument("--cldf", type=Path, required=True)
     v = sub.add_parser("validate")
     v.add_argument("--public-seed", action="store_true")
     sub.add_parser("coverage")
     sub.add_parser("benchmark")
+    sub.add_parser("rekey-search", help="recompute lexeme.search_key after a rule change")
     sub.add_parser("build-public-seed")
     sub.add_parser("load-public-seed")
     args = parser.parse_args(argv)
@@ -88,10 +94,18 @@ def main(argv: list[str] | None = None) -> int:
                 fetch_language_names(result["unknown_language_qids"])
                 result = import_wikidata_lexemes(conn, args.dump, args.version)
             result["unknown_language_qids"] = len(result["unknown_language_qids"])
+        elif args.cmd == "rekey-search":
+            result = rekey_search(conn)
         elif args.cmd == "build-public-seed":
             result = build_public_seed(conn)
         elif args.cmd == "load-public-seed":
             result = load_public_seed(conn)
+        elif args.cmd == "import-dakshina":
+            load_manifest(conn)
+            result = import_dakshina(conn, args.tar)
+        elif args.cmd == "import-aksharantar":
+            load_manifest(conn)
+            result = import_aksharantar(conn, args.dir)
         elif args.cmd == "import-glottolog":
             load_manifest(conn)
             result = import_glottolog(conn, args.cldf)
@@ -128,6 +142,21 @@ def _benchmark(url: str | None) -> int:
             if not c["passed"]:
                 print(f"  FAIL {c['case_id']} ({cat}): {c['detail']}")
     return 0
+
+
+def rekey_search(conn) -> dict:
+    """Recompute every lexeme's loose search key with the current rules."""
+    from app.services.normalize import lexeme_search_key
+
+    with conn.cursor() as cur:
+        cur.execute("SELECT id, form, language_id, search_key FROM lexeme")
+        changes = [
+            (lexeme_search_key(form, lang), lid)
+            for lid, form, lang, old in cur.fetchall()
+            if lexeme_search_key(form, lang) != old
+        ]
+        cur.executemany("UPDATE lexeme SET search_key = %s WHERE id = %s", changes)
+    return {"updated": len(changes)}
 
 
 def _write(name: str, text: str) -> None:

@@ -31,7 +31,8 @@ class LexemeSummary(BaseModel):
 
 class SearchMatch(LexemeSummary):
     # exact | native_exact | loose | spelling_candidate | compound_of_match
-    match_type: str
+    match_type: str  # ... | transliteration
+    via: str | None = None  # how a transliteration match was found
     score: float | None = None
     relationship_count: int
     duplicate_count: int
