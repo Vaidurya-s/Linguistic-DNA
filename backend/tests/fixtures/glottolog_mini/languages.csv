@@ -1,0 +1,60 @@
+ID,Name,Level,ISO639P3code
+drav1251,Dravidian,family,
+indo1319,Indo-European,family,
+sout3133,South Dravidian,family,
+clas1257,Classical Indo-European,family,
+sout3138,South Dravidian I,family,
+sout3139,South Dravidian II,family,
+indo1320,Indo-Iranian,family,
+tami1291,Tamil-Kannada,family,
+telu1265,Teluguic,family,
+indo1321,Indo-Aryan,family,
+tami1292,Tamil-Kota,family,
+bada1263,Badaga-Kannada,family,
+telu1262,Telugu,language,tel
+midd1375,Middle-Modern Indo-Aryan,family,
+sans1269,Sanskrit,language,san
+tami1293,Tamil-Toda,family,
+kann1259,Kannadoid,family,
+cont1248,Continental Indo-Aryan,family,
+tami1294,Tamil-Irula,family,
+kann1255,Nuclear Kannaoid,family,
+indo1324,Indo-Aryan Northwestern zone,family,
+indo1325,Indo-Aryan Southern zone,family,
+midl1245,Midlands Indo-Aryan,family,
+indo1323,Indo-Aryan Eastern zone,family,
+tami1297,Tamil-Kodagu,family,
+nucl1305,Kannada,language,kan
+sind1278,Sindhi-Lahnda,family,
+mara1416,Marathic,family,
+apab1234,Apabhramsic,family,
+shau1239,Shaurasenic,family,
+oriy1254,Oriya-Gauda-Kamrupa,family,
+tami1298,Tamil-Malayalam,family,
+lahn1241,Greater Panjabic,family,
+mara1422,Marathi-Konkani,family,
+guja1255,Gujarati-Rajasthani,family,
+indo1322,Indo-Aryan Central zone,family,
+macr1269,Macro-Oriya,family,
+gaud1237,Gauda-Kamrupa,family,
+tami1299,Tamiloid,family,
+mala1541,Malayalamoid,family,
+east2727,Eastern Panjabic,family,
+oldm1248,Old-Modern Marathi,family,
+guja1256,Gujaratic,family,
+west2812,Western Hindi,family,
+oriy1255,Odia,language,ory
+gaud1238,Gauda-Banga,family,
+kamt1240,Kamrupa,family,
+tami1300,Tamil-Paliyan,family,
+mala1464,Malayalam,language,mal
+panj1256,Eastern Panjabi,language,pan
+mode1268,Modern Marathi,family,
+guja1252,Gujarati,language,guj
+hind1270,Hindustani,family,
+beng1280,Bengali,language,ben
+assa1262,Eastern Kamrupa,family,
+tami1289,Tamil,language,tam
+mara1378,Marathi,language,mar
+hind1269,Hindi,language,hin
+assa1263,Assamese,language,asm

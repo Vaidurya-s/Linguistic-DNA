@@ -1,0 +1,14 @@
+ID,Language_ID,Parameter_ID,Value
+indo1320-classification,indo1320,classification,indo1319/clas1257
+telu1262-classification,telu1262,classification,drav1251/sout3133/sout3139/telu1265
+sans1269-classification,sans1269,classification,indo1319/clas1257/indo1320/indo1321
+nucl1305-classification,nucl1305,classification,drav1251/sout3133/sout3138/tami1291/bada1263/kann1259/kann1255
+oriy1255-classification,oriy1255,classification,indo1319/clas1257/indo1320/indo1321/midd1375/cont1248/indo1323/oriy1254/macr1269
+mala1464-classification,mala1464,classification,drav1251/sout3133/sout3138/tami1291/tami1292/tami1293/tami1294/tami1297/tami1298/mala1541
+panj1256-classification,panj1256,classification,indo1319/clas1257/indo1320/indo1321/midd1375/cont1248/indo1324/sind1278/lahn1241/east2727
+guja1252-classification,guja1252,classification,indo1319/clas1257/indo1320/indo1321/midd1375/cont1248/midl1245/apab1234/guja1255/guja1256
+beng1280-classification,beng1280,classification,indo1319/clas1257/indo1320/indo1321/midd1375/cont1248/indo1323/oriy1254/gaud1237/gaud1238
+tami1289-classification,tami1289,classification,drav1251/sout3133/sout3138/tami1291/tami1292/tami1293/tami1294/tami1297/tami1298/tami1299/tami1300
+mara1378-classification,mara1378,classification,indo1319/clas1257/indo1320/indo1321/midd1375/cont1248/indo1325/mara1416/mara1422/oldm1248/mode1268
+hind1269-classification,hind1269,classification,indo1319/clas1257/indo1320/indo1321/midd1375/cont1248/midl1245/shau1239/indo1322/west2812/hind1270
+assa1263-classification,assa1263,classification,indo1319/clas1257/indo1320/indo1321/midd1375/cont1248/indo1323/oriy1254/gaud1237/kamt1240/assa1262

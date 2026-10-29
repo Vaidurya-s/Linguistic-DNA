@@ -23,7 +23,7 @@ curl -L -o data/raw/jambu/cldf/forms.csv https://media.githubusercontent.com/med
 sha256sum data/raw/jambu/cldf/forms.csv   # expect b08eb1f0…bd28
 ```
 
-`data/raw/` is git-ignored. The coverage table in §3 is produced by `python scripts/jambu_coverage.py data/raw/jambu/cldf/forms.csv data/raw/jambu/cldf/form_concepts.csv`.
+`data/raw/` is git-ignored. In the §3 table, the Edge-linked column comes from the database import (`make import-jambu coverage`, see [DATA_PIPELINE.md](DATA_PIPELINE.md)). The other columns and the source counts come from `python scripts/jambu_coverage.py data/raw/jambu-lfs/forms.csv data/raw/jambu/cldf/form_concepts.csv`.
 
 ## 2. Headline findings
 
@@ -48,29 +48,29 @@ Column definitions:
 
 - **Forms:** rows in `forms.csv` for the language ID.
 - **Concepts:** distinct concept IDs linked through `form_concepts.csv`.
-- **Etymon-linked:** forms with a `Cognateset`, meaning they are linked to a CDIAL/DEDR/other etymon. This is the proxy for source-backed historical relationships.
-- **Unlinked:** rows with `Status=unlinked`.
-- **Native script:** forms with a non-empty `Native` field. Every form has a romanised `Form`.
+- **Edge-linked:** forms that are the child in at least one in-scope `edges.csv` or `comparisons.csv` relation (inherited, derived, borrowed, variant, component or comparison). This is the count of source-backed links. *Correction:* the first version of this audit used the `Cognateset` column as a proxy, but that column holds paragraph markers within a dictionary entry (e.g. `2:`), not etymon IDs. Kannada and Prakrit are high because they include within-dictionary `variant` links (KEED) and Sheth's Prakrit–Sanskrit equivalences.
+- **Unlinked:** rows with `Status=unlinked`. This is Jambu's own flag for forms not tied to a dictionary etymon; such forms can still carry variant or equivalence edges.
+- **Native script:** forms with a non-empty `Native` field. A few more have their `Form` itself written in a native script (the database import counts those too: for example Hindi 124 and Marathi 71).
 - **Phonemic:** non-empty `Phonemic` field. This is source transcription, not normalised IPA.
 
-| Language (Jambu ID) | Forms | Concepts | Etymon-linked | Unlinked | Native script | Phonemic | Main sources |
+| Language (Jambu ID) | Forms | Concepts | Edge-linked | Unlinked | Native script | Phonemic | Main sources |
 |---|---:|---:|---:|---:|---:|---:|---|
-| Hindi-Urdu (`H`) | 18,475 | 1,916 | 9,789 | 6,103 | 12 | 2,611 | CDIAL 9,844; ORGI census UP 3,457; Kannauji 1,885 |
-| Bengali (`B`) | 7,151 | 1,467 | 4,571 | 2,251 | 0 | 1,893 | CDIAL 4,574; Grierson LSI 1,303 |
-| Marathi (`M`) | 59,541 | 1,891 | 7,811 | 51,092 | 1 | 47,893 | SDML 47,317; CDIAL 7,850 |
-| Gujarati (`G`) | 7,793 | 1,519 | 6,908 | 882 | 0 | 843 | CDIAL 6,909; Grierson LSI 843 |
-| Punjabi (`P`) | 9,048 | 1,593 | 7,214 | 1,414 | 0 | 799 | CDIAL 7,218; Grierson LSI 580 |
-| Odia (`Or`) | 7,625 | 1,653 | 6,019 | 1,471 | 0 | 412 | CDIAL 6,016; ORGI census Orissa 1,165 |
-| Assamese (`A`) | 3,721 | 1,158 | 3,486 | 233 | 0 | 209 | CDIAL 3,486; Kakati AFD 325 |
-| Tamil (`Tamil`) | 13,456 | 2,050 | 12,392 | 1,086 | 0 | 576 | DEDR 12,007 |
-| Telugu (`Telugu`) | 9,094 | 1,726 | 8,646 | 318 | 0 | 315 | DEDR 8,498 |
-| Kannada (`Kannada`) | 56,514 | 2,389 | 11,498 | 23,990 | 41,524 | 34,331 | KEED (Učida & Rajapurohit 2018) 41,524; DEDR 31,317 |
-| Malayalam (`Malayalam`) | 8,809 | 1,752 | 8,378 | 989 | 0 | 989 | DEDR 7,565; Lindgren 2023 814 |
-| Sanskrit (`Sk`) | 27,321 | 141 | 69 | 21,422 | 26,191 | 275 | Sheth 1923 26,191 |
+| Hindi-Urdu (`H`) | 18,475 | 1,916 | 11,575 | 6,103 | 12 | 2,611 | CDIAL 9,844; ORGI census UP 3,457; Kannauji 1,885 |
+| Bengali (`B`) | 7,151 | 1,467 | 4,899 | 2,251 | 0 | 1,893 | CDIAL 4,574; Grierson LSI 1,303 |
+| Marathi (`M`) | 59,541 | 1,891 | 8,081 | 51,092 | 1 | 47,893 | SDML 47,317; CDIAL 7,850 |
+| Gujarati (`G`) | 7,793 | 1,519 | 6,911 | 882 | 0 | 843 | CDIAL 6,909; Grierson LSI 843 |
+| Punjabi (`P`) | 9,048 | 1,593 | 7,634 | 1,414 | 0 | 799 | CDIAL 7,218; Grierson LSI 580 |
+| Odia (`Or`) | 7,625 | 1,653 | 6,154 | 1,471 | 0 | 412 | CDIAL 6,016; ORGI census Orissa 1,165 |
+| Assamese (`A`) | 3,721 | 1,158 | 3,488 | 233 | 0 | 209 | CDIAL 3,486; Kakati AFD 325 |
+| Tamil (`Tamil`) | 13,456 | 2,050 | 12,369 | 1,086 | 0 | 576 | DEDR 12,007 |
+| Telugu (`Telugu`) | 9,094 | 1,726 | 8,776 | 318 | 0 | 315 | DEDR 8,498 |
+| Kannada (`Kannada`) | 56,514 | 2,389 | 38,156 | 23,990 | 41,524 | 34,331 | KEED (Učida & Rajapurohit 2018) 41,524; DEDR 31,317 |
+| Malayalam (`Malayalam`) | 8,809 | 1,752 | 7,820 | 989 | 0 | 989 | DEDR 7,565; Lindgren 2023 814 |
+| Sanskrit (`Sk`) | 27,321 | 141 | 5,873 | 21,422 | 26,191 | 275 | Sheth 1923 26,191 |
 | Pali (`Pa`) | 7,076 | 1,247 | 7,028 | 48 | 0 | 0 | CDIAL 7,028 |
-| Prakrit (`Pk`) | 54,529 | 1,359 | 12,384 | 34,342 | 41,670 | 356 | Sheth 1923 41,670; CDIAL 12,385 |
-| Apabhramsha (`Ap`) | 632 | 80 | 181 | 377 | 443 | 0 | Sheth 1923 443; CDIAL 181 |
-| Ashokan Prakrit (`As`) | 1,300 | 282 | 1,016 | 85 | 5 | 0 | CDIAL 1,016; Andersen 1990 280 |
+| Prakrit (`Pk`) | 54,529 | 1,359 | 40,658 | 34,342 | 41,670 | 356 | Sheth 1923 41,670; CDIAL 12,385 |
+| Apabhramsha (`Ap`) | 632 | 80 | 365 | 377 | 443 | 0 | Sheth 1923 443; CDIAL 181 |
+| Ashokan Prakrit (`As`) | 1,300 | 282 | 1,216 | 85 | 5 | 0 | CDIAL 1,016; Andersen 1990 280 |
 
 Source counts are per-row source citations, so they can overlap when a row cites more than one source. Kannada is an example.
 
@@ -97,7 +97,7 @@ Coverage notes:
 | `lexeme.reconstruction_status` | `*` prefix + proto-language IDs (`PDr`, starred `Indo-Aryan`) | Derive the status explicitly. Never infer `attested` from a missing asterisk alone. |
 | `lexeme.source_id` / `source_record_id` | `Source` (e.g. `CDIAL`, `dedr`) / `ID` + `form-id-aliases.csv` | `form-source-keys.csv` gives legacy row keys. |
 | `concept`, `lexeme_concept` | `concepts.csv` (`ID`, `Name`, `Category`), `form_concepts.csv` | 3,321 concepts. |
-| `relationship` (word-to-etymon) | `Cognateset` + `edges.csv` | `reflex` → `inherited_form`; `derived` → `derived_form`; `borrowed` → `borrowed_from`. `variant` and `component` have no type yet. See §5. |
+| `relationship` (word-to-etymon) | `edges.csv` (`Child_ID` → `Parent_ID`) | `reflex` → `inherited_form`; `derived` → `derived_form`; `borrowed` → `borrowed_from`; `variant` → `variant_of`; `component` → `has_component` (the parent is a component of the child). `Cognateset` is **not** an etymon ID. |
 | `relationship` (comparisons) | `comparisons.csv` | `related`/`loan`/`influence` with `Direction` and `Confidence`. |
 | `evidence.citation` / `locator` | `edges.csv` `Source` (e.g. `key[p. 179]`) | Split the key from the bracketed locator. |
 | `source` | `references.csv`, `sources.bib` | Has short citation, editor, OCR and provenance columns. No licence column, so licences are added from our manifest. |
@@ -105,10 +105,12 @@ Coverage notes:
 
 ## 5. Recommended schema adjustments
 
+All seven are implemented in `backend/migrations/versions/0001_initial.py`.
+
 1. **Drop the `UNIQUE` constraint on `language.glottocode`.** Several historical varieties legitimately share a glottocode. Use a plain index instead, and add a `language_alias(language_id, scheme, value)` table for Jambu, ISO and Glottolog IDs.
 2. **Add `lexeme.native_form` and `lexeme.native_form_origin`** (`source` | `derived_transliteration`), separate from the romanised `form`. Generated native-script forms are search aids, not attested spellings.
 3. **Add `transliteration_scheme` per source**, not per lexeme. Every Jambu row uses its source's scheme.
-4. **Extend the relationship vocabulary** with `variant_of` and `component_of`. Both are documented in source data and common in CDIAL and DEDR.
+4. **Extend the relationship vocabulary** with `variant_of` and `has_component`. Both are documented in source data and common in CDIAL and DEDR.
 5. **Add `relationship.source_confidence`** (`high` | `medium` | `low` | null) for source-asserted confidence. Keep it separate from `score`, which is reserved for algorithmic candidates.
 6. **Use the direction values `entry_from_compared`, `compared_from_entry` and `undetermined`.** These are what `comparisons.csv` provides. They map to our `directed` and `unknown` values plus the source and target order.
 7. **Add a `release_filter`** derived from `source.reuse_status`. The seed builder should drop every lexeme, relationship and evidence row whose source is not `approved` or `attribution_required`.
@@ -131,7 +133,7 @@ Details and the per-source rows are in [`source_manifest.csv`](../data/manifests
 | Merriam & Fuls *Dravidian Database* v1.0 | Proto-Dravidian reconstructions | `attribution_required` (CC-BY-4.0 per Jambu README) |
 | DravLex (Kolipakam et al. 2018), Lindgren 2023 | Dravidian wordlists | `unknown` until checked upstream |
 | Zoller 2023 (Harrassowitz) | IA dialect data | `permission_required` |
-| Glottolog | Language identity, classification | `attribution_required` (verify current release) |
+| Glottolog | Language identity, classification | `attribution_required` (CC-BY-4.0, verified in `glottolog-cldf` v5.3) |
 
 ## 7. Implications for the roadmap
 
@@ -155,9 +157,9 @@ Details and the per-source rows are in [`source_manifest.csv`](../data/manifests
 - [x] Inspect Jambu repository schema and version.
 - [x] Write a per-language coverage report (unfiltered, §3).
 - [ ] Identify the upstream source and licence for every field and record class. Started: major sources are in the manifest; long-tail sources (about 2,600 references) are not yet classified.
-- [ ] Inspect Glottolog's current release and attribution terms.
+- [x] Inspect Glottolog's current release and attribution terms (CC-BY-4.0; `glottolog-cldf` v5.3, commit `072ca0d`).
 - [ ] Evaluate the transliteration model and data licences separately.
 - [ ] Decide which DSAL and Bharatavani materials can be cited, queried or reused.
 - [ ] Build an approved small sample before bulk import.
-- [ ] Add the dataset version and provenance to every imported release.
+- [x] Add the dataset version and provenance to every imported release (`import_batch` records commit, input checksums and transformation steps).
 - [ ] Publish an accurate Data Sources and Limitations page.

@@ -1,0 +1,30 @@
+ID,Language_ID,Form,Gloss,Native,Phonemic,Original,Cognateset,Description,Tags,Source,Etymology,Redirect,Status
+6152,Indo-Aryan,dánta,tooth,,,dánta,,,m RV Early-Vedic,CDIAL;CDIAL,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,entry
+f_44lgs3q4625bk,M,dāt̃ ,teeth,,d̪ɐt̃ ̪,d̪ɐt̃ ̪,,,dialect:M:nagpuri_beradi:Beradi%20%28Nagpuri%20Hindi%29,bundeli,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_6oe6puss3evdy,H,dāt,tooth,,d̪at̪,d̪at̪,,,dialect:H:Hindi-Jamniya:Jamniya,kannauji[p. 57],FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_7y4xaxfcw3t7g,H,dāt,tooth,,d̪at̪,d̪at̪,,,dialect:H:Hindi-Sarhati:Sarhati,kannauji[p. 57],FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_cooymvixmokpw,Or,dānta,tooth,,,dānta,2:,,,CDIAL,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_gl25hljntsiwe,P,dānt,tooth,,d̪an̪t̪,d̪an̪t̪,,,dialect:P:bagri_old_abaddi:Purani%20Abaddi,bagri,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_ioti6mepsep4m,B,dā̃t,tooth,,,dãt,,,dialect:B:census-west-bengal-0:Bengali uncertain,"census2016westbengal[p. 709, item 118, Bengali]",FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_k6wca7tdsaloe,B,dãt,tooth,,dãt,dãt,,,dialect:B:tripura2011-0-bangla:Bangla%20%28%29,"kim-kim-sangma-ahmad2011tripura[wordlist item 110, site 0 Bangla]",FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_lqialrlovoq3a,A,dā̃t,tooth,,,dā̃t,2:,,,CDIAL,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_ms7tqiwn6zj34,P,dand,"tooth,",,,dand,2:,,m,CDIAL,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_pr7iuizo3zo5g,M,dā̃t,tooth,,,dā̃t,2:,,m,CDIAL,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_twvzwvrp2vf4w,G,dā̃t,tooth,,,dā̃t,2:,,m,CDIAL,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+d1041,PDr,*ōṭu,to flee; defeat,,,*ōṭu,,,,"dedr[entry 1041, DED(S, N) 877];krishnamurti",FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,entry
+f_25lzf47u4qc4k,Tamil,ōṭṭam,"running, speed, current, defeat",,,ōṭṭam,0:,,,dedr,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_3roozotnhmxw4,Tamil,ōṭṭu,"running, defeat, sailing of a vessel, course of conduct",,,ōṭṭu,0:,,,dedr,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_4yop5fgty7v7q,Malayalam,ōṭuka,"to run (as men, animals, roots, etc.), ships to sail, flow easily, meet with no impediment",,,ōṭuka,0:,,,dedr,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_7wvogd6uksgji,Kannada,ōḍu,"1. to run, to go at full speed 2. to flee, to take to one’s heels, to bolt away",ಓಡು,oːɖu,ōḍu,,,verb intr,"uchida-rajapurohit2018[p. 176, col. 1, entry 9];dedr[1041]",FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_akgfvo2zbtb64,Telugu,ōṭa,fear,,,ōṭa,0:,,,dedr,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_dusfuclbg4vk6,Telugu,ōrcu,to defeat,,,ōrcu,0:,,,dedr,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_g5tqo425lvelq,Malayalam,ōṭṭam,"a course, run",,,ōṭṭam,0:,,,dedr,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_gwjtjya7u23o6,Kannada,ōḍuvike,running,,,ōḍuvike,0:,,,dedr,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_27fxniq4x3i6i,Kannada,sottu,property,ಸೊತ್ತು,sottu/sɤttu,sottu,,,noun loanword,"uchida-rajapurohit2018[p. 888, col. 1, entry 14]",FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_fewqzfbdtbwbm,H,ajī,"respectable man, grandfather",,,ajī,2:,,,CDIAL,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_yciji4whau3bm,H,ajī,"respectable man, grandfather",,,ajī,2:,,f,CDIAL,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,
+f_lnkhu4n3dkxj2,H,nāthūnā,nose,,nat̪huna,nat̪huna,,,dialect:H:Hindi-Sarhati:Sarhati,kannauji[p. 56],FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,unlinked
+f_4xxedqnm7toyk,Indo-ir,Hdántas,tooth,,,,,,,"wiktionary-piir[Reconstruction:Proto-Indo-Iranian/Hdántas, revision 88460015]",FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,entry
+f_6jmwwxryt3dia,Sk,svatva-,,,,svatva-,,,,"uchida-rajapurohit2018[p. 888, col. 1, entry 14]",FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,unlinked
+1348,Indo-Aryan,āryaka,"respectable man, grandfather",,,āryaka,,,MBh Epic,CDIAL;Saksena,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,entry
+1347,Indo-Aryan,ā́rya,an Aryan,,,ā́rya,,,m,CDIAL,FIXTURE_SENTINEL_ETYMOLOGY_MUST_NOT_BE_STORED,,entry
