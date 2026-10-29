@@ -21,3 +21,10 @@ Classification rows for the fixture's glottocodes from Glottolog CLDF (`glottolo
 commit `072ca0d`), CC-BY-4.0. Hammarström, Harald & Forkel, Robert & Haspelmath, Martin & Bank,
 Sebastian. 2025. Glottolog 5.2.1. Leipzig: Max Planck Institute for Evolutionary Anthropology.
 (Available online at https://glottolog.org)
+
+## `lsi_mini/`
+
+A few rows (Tamil, Western Hindi and Japanese; concepts one, two, five) from the
+Linguistic Survey of India CLDF dataset (`lexibank/lsi` v1.1, commit `133bcfc`), CC-BY-4.0.
+Grierson, George Abraham (1928): Linguistic Survey of India. Comparative Vocabulary.
+Calcutta. Japanese is included to test that unmapped doculects are skipped.

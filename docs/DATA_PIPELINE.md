@@ -1,64 +1,90 @@
 # Data Pipeline
 
-How to rebuild the development database from versioned upstream inputs. This implements roadmap Weeks 1–2. The source decisions behind it are in [DATASET_AUDIT.md](DATASET_AUDIT.md).
+How to rebuild the database from pinned upstream inputs, and how the public seed is produced. Licence decisions live in [DATASET_LICENCE_AUDIT.md](DATASET_LICENCE_AUDIT.md). Jambu's coverage audit is in [DATASET_AUDIT.md](DATASET_AUDIT.md).
 
-> **The full import is for local development only.** Almost every record comes from sources marked `permission_required` or `unknown` in [`source_manifest.csv`](../data/manifests/source_manifest.csv). Do not deploy or redistribute the resulting database. `make validate-public` reports this as blocking.
+There are two databases you can build:
 
-## 1. Inputs
+| Build | Contents | May be deployed? |
+|---|---|---|
+| **Public seed** (`data/public_seed/`) | Only audit-approved datasets: Glottolog, Concepticon, LSI, ASJP and Wikidata Lexemes. | Yes, with `ATTRIBUTION.md` |
+| **Development database** | The above plus Jambu (CDIAL, DEDR and others). | **No.** Local research only. `make validate-public` reports it as blocked. |
 
-| Input | Where | Pinned version | Committed? |
-|---|---|---|---|
-| Jambu CLDF | `data/raw/jambu` (clone of `moli-mandala/data`) | commit `665850cdd1451391dc939063b5ccc972e646f6f6` | No |
-| Jambu `forms.csv` (Git LFS object) | `data/raw/jambu-lfs/forms.csv` | sha256 `b08eb1f0e04777ff8a204b013829d5a3c7cdbde4a54665fd948256ed223bfd28` | No |
-| Glottolog CLDF | `data/raw/glottolog-cldf` | tag `v5.3`, commit `072ca0d0410039fb8b779be8fc165bac575d2cda` | No |
-| Source manifest | `data/manifests/source_manifest.csv` | in repo | Yes |
-| Jambu key → source map | `data/manifests/jambu_source_map.csv` | in repo | Yes |
-| Target languages | `data/config/languages.csv` | in repo | Yes |
+## 1. Getting the data after cloning
 
-`data/raw/` is git-ignored. Fetch the inputs with:
+Raw inputs are never committed; `data/raw/` is git-ignored. They are pinned in [`data/manifests/downloads.json`](../data/manifests/downloads.json): git repositories by tag and commit, and files by SHA-256. To fetch them:
 
 ```bash
-GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/moli-mandala/data data/raw/jambu
-git -C data/raw/jambu checkout 665850cdd1451391dc939063b5ccc972e646f6f6
+make fetch-data        # public datasets (about 0.8 GB, mostly the Wikidata dump)
 ```
 
 ```bash
-mkdir -p data/raw/jambu-lfs && curl -L -o data/raw/jambu-lfs/forms.csv \
-  https://media.githubusercontent.com/media/moli-mandala/data/665850cdd1451391dc939063b5ccc972e646f6f6/cldf/forms.csv
+make fetch-dev-data    # adds Jambu and the transliteration sources (about 5 GB in total)
 ```
 
-```bash
-sha256sum data/raw/jambu-lfs/forms.csv
-```
+The script, `scripts/fetch_data.py`, uses only the Python standard library. It verifies every checksum and skips files that already match.
 
-```bash
-git clone --depth 1 --branch v5.3 https://github.com/glottolog/glottolog-cldf data/raw/glottolog-cldf
-```
+**If you don't need to rebuild:** the committed public seed (`data/public_seed/*.csv`) is enough to run the app. Load it with `make migrate load-public-seed`.
+
+| Input | Group | Pin |
+|---|---|---|
+| Glottolog CLDF | public | tag `v5.3`, commit `072ca0d` |
+| Concepticon | public | tag `v3.4.0`, commit `918bc44` |
+| LSI (`lexibank/lsi`) | public | tag `v1.1`, commit `133bcfc` |
+| ASJP (`lexibank/asjp`) | public | tag `v21.1`, commit `cf4bf0d` |
+| Wikidata Lexemes dump | public | `wikidata-20261028-lexemes.json.bz2`, sha256 `49bc13d3…` |
+| Dakshina v1.0 | transliteration | sha256 `83530bec…` |
+| Aksharantar, 12 language zips | transliteration | HF revision `e418c1f`; sha256 per file |
+| Jambu CLDF and its LFS `forms.csv` | restricted | commit `665850c`; sha256 `b08eb1f0…` |
+
+Wikimedia keeps dated dumps for a limited time. If the pinned dump is gone, pick a newer date and update both `downloads.json` and `WIKIDATA_DUMP` in the Makefile.
 
 ## 2. Commands
 
 ```bash
-make setup        # backend venv + frontend node_modules
+make setup db-up migrate
 ```
 
 ```bash
-make db-up        # Postgres 16 in Docker (or point DATABASE_URL at your own server)
+make import-open validate coverage benchmark
 ```
 
 ```bash
-make migrate import-jambu import-glottolog validate coverage
+make public-seed
+```
+
+Development only:
+
+```bash
+make import-jambu validate
 ```
 
 | Step | What it does |
 |---|---|
-| `migrate` | Alembic `0001_initial`: the schema, the `pg_trgm` extension, and the seeded relationship-type and script vocabularies. |
-| `import-jambu` | Loads the manifest into `source`, then imports Jambu (see §3). It replaces earlier Jambu rows, so it is safe to re-run. |
-| `import-glottolog` | Adds the family hierarchy (`language_family`), `family_id`, ISO codes and glottocode aliases. |
-| `validate` | Runs the Dataset plan §8 checks and writes `reports/validation.json`. Exits non-zero if an `error` check fails. |
-| `validate-public` | Same, but `release` checks also block. This is the gate for any public seed. |
-| `coverage` | Per-language table in `reports/coverage.md` and `.json`. |
+| `migrate` | Alembic migrations 0001–0003: schema, `pg_trgm`, vocabularies, the `dataset_audit` table and `lexeme.form_kind`. |
+| `import-open` | Concepticon, LSI, ASJP, Wikidata Lexemes, then Glottolog classification. Each step first loads the audit and source manifest and registers the configured languages. |
+| `import-jambu` | The restricted development import (§3). Prunes unused auto-created sources afterwards. |
+| `validate` | Data-quality and provenance checks, plus "every row traces to an audit record". Writes `reports/validation.json`. |
+| `validate-public` | Same, but rows from BLOCKED datasets also fail. This is the gate for any deployment. |
+| `coverage` | Per-language table in `reports/coverage.md`. |
+| `benchmark` | Runs `data/benchmark/relationships.csv`; results stay provisional until a person reviews the cases. |
+| `public-seed` | Exports audit-approved rows to `data/public_seed/`, with `ATTRIBUTION.md` and `manifest.json` (counts and checksums). |
+| `load-public-seed` | Loads the seed into a freshly migrated database, for deployments. |
 
-On the pinned snapshot, the full import takes about 2 minutes. It yields 323,337 lexemes, 208,099 relationships and 248,024 evidence rows. All `error` checks pass, and a second import produces identical IDs.
+**Wordlists (LSI, ASJP).**
+- Each doculect becomes a `variety` of its language, matched by glottocode.
+- Forms link to Concepticon concepts.
+- ASJP forms are ASJPcode transcriptions, stored as `phonemic`.
+- Neither dataset has cognate judgments for our languages, so no relationships are created.
+
+**Wikidata.**
+- Takes the lemma and up to three English glosses per lexeme. Hindi lexemes are filed under Hindustani (Q11051) and are kept when they have a Hindi lemma.
+- "Derived from lexeme" (P5191) becomes the `etymon` type, because Wikidata does not say whether a word was inherited or borrowed. "Combines lexemes" (P5238) becomes `has_component`.
+- Every edge cites its statement ID and the statement's own reference, or says it has none.
+- Names of non-target languages are looked up once (`--fetch-language-names`) and committed in `data/config/wikidata_languages.csv`.
+
+**Concepts.** Jambu's concept IDs are Concepticon IDs (all 3,321 match ID and gloss), so all datasets share one concept space.
+
+**Form kinds.** Every lexeme is classified as `word`, `stem`, `affix`, `root`, `compound` or `phrase`. Only words can be search matches; the other kinds are returned in their own result groups.
 
 ## 3. What the Jambu importer does
 

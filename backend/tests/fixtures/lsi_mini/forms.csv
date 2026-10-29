@@ -1,0 +1,15 @@
+ID,Local_ID,Language_ID,Parameter_ID,Value,Form,Segments,Comment,Source,Cognacy,Loan,Graphemes,Profile
+JAPANESE-5_five-1,,JAPANESE,5_five,itsutsu,itsutsu,i ts u ts u,,Grierson1928,,,^i ts u ts u $,JAPANESE
+TAMIL-5_five-1,,TAMIL,5_five,eindu,eindu,ei n̪ d̪ u,,Grierson1928,,,^ei n d u $,TAMIL
+TAMIL-5_five-2,,TAMIL,5_five,eim,eim,ei m,,Grierson1928,,,^ei m $,TAMIL
+WESTERNHINDIHINDOSTANI-5_five-1,,WESTERNHINDIHINDOSTANI,5_five,pā̃ch,pā̃ch,p ãː tʃ,,Grierson1928,,,^p ā̃ ch $,WESTERNHINDIHINDOSTANI
+JAPANESE-1_one-1,,JAPANESE,1_one,hitotsu,hitotsu,h i t̪ o ts u,,Grierson1928,,,^h i t o ts u $,JAPANESE
+TAMIL-1_one-1,,TAMIL,1_one,ondru,ondru,o n̪ d̪ r u,,Grierson1928,,,^o n d r u $,TAMIL
+TAMIL-1_one-2,,TAMIL,1_one,oru,oru,o r u,,Grierson1928,,,^o r u $,TAMIL
+TAMIL-1_one-3,,TAMIL,1_one,ōr,ōr,oː r,,Grierson1928,,,^ō r $,TAMIL
+WESTERNHINDIHINDOSTANI-1_one-1,,WESTERNHINDIHINDOSTANI,1_one,ēk,ēk,eː k,,Grierson1928,,,^ē k $,WESTERNHINDIHINDOSTANI
+JAPANESE-2_two-1,,JAPANESE,2_two,futatsu,futatsu,f u t̪ ʌ ts u,,Grierson1928,,,^f u t a ts u $,JAPANESE
+TAMIL-2_two-1,,TAMIL,2_two,iraṇḍu,iraṇḍu,i r ʌ ɳ ɖ u,,Grierson1928,,,^i r a ṇ ḍ u $,TAMIL
+TAMIL-2_two-2,,TAMIL,2_two,iru,iru,i r u,,Grierson1928,,,^i r u $,TAMIL
+TAMIL-2_two-3,,TAMIL,2_two,īr,īr,iː r,,Grierson1928,,,^ī r $,TAMIL
+WESTERNHINDIHINDOSTANI-2_two-1,,WESTERNHINDIHINDOSTANI,2_two,dō,dō,d̪ oː,,Grierson1928,,,^d ō $,WESTERNHINDIHINDOSTANI

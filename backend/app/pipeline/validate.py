@@ -127,6 +127,47 @@ CHECKS = [
         f"""SELECT count(*) FROM relationship r JOIN source s ON s.id = r.source_id
               WHERE s.reuse_status NOT IN {ALLOWED_PUBLIC}""",
     ),
+    Check(
+        "lexeme_dataset_not_audited",
+        "error",
+        "Lexemes whose import dataset has no row in dataset_audit.csv",
+        """SELECT count(*) FROM lexeme l LEFT JOIN dataset_audit d ON d.id = l.dataset
+           WHERE d.id IS NULL""",
+    ),
+    Check(
+        "relationship_dataset_not_audited",
+        "error",
+        "Relationships whose import dataset has no row in dataset_audit.csv",
+        """SELECT count(*) FROM relationship r LEFT JOIN dataset_audit d ON d.id = r.dataset
+           WHERE d.id IS NULL""",
+    ),
+    Check(
+        "source_without_dataset",
+        "error",
+        "Sources not linked to a dataset audit record",
+        "SELECT count(*) FROM source WHERE dataset_id IS NULL",
+    ),
+    Check(
+        "lexemes_from_blocked_datasets",
+        "release",
+        "Lexemes imported from a dataset the audit marks BLOCKED",
+        """SELECT count(*) FROM lexeme l JOIN dataset_audit d ON d.id = l.dataset
+           WHERE d.decision = 'BLOCKED'""",
+    ),
+    Check(
+        "relationships_from_blocked_datasets",
+        "release",
+        "Relationships imported from a dataset the audit marks BLOCKED",
+        """SELECT count(*) FROM relationship r JOIN dataset_audit d ON d.id = r.dataset
+           WHERE d.decision = 'BLOCKED'""",
+    ),
+    Check(
+        "stem_or_affix_marked_word",
+        "error",
+        "Forms with a leading/trailing hyphen or a root sign classified as words",
+        """SELECT count(*) FROM lexeme WHERE form_kind = 'word'
+           AND (form ~ '^\\*?-' OR form ~ '-$' OR form ~ '^\\*?√')""",
+    ),
 ]
 
 

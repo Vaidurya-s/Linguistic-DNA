@@ -3,6 +3,8 @@
 python -m app.cli load-manifest
 python -m app.cli import-jambu --cldf data/raw/jambu/cldf --version <commit>
 python -m app.cli import-glottolog --cldf data/raw/glottolog-cldf/cldf
+python -m app.cli import-concepticon --data data/raw/concepticon-data
+python -m app.cli import-wordlist --cldf data/raw/lsi/cldf --dataset lsi --version v1.1
 python -m app.cli validate [--public-seed]
 python -m app.cli coverage
 """
@@ -13,11 +15,16 @@ import sys
 from pathlib import Path
 
 from app.config import REPO_ROOT
+from app.importers.cldf_wordlist import import_cldf_wordlist
 from app.importers.common import connect
+from app.importers.concepticon import import_concepticon
 from app.importers.glottolog import import_glottolog
 from app.importers.jambu import JambuImporter
-from app.importers.manifest import load_manifest
+from app.importers.manifest import load_manifest, prune_orphan_sources
+from app.importers.wikidata_lexemes import fetch_language_names, import_wikidata_lexemes
+from app.pipeline.benchmark import run_benchmark
 from app.pipeline.coverage import coverage, to_markdown
+from app.pipeline.public_seed import build_public_seed, load_public_seed
 from app.pipeline.validate import run_checks
 
 REPORTS = REPO_ROOT / "reports"
@@ -32,12 +39,32 @@ def main(argv: list[str] | None = None) -> int:
     j.add_argument("--cldf", type=Path, required=True)
     j.add_argument("--forms", type=Path, help="forms.csv if not inside --cldf (LFS object)")
     j.add_argument("--version", default="unknown")
+    c = sub.add_parser("import-concepticon")
+    c.add_argument("--data", type=Path, required=True)
+    w = sub.add_parser("import-wordlist")
+    w.add_argument("--cldf", type=Path, required=True)
+    w.add_argument("--dataset", required=True, help="dataset_id from dataset_audit.csv")
+    w.add_argument("--version", required=True)
+    w.add_argument("--transcription", help="phonetic code the forms use, e.g. ASJPcode")
+    wd = sub.add_parser("import-wikidata")
+    wd.add_argument("--dump", type=Path, required=True)
+    wd.add_argument("--version", required=True)
+    wd.add_argument(
+        "--fetch-language-names",
+        action="store_true",
+        help="look up names of unfamiliar language items once (needs network)",
+    )
     g = sub.add_parser("import-glottolog")
     g.add_argument("--cldf", type=Path, required=True)
     v = sub.add_parser("validate")
     v.add_argument("--public-seed", action="store_true")
     sub.add_parser("coverage")
+    sub.add_parser("benchmark")
+    sub.add_parser("build-public-seed")
+    sub.add_parser("load-public-seed")
     args = parser.parse_args(argv)
+    if args.cmd == "benchmark":
+        return _benchmark(args.database_url)
 
     with connect(args.database_url) as conn:
         if args.cmd == "load-manifest":
@@ -45,7 +72,28 @@ def main(argv: list[str] | None = None) -> int:
         elif args.cmd == "import-jambu":
             load_manifest(conn)
             result = JambuImporter(conn, args.cldf, args.forms, args.version).run()
+            result["orphan_sources_removed"] = prune_orphan_sources(conn)
+        elif args.cmd == "import-concepticon":
+            load_manifest(conn)
+            result = import_concepticon(conn, args.data)
+        elif args.cmd == "import-wordlist":
+            load_manifest(conn)
+            result = import_cldf_wordlist(
+                conn, args.cldf, args.dataset, args.version, args.transcription
+            )
+        elif args.cmd == "import-wikidata":
+            load_manifest(conn)
+            result = import_wikidata_lexemes(conn, args.dump, args.version)
+            if args.fetch_language_names and result["unknown_language_qids"]:
+                fetch_language_names(result["unknown_language_qids"])
+                result = import_wikidata_lexemes(conn, args.dump, args.version)
+            result["unknown_language_qids"] = len(result["unknown_language_qids"])
+        elif args.cmd == "build-public-seed":
+            result = build_public_seed(conn)
+        elif args.cmd == "load-public-seed":
+            result = load_public_seed(conn)
         elif args.cmd == "import-glottolog":
+            load_manifest(conn)
             result = import_glottolog(conn, args.cldf)
         elif args.cmd == "validate":
             result = run_checks(conn, public_seed=args.public_seed)
@@ -61,6 +109,24 @@ def main(argv: list[str] | None = None) -> int:
             print(to_markdown(rows))
             return 0
     print(json.dumps(result, indent=2, default=str))
+    return 0
+
+
+def _benchmark(url: str | None) -> int:
+    from app.db.session import make_engine
+
+    engine = make_engine(url.replace("postgresql://", "postgresql+psycopg://") if url else None)
+    with engine.begin() as conn:
+        result = run_benchmark(conn)
+    _write("benchmark.json", json.dumps(result, indent=2, ensure_ascii=False))
+    label = "PROVISIONAL (cases not yet reviewed by a person)" if result["provisional"] else ""
+    print(f"{result['reviewed_cases']}/{result['total_cases']} cases reviewed {label}")
+    for cat, s in result["by_category"].items():
+        print(f"  {cat:<28} {s['passed']}/{s['total']}")
+    for cat, cases in result["cases"].items():
+        for c in cases:
+            if not c["passed"]:
+                print(f"  FAIL {c['case_id']} ({cat}): {c['detail']}")
     return 0
 
 

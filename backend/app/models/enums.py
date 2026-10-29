@@ -52,3 +52,20 @@ class RelationshipNamespace(enum.StrEnum):
     semantic = "semantic"
     similarity = "similarity"
     classification = "classification"
+
+
+class FormKind(enum.StrEnum):
+    """What kind of unit a form is; only ``word`` can be an exact search match."""
+
+    word = "word"
+    stem = "stem"  # trailing hyphen, e.g. māla-
+    affix = "affix"  # leading hyphen, e.g. -ṭa-
+    root = "root"  # √añc
+    compound = "compound"  # documented as having components
+    phrase = "phrase"  # contains whitespace
+
+
+class AuditDecision(enum.StrEnum):
+    approved = "APPROVED"
+    approved_with_conditions = "APPROVED WITH CONDITIONS"
+    blocked = "BLOCKED"

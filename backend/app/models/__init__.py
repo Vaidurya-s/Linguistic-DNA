@@ -22,7 +22,9 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
 from app.models.enums import (
+    AuditDecision,
     Direction,
+    FormKind,
     NativeFormOrigin,
     ReconstructionStatus,
     RelationshipNamespace,
@@ -49,6 +51,23 @@ class ImportBatch(Base):
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class DatasetAudit(Base):
+    """One row of data/manifests/dataset_audit.csv: the authority on public reuse."""
+
+    __tablename__ = "dataset_audit"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    name: Mapped[str] = mapped_column(Text)
+    component: Mapped[str | None] = mapped_column(Text)
+    version: Mapped[str | None] = mapped_column(Text)
+    licence_name: Mapped[str | None] = mapped_column(Text)
+    licence_url: Mapped[str | None] = mapped_column(Text)
+    attribution_text: Mapped[str | None] = mapped_column(Text)
+    share_alike: Mapped[str | None] = mapped_column(String(16))
+    decision: Mapped[AuditDecision] = mapped_column(pg_enum(AuditDecision, "audit_decision"))
+    decision_reason: Mapped[str | None] = mapped_column(Text)
+
+
 class Source(Base):
     __tablename__ = "source"
 
@@ -65,6 +84,7 @@ class Source(Base):
     transliteration_scheme: Mapped[str | None] = mapped_column(Text)
     # A reference inside an aggregate (e.g. a Jambu bibliography key) points at the aggregate.
     parent_source_id: Mapped[str | None] = mapped_column(ForeignKey("source.id"))
+    dataset_id: Mapped[str | None] = mapped_column(ForeignKey("dataset_audit.id"))
     notes: Mapped[str | None] = mapped_column(Text)
 
 
@@ -172,6 +192,9 @@ class Lexeme(Base):
     phonemic: Mapped[str | None] = mapped_column(Text)  # source transcription, not IPA
     ipa: Mapped[str | None] = mapped_column(Text)
     gloss: Mapped[str | None] = mapped_column(Text)
+    form_kind: Mapped[FormKind] = mapped_column(
+        pg_enum(FormKind, "form_kind"), server_default=FormKind.word.value
+    )
     reconstruction_status: Mapped[ReconstructionStatus] = mapped_column(
         pg_enum(ReconstructionStatus, "reconstruction_status")
     )

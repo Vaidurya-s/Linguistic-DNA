@@ -19,6 +19,7 @@ import psycopg
 
 from app.config import REPO_ROOT
 from app.importers.common import Citation, copy_rows, parse_citations, read_csv, sha256_file
+from app.importers.concepticon import concept_id
 from app.models.enums import (
     Direction,
     NativeFormOrigin,
@@ -28,7 +29,7 @@ from app.models.enums import (
     SourceConfidence,
 )
 from app.services.ids import lexeme_id, relationship_id
-from app.services.normalize import normalize_form, search_key
+from app.services.normalize import form_kind, normalize_form, search_key
 
 DATASET = "jambu"
 AGGREGATE_SOURCE = "jambu"
@@ -234,6 +235,8 @@ class JambuImporter:
             batch_id = cur.fetchone()[0]
             cur.execute("DELETE FROM relationship WHERE dataset = %s", (DATASET,))
             cur.execute("DELETE FROM lexeme WHERE dataset = %s", (DATASET,))
+            # Concepts used to be keyed "jambu:<id>"; they are Concepticon IDs now.
+            cur.execute("DELETE FROM concept WHERE id LIKE 'jambu:%%'")
 
             forms = self._read_forms(paths["forms.csv"], keep)
             self._upsert_languages(cur, jambu_languages, {f["Language_ID"] for f in forms.values()})
@@ -263,8 +266,11 @@ class JambuImporter:
             r["ID"] for r in read_csv(forms_path, FORM_COLUMNS) if r["Language_ID"] in self.targets
         }
         parents: dict[str, list[str]] = defaultdict(list)
+        self.compounds: set[str] = set()
         for e in read_csv(edges_path, EDGE_COLUMNS):
             parents[e["Child_ID"]].append(e["Parent_ID"])
+            if e["Kind"] == "component":
+                self.compounds.add(e["Child_ID"])
         frontier = list(keep)
         while frontier:
             nxt = []
@@ -360,6 +366,7 @@ class JambuImporter:
                     translit,
                     r["Phonemic"] or None,
                     plain_gloss(r["Gloss"]),
+                    form_kind(form, fid in self.compounds).value,
                     status.value,
                     r["Status"] or None,
                     r["Tags"].split() or None,
@@ -478,8 +485,8 @@ class JambuImporter:
         created = 0
         if AGGREGATE_SOURCE not in existing:
             cur.execute(
-                "INSERT INTO source (id, title, reuse_status) VALUES (%s, %s, %s)",
-                (AGGREGATE_SOURCE, "Jambu CLDF database", ReuseStatus.unknown.value),
+                "INSERT INTO source (id, title, reuse_status, dataset_id) VALUES (%s, %s, %s, %s)",
+                (AGGREGATE_SOURCE, "Jambu CLDF database", ReuseStatus.unknown.value, DATASET),
             )
         for key in sorted(self.sources_used):
             sid = self.source_map.get(key) or f"jambu-ref:{key}"
@@ -489,9 +496,10 @@ class JambuImporter:
             existing.add(sid)
             title, url = clean_reference(self.references.get(key) or key)
             cur.execute(
-                "INSERT INTO source (id, title, url, reuse_status, parent_source_id, notes)"
-                " VALUES (%s, %s, %s, %s, %s, %s)"
-                " ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, url = EXCLUDED.url",
+                "INSERT INTO source (id, title, url, reuse_status, parent_source_id, notes,"
+                " dataset_id) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+                " ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, url = EXCLUDED.url,"
+                " dataset_id = EXCLUDED.dataset_id",
                 (
                     sid,
                     title or key,
@@ -499,6 +507,7 @@ class JambuImporter:
                     ReuseStatus.unknown.value,
                     AGGREGATE_SOURCE,
                     f"Jambu reference key '{key}'; not yet licence-reviewed",
+                    DATASET,
                 ),
             )
         self.stats.add("sources_auto_created", created)
@@ -513,14 +522,14 @@ class JambuImporter:
         ]
         used = {cid for _, cid in links}
         rows = [
-            (f"jambu:{r['ID']}", r["Name"], r.get("Category") or None, AGGREGATE_SOURCE)
+            # Jambu concept IDs are Concepticon IDs (verified: all 3,321 match ID and gloss).
+            (concept_id(r["ID"]), r["Name"], "concepticon")
             for r in read_csv(concepts_path, ("ID", "Name"))
             if r["ID"] in used
         ]
         cur.executemany(
-            "INSERT INTO concept (id, label, category, source_id) VALUES (%s, %s, %s, %s)"
-            " ON CONFLICT (id) DO UPDATE SET label = EXCLUDED.label,"
-            " category = EXCLUDED.category",
+            "INSERT INTO concept (id, label, source_id) VALUES (%s, %s, %s)"
+            " ON CONFLICT (id) DO NOTHING",
             rows,
         )
         known = {r[0] for r in rows}
@@ -529,7 +538,7 @@ class JambuImporter:
             "lexeme_concept",
             ("lexeme_id", "concept_id", "source_id"),
             sorted(
-                {(lx, f"jambu:{c}", AGGREGATE_SOURCE) for lx, c in links if f"jambu:{c}" in known}
+                {(lx, concept_id(c), AGGREGATE_SOURCE) for lx, c in links if concept_id(c) in known}
             ),
         )
         self.stats.add("lexeme_concepts", len(links))
@@ -546,6 +555,7 @@ LEXEME_COLS = (
     "transliteration",
     "phonemic",
     "gloss",
+    "form_kind",
     "reconstruction_status",
     "source_status",
     "tags",

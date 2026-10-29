@@ -90,3 +90,17 @@ def test_clean_reference_strips_markdown_and_extracts_url():
     )
     assert title == "Eldose K. Mathai. Bagri survey. Journal of Language Survey Reports, 2011"
     assert url == "https://www.sil.org/x/43105"
+
+
+def test_form_kind_separates_words_from_stems_affixes_roots_phrases():
+    from app.models.enums import FormKind
+    from app.services.normalize import form_kind
+
+    assert form_kind("dāt") is FormKind.word
+    assert form_kind("*ōṭu") is FormKind.word
+    assert form_kind("svatva-") is FormKind.stem
+    assert form_kind("*aŋkaṭa-") is FormKind.stem
+    assert form_kind("-ṭa-") is FormKind.affix
+    assert form_kind("√añc") is FormKind.root
+    assert form_kind("bāl baccā") is FormKind.phrase
+    assert form_kind("dantapāli", is_compound=True) is FormKind.compound

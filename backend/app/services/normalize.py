@@ -3,6 +3,8 @@
 import re
 import unicodedata
 
+from app.models.enums import FormKind
+
 _CONTROL = re.compile(r"[\u0000-\u0008\u000b-\u001f\u007f-\u009f]")
 _SPACE = re.compile(r"\s+")
 
@@ -33,3 +35,17 @@ def search_key(raw: str) -> str:
         return text  # contains non-Latin letters: do not strip marks that carry vowels
     stripped = "".join(ch for ch in decomposed if not unicodedata.combining(ch))
     return _MARKERS.sub("", stripped).replace(" ", "")
+
+
+def form_kind(raw: str, is_compound: bool = False) -> FormKind:
+    """Classify a form so stems, affixes, roots and phrases are never exact word matches."""
+    form = normalize_form(raw).lstrip("*")
+    if form.startswith("√"):
+        return FormKind.root
+    if form.startswith("-") or form.startswith("°"):
+        return FormKind.affix
+    if form.endswith("-"):
+        return FormKind.stem
+    if " " in form:
+        return FormKind.phrase
+    return FormKind.compound if is_compound else FormKind.word

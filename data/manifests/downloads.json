@@ -1,0 +1,174 @@
+{
+  "description": "Pinned upstream inputs. Fetch with: python scripts/fetch_data.py [--group public|transliteration|restricted|all]",
+  "inputs": [
+    {
+      "id": "glottolog",
+      "group": "public",
+      "kind": "git",
+      "url": "https://github.com/glottolog/glottolog-cldf",
+      "ref": "v5.3",
+      "commit": "072ca0d0410039fb8b779be8fc165bac575d2cda",
+      "dest": "glottolog-cldf"
+    },
+    {
+      "id": "lsi",
+      "group": "public",
+      "kind": "git",
+      "url": "https://github.com/lexibank/lsi",
+      "ref": "v1.1",
+      "commit": "133bcfcc416933d686ab0d111b693f7e47c7a7fa",
+      "dest": "lsi"
+    },
+    {
+      "id": "asjp",
+      "group": "public",
+      "kind": "git",
+      "url": "https://github.com/lexibank/asjp",
+      "ref": "v21.1",
+      "commit": "cf4bf0d13c95256b1b48f440d07c5c098500a770",
+      "dest": "asjp"
+    },
+    {
+      "id": "concepticon",
+      "group": "public",
+      "kind": "git",
+      "url": "https://github.com/concepticon/concepticon-data",
+      "ref": "v3.4.0",
+      "commit": "918bc44e123952a6ab5733be36c2d463799c23b4",
+      "dest": "concepticon-data"
+    },
+    {
+      "id": "wikidata-lexemes",
+      "group": "public",
+      "kind": "http",
+      "url": "https://dumps.wikimedia.org/wikidatawiki/entities/20261028/wikidata-20261028-lexemes.json.bz2",
+      "sha256": "49bc13d33daef7412905bb5864629507804b26c5019015425755463be44eef8f",
+      "dest": "wikidata/wikidata-20261028-lexemes.json.bz2",
+      "note": "Wikimedia keeps dated dumps for a limited time; if this one is gone, use a newer date and update this entry"
+    },
+    {
+      "id": "dakshina",
+      "group": "transliteration",
+      "kind": "http",
+      "url": "https://storage.googleapis.com/gresearch/dakshina/dakshina_dataset_v1.0.tar",
+      "sha256": "83530bec211893d9df429298f42e63c350c25ad56f9f5172f85edb0575ee5b03",
+      "dest": "dakshina/dakshina_dataset_v1.0.tar"
+    },
+    {
+      "id": "aksharantar-asm",
+      "group": "transliteration",
+      "kind": "http",
+      "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/asm.zip",
+      "sha256": "5ecd0dbbffdfa4026c0624106bbf3f95df3d79bbcdbb653a76fc74a759b909de",
+      "dest": "aksharantar/asm.zip"
+    },
+    {
+      "id": "aksharantar-ben",
+      "group": "transliteration",
+      "kind": "http",
+      "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/ben.zip",
+      "sha256": "4ab6edcc6ab556040d8f43ee75eec73cc25af0cf72d09e4650dab26b196d5fe7",
+      "dest": "aksharantar/ben.zip"
+    },
+    {
+      "id": "aksharantar-guj",
+      "group": "transliteration",
+      "kind": "http",
+      "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/guj.zip",
+      "sha256": "2b83105a76c8d9b93007fc6fb6b5593b9ef45e0ae7d753036fe7a2c82a4b6208",
+      "dest": "aksharantar/guj.zip"
+    },
+    {
+      "id": "aksharantar-hin",
+      "group": "transliteration",
+      "kind": "http",
+      "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/hin.zip",
+      "sha256": "208c2d1b128234e6dc777b750779b4f5e6214ab43244039349b530bf9868bdaf",
+      "dest": "aksharantar/hin.zip"
+    },
+    {
+      "id": "aksharantar-kan",
+      "group": "transliteration",
+      "kind": "http",
+      "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/kan.zip",
+      "sha256": "a0c18fa0a8bf06b34d413b09c3e7b9505b74ba3f7f1fa2ae724793fc3fc7d650",
+      "dest": "aksharantar/kan.zip"
+    },
+    {
+      "id": "aksharantar-mal",
+      "group": "transliteration",
+      "kind": "http",
+      "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/mal.zip",
+      "sha256": "182a7c4e30cb6144e35accdddb5669c6001bc18d68184dec2ec34cdc8a6cce09",
+      "dest": "aksharantar/mal.zip"
+    },
+    {
+      "id": "aksharantar-mar",
+      "group": "transliteration",
+      "kind": "http",
+      "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/mar.zip",
+      "sha256": "47aab4119094f44e907d017a26aff5a33590bb42e115f19e79b957c5eb0056ef",
+      "dest": "aksharantar/mar.zip"
+    },
+    {
+      "id": "aksharantar-ori",
+      "group": "transliteration",
+      "kind": "http",
+      "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/ori.zip",
+      "sha256": "9095e8dc4221708ad02826e84c1bbb7e5033e1cbf4e4f7396272ded0947b7c0b",
+      "dest": "aksharantar/ori.zip"
+    },
+    {
+      "id": "aksharantar-pan",
+      "group": "transliteration",
+      "kind": "http",
+      "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/pan.zip",
+      "sha256": "d4d13450866a02974fd887f124ec73bcd5afe71d3c2c859bb0e9faab2d95b48d",
+      "dest": "aksharantar/pan.zip"
+    },
+    {
+      "id": "aksharantar-san",
+      "group": "transliteration",
+      "kind": "http",
+      "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/san.zip",
+      "sha256": "8cdc6e500743194116f9d40938c72f8995bd2e9073a7183bee9da3d3cb655168",
+      "dest": "aksharantar/san.zip"
+    },
+    {
+      "id": "aksharantar-tam",
+      "group": "transliteration",
+      "kind": "http",
+      "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/tam.zip",
+      "sha256": "d019cffcdc2264870a96b8ffaea0b66a3b175c8c7d56c095d9f6dd4bbeb313a2",
+      "dest": "aksharantar/tam.zip"
+    },
+    {
+      "id": "aksharantar-tel",
+      "group": "transliteration",
+      "kind": "http",
+      "url": "https://huggingface.co/datasets/ai4bharat/Aksharantar/resolve/e418c1fc928d9f5393af33268472cf20c1891be8/tel.zip",
+      "sha256": "08f1c2841f4d02fcc2a56362f7760ec16fc52d8a199029c68d44024ab0d22c1a",
+      "dest": "aksharantar/tel.zip"
+    },
+    {
+      "id": "jambu",
+      "group": "restricted",
+      "kind": "git",
+      "url": "https://github.com/moli-mandala/data",
+      "ref": "665850cdd1451391dc939063b5ccc972e646f6f6",
+      "commit": "665850cdd1451391dc939063b5ccc972e646f6f6",
+      "dest": "jambu",
+      "full_history": true,
+      "note": "Development only: Jambu has no licence and most records are permission_required. Downloaded from upstream, never redistributed by this project."
+    },
+    {
+      "id": "jambu-forms",
+      "group": "restricted",
+      "kind": "http",
+      "url": "https://media.githubusercontent.com/media/moli-mandala/data/665850cdd1451391dc939063b5ccc972e646f6f6/cldf/forms.csv",
+      "sha256": "b08eb1f0e04777ff8a204b013829d5a3c7cdbde4a54665fd948256ed223bfd28",
+      "dest": "jambu-lfs/forms.csv",
+      "note": "Git LFS object for Jambu cldf/forms.csv"
+    }
+  ]
+}

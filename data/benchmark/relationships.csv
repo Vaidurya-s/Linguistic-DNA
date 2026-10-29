@@ -1,0 +1,23 @@
+case_id,category,query,query_language,target_form,target_language,expected,source_ref,restricted_source,split,reviewer,review_status
+B01,exact_match,dānt,pan,dānt,pan,exact,Jambu (CDIAL 6152),yes,dev,,unreviewed
+B02,exact_match,pānī,hin,pānī,hin,exact,LSI vol. 1 pt. 2 'water',no,dev,,unreviewed
+B03,exact_match,taṇṇīr,tam,taṇṇīr,tam,exact,LSI vol. 1 pt. 2 'water',no,test,,unreviewed
+B04,native_script_match,ಹಗಲು,kan,hagalu,kan,native_exact,Jambu (KEED p. 902),yes,dev,,unreviewed
+B05,transliteration_alias,dant,pan,dānt,pan,loose,Jambu (CDIAL 6152),yes,dev,,unreviewed
+B06,transliteration_alias,pani,hin,pānī,hin,loose,LSI vol. 1 pt. 2 'water',no,test,,unreviewed
+B07,ambiguous_form,pani,,,,3,"LSI, ASJP, Jambu",no,dev,,unreviewed
+B08,documented_inheritance,dānt,pan,dánta,oia,inherited_form,CDIAL 6152 via Jambu,yes,dev,,unreviewed
+B09,documented_inheritance,dāt,hin,dánta,oia,inherited_form,CDIAL 6152 via Jambu,yes,test,,unreviewed
+B10,documented_inheritance,ōṭṭam,tam,*ōṭu,jb-pdr,inherited_form,DEDR 1041 via Jambu,yes,dev,,unreviewed
+B11,documented_borrowing,sottu,kan,svatva-,san,borrowed_from,KEED via Jambu,yes,dev,,unreviewed
+B12,documented_borrowing,mā́lā,oia,mālai,jb-pdr,borrowed_from,CDIAL / DED 3954 via Jambu,yes,test,,unreviewed
+B13,shared_meaning_unrelated,pānī,hin,taṇṇīr,tam,none,LSI 'water' (same concept; no documented link),no,dev,,unreviewed
+B14,shared_meaning_unrelated,pānī,hin,veḷḷam,mal,none,LSI 'water' (same concept; no documented link),no,test,,unreviewed
+B15,shared_meaning_unrelated,jal,ben,pāni,ben,none,LSI 'water' (two Bengali words of different origin),no,dev,,unreviewed
+B16,similar_spelling_unrelated,dant,pan,dánta,oia,none,"Jambu: Punjabi dant 'giant, large elephant' has no link to dánta 'tooth'",yes,dev,,unreviewed
+B17,reconstructed,*ōṭu,jb-pdr,,,reconstructed,DEDR 1041 via Jambu,yes,dev,,unreviewed
+B18,reconstructed,*ḍaṇṭa,oia,,,reconstructed,CDIAL via Jambu,yes,test,,unreviewed
+B19,reconstructed,dánta,oia,,,attested,CDIAL 6152 via Jambu,yes,dev,,unreviewed
+B20,stem_not_word,svatva,san,svatva-,san,stem,KEED via Jambu,yes,dev,,unreviewed
+B21,unknown_query,zzzq,,,,none,,no,dev,,unreviewed
+B22,unknown_query,qwxjvk,,,,none,,no,test,,unreviewed
