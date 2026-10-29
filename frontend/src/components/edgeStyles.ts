@@ -6,6 +6,7 @@ export const EDGE_STYLES: Record<string, EdgeStyle> = {
   inherited_form: { color: '#2563eb', line: 'solid', short: 'inherited' },
   derived_form: { color: '#059669', line: 'solid', short: 'derived' },
   borrowed_from: { color: '#ea580c', line: 'solid', short: 'borrowed' },
+  etymon: { color: '#0f766e', line: 'solid', short: 'from' }, // Wikidata: inherited or borrowed, unstated
   has_component: { color: '#7c3aed', line: 'solid', short: 'component' },
   variant_of: { color: '#64748b', line: 'dotted', short: 'variant' },
   related_form: { color: '#0891b2', line: 'dotted', short: 'related' },

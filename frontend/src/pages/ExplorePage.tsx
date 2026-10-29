@@ -106,6 +106,7 @@ export default function ExplorePage() {
     try {
       setResults(await searchLexemes(q.trim(), lang || undefined))
       setResultsOpen(true)
+      setSelection(null) // the old word's details no longer match the new results
     } catch (e) {
       setError(`Search failed: ${(e as Error).message}`)
     } finally {

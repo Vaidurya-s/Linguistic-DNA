@@ -4,6 +4,8 @@ import type { GraphEdge } from '../types/api.ts'
 import type { DisplayNode } from './graphModel.ts'
 import { GROUP_COLORS, OTHER_GROUP_COLOR, styleFor } from './edgeStyles.ts'
 
+const SMALL_GRAPH = 12
+
 export type Selection = { kind: 'node' | 'edge'; id: string } | null
 
 type Props = {
@@ -135,24 +137,44 @@ export default function GraphCanvas({ nodes, edges, rootId, selection, onSelect,
       instance.elements().remove()
       instance.add(toElements(nodes, edges, rootId))
     })
-    // Concentric rings: hubs (usually the etymon) in the middle; leaves are spread over three
-    // outer rings so labels stay readable.
+    // Small graphs: a top-down tree with ancestors (targets of child -> parent edges) on top.
+    // Larger, star-like graphs: concentric rings with hubs in the middle and leaves spread
+    // over three outer rings so labels stay readable.
     const order = new Map(nodes.map((n, i) => [n.id, i]))
-    instance
-      .layout({
-        name: 'concentric',
-        concentric: (n: cytoscape.NodeSingular) => {
-          const degree = n.degree(false)
-          if (n.id() === rootId || degree > 1) return 10 + degree
-          return 3 - ((order.get(n.id()) ?? 0) % 3)
-        },
-        levelWidth: () => 1,
-        minNodeSpacing: 10,
-        avoidOverlap: true,
-        padding: 16,
-        animate: false,
-      } as cytoscape.LayoutOptions)
-      .run()
+    const sources = new Set(edges.map((e) => e.source))
+    const roots = nodes.filter((n) => !sources.has(n.id)).map((n) => `#${CSS.escape(n.id)}`)
+    const layout =
+      nodes.length <= SMALL_GRAPH
+        ? {
+            name: 'breadthfirst',
+            directed: false,
+            roots: roots.length ? roots.join(',') : undefined,
+            spacingFactor: 0.9,
+            padding: 16,
+            animate: false,
+          }
+        : {
+            name: 'concentric',
+            concentric: (n: cytoscape.NodeSingular) => {
+              const degree = n.degree(false)
+              if (n.id() === rootId || degree > 1) return 10 + degree
+              return 3 - ((order.get(n.id()) ?? 0) % 3)
+            },
+            levelWidth: () => 1,
+            minNodeSpacing: 10,
+            avoidOverlap: true,
+            padding: 16,
+            animate: false,
+          }
+    instance.layout(layout as cytoscape.LayoutOptions).run()
+    if (nodes.length <= SMALL_GRAPH) {
+      // Always show a small graph whole, even if that needs a smaller zoom.
+      if (instance.zoom() > 1.3) {
+        instance.zoom(1.3)
+        instance.center()
+      }
+      return
+    }
     if (instance.zoom() < 0.6) {
       instance.zoom(0.6)
       instance.center()

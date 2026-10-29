@@ -84,7 +84,7 @@ export default function DetailsPanel({ selection, onExpand, expanded }: Props) {
           )}
           <Field label="Source"><SourceLine source={lexeme.source} /></Field>
           {lexeme.source_citation && <Field label="Citation">{lexeme.source_citation}</Field>}
-          <Field label="Record">Jambu {lexeme.source_record_id}</Field>
+          <Field label="Record ID">{lexeme.source_record_id}</Field>
         </dl>
         <button
           type="button"

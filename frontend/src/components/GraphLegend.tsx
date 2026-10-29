@@ -1,6 +1,14 @@
 import { EDGE_STYLES, GROUP_COLORS, OTHER_GROUP_COLOR } from './edgeStyles.ts'
 
-const SHOWN = ['inherited_form', 'derived_form', 'borrowed_from', 'has_component', 'variant_of', 'related_form']
+const SHOWN = [
+  'inherited_form',
+  'borrowed_from',
+  'etymon',
+  'derived_form',
+  'has_component',
+  'variant_of',
+  'related_form',
+]
 
 export default function GraphLegend() {
   return (
