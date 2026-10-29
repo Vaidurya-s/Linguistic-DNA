@@ -3,7 +3,7 @@ B01,exact_match,dānt,pan,dānt,pan,exact,Jambu (CDIAL 6152),yes,dev,,unreviewed
 B02,exact_match,pānī,hin,pānī,hin,exact,LSI vol. 1 pt. 2 'water',no,dev,,unreviewed
 B03,exact_match,taṇṇīr,tam,taṇṇīr,tam,exact,LSI vol. 1 pt. 2 'water',no,test,,unreviewed
 B04,native_script_match,ಹಗಲು,kan,hagalu,kan,native_exact,Jambu (KEED p. 902),yes,dev,,unreviewed
-B05,transliteration_alias,dant,pan,dānt,pan,loose,Jambu (CDIAL 6152),yes,dev,,unreviewed
+B05,transliteration_alias,dant,pan,dānt,pan,transliteration,Jambu (CDIAL 6152),yes,dev,,unreviewed
 B06,transliteration_alias,pani,hin,pānī,hin,loose,LSI vol. 1 pt. 2 'water',no,test,,unreviewed
 B07,ambiguous_form,pani,,,,3,"LSI, ASJP, Jambu",no,dev,,unreviewed
 B08,documented_inheritance,dānt,pan,dánta,oia,inherited_form,CDIAL 6152 via Jambu,yes,dev,,unreviewed
