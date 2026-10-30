@@ -131,5 +131,9 @@ def test_borrowing_table_gives_directed_borrowings(db, tmp_path):
             ("dãt", "dā̃t", "hin", None),
             ("dā̃t", "dantaḥ", "san", "source marked uncertain"),
         }
+        status = db.execute(
+            "SELECT reconstruction_status::text FROM lexeme WHERE form = 'dantaḥ'"
+        ).fetchone()
+        assert status == ("unknown",)  # named by the table, not attested by it
     finally:
         db.rollback()

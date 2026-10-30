@@ -286,7 +286,12 @@ def borrowing_rows(
                         normalize_form(word),
                         lexeme_search_key(word, lang),
                         form_kind(word).value,
-                        ReconstructionStatus.attested.value,
+                        # named by the borrowing table, not attested by it; starred = proto
+                        (
+                            ReconstructionStatus.reconstructed
+                            if word.startswith("*")
+                            else ReconstructionStatus.unknown
+                        ).value,
                         dataset,
                         dataset,
                         f"borrowing:{r['ID']}",
