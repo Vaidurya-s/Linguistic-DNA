@@ -67,6 +67,8 @@ describe('ExplorePage', () => {
     const fetchMock = vi.fn((url: string) => {
       if (url.includes('/search')) return json(searchResponse)
       if (url.includes('/graph/')) return json({ root_id: 'lx_1', nodes: [], edges: [], truncated: false })
+      // the details panel loads the opened word too; answer with a full detail record
+      if (url.includes('/lexemes/')) return json({ ...searchResponse.matches[0], concepts: [], source: null })
       return json([])
     })
     vi.stubGlobal('fetch', fetchMock)
@@ -76,6 +78,7 @@ describe('ExplorePage', () => {
       () => expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/graph/lx_1'))).toBe(true),
       { timeout: 5000 }, // search, then pick, then the graph fetch: slow on a loaded runner
     )
+    expect(await screen.findByText('no source recorded', {}, { timeout: 5000 })).toBeInTheDocument()
   })
 
   it('shows an error when search fails', async () => {
