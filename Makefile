@@ -16,7 +16,7 @@ WIKTIONARY_REFERENCE_CODES ?= inc-pro,iir-pro,ira-pro,ine-pro,dra-pro,dra-sou-pr
 .PHONY: setup db-up fetch-data fetch-dev-data migrate import-open import-jambu import-glottolog \
         import-concepticon import-lsi import-asjp import-wikidata import-aliases validate \
         validate-public validate-research import-research research-db research-dump \
-        import-wiktionary import-cognates import-peirosst import-dcs \
+        import-wiktionary import-cognates import-peirosst import-dcs import-dpd \
         coverage benchmark public-seed load-public-seed fixture test lint
 
 setup:
@@ -47,7 +47,13 @@ import-glottolog:
 	cd backend && .venv/bin/python -m app.cli import-glottolog --cldf ../$(GLOTTOLOG_CLDF)
 
 # Research-use datasets, cited per record; never in the public seed.
-import-research: import-jambu import-peirosst
+import-research: import-jambu import-peirosst import-dpd
+
+import-dpd:
+	mkdir -p data/raw/dpd/x
+	test -f data/raw/dpd/x/dpd.db || tar -xJf data/raw/dpd/dpd.db.tar.xz -C data/raw/dpd/x
+	cd backend && .venv/bin/python -m app.cli import-dpd --db ../data/raw/dpd/x/dpd.db \
+		--archive ../data/raw/dpd/dpd.db.tar.xz --version v0.4.20261026
 
 # Expert cognate sets (CLDF, CC BY 4.0). --all-languages keeps every doculect, so cognate
 # links to languages we do not configure yet stay in the data (disabled gl-<glottocode>).

@@ -19,6 +19,7 @@ from app.importers.cldf_wordlist import import_cldf_wordlist
 from app.importers.common import connect
 from app.importers.concepticon import import_concepticon
 from app.importers.dcs import import_dcs
+from app.importers.dpd import import_dpd
 from app.importers.glottolog import import_glottolog
 from app.importers.jambu import JambuImporter
 from app.importers.manifest import load_manifest, prune_orphan_sources
@@ -47,6 +48,10 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="import every form, filing unconfigured languages as disabled reference languages",
     )
+    dp = sub.add_parser("import-dpd")
+    dp.add_argument("--db", type=Path, required=True, help="dpd.db unpacked from the release")
+    dp.add_argument("--archive", type=Path, help="the release dpd.db.tar.xz, for its checksum")
+    dp.add_argument("--version", default="unknown")
     dc = sub.add_parser("import-dcs")
     dc.add_argument("--dictionary", type=Path, required=True)
     dc.add_argument("--version", default="unknown")
@@ -106,6 +111,9 @@ def main(argv: list[str] | None = None) -> int:
                 conn, args.cldf, args.forms, args.version, all_languages=args.all_languages
             ).run()
             result["orphan_sources_removed"] = prune_orphan_sources(conn)
+        elif args.cmd == "import-dpd":
+            load_manifest(conn)
+            result = import_dpd(conn, args.db, args.archive, args.version)
         elif args.cmd == "import-dcs":
             load_manifest(conn)
             result = import_dcs(conn, args.dictionary, args.version)
