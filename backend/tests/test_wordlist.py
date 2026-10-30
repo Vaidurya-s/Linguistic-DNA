@@ -81,3 +81,55 @@ def test_starred_forms_are_reconstructed(db, tmp_path):
         assert status == ("reconstructed",)
     finally:
         db.rollback()
+
+
+def test_large_cognate_sets_are_a_star_not_all_pairs(tmp_path):
+    from app.importers.cldf_wordlist import cognate_rows
+    from app.services.ids import lexeme_id
+
+    path = tmp_path / "cognates.csv"
+    path.write_text(
+        "ID,Form_ID,Cognateset_ID\n" + "".join(f"c{i},f{i},s1\n" for i in range(8)),
+        encoding="utf-8",
+    )
+    language_of = {lexeme_id("x", f"f{i}"): f"lang{i}" for i in range(8)}
+    language_of[lexeme_id("x", "f5")] = "hin"
+    language_of[lexeme_id("x", "f6")] = "ben"
+    rels, evidence = cognate_rows(path, language_of, {"hin", "ben"}, "x", 1)
+    # star of 7 spokes around a configured member, the hin-ben pair being one of them
+    assert len(rels) == 7 and len(evidence) == 7
+    hub = {r[1] for r in rels} & {r[2] for r in rels}
+    ends = [m for r in rels for m in (r[1], r[2])]
+    assert max(ends.count(m) for m in set(ends)) == 7  # one member touches every link
+    assert len({(r[1], r[2]) for r in rels}) == 7 and hub is not None
+
+
+def test_borrowing_table_gives_directed_borrowings(db, tmp_path):
+    import shutil
+
+    data = tmp_path / "cldf"
+    shutil.copytree(Path(__file__).parent / "fixtures" / "cognate_mini", data)
+    (data / "borrowings.csv").write_text(
+        "ID,Target_Form_ID,Source_Form_ID,Source_word,Source_languoid_glottocode,Source_certain\n"
+        "b1,Bengali-tooth,Hindi-tooth,,,true\n"  # source form in the dataset
+        "b2,Hindi-tooth,,dantaḥ,sans1269,false\n"  # source named by word and glottocode
+        "b3,Hindi-tooth,,x,zzzz9999,true\n",  # unknown language: skipped
+        encoding="utf-8",
+    )
+    try:
+        stats = import_cldf_wordlist(db, data, "lsi", "fixture")
+        assert stats["borrowings"] == 2 and stats["borrowing_source_words"] == 1
+        rows = set(
+            db.execute(
+                "SELECT s.form, t.form, t.language_id, r.notes FROM relationship r"
+                " JOIN lexeme s ON s.id = r.source_lexeme_id"
+                " JOIN lexeme t ON t.id = r.target_lexeme_id"
+                " WHERE r.dataset = 'lsi' AND r.type_id = 'borrowed_from'"
+            ).fetchall()
+        )
+        assert rows == {
+            ("dãt", "dā̃t", "hin", None),
+            ("dā̃t", "dantaḥ", "san", "source marked uncertain"),
+        }
+    finally:
+        db.rollback()

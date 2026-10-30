@@ -17,7 +17,7 @@ WIKTIONARY_REFERENCE_CODES ?= inc-pro,iir-pro,ira-pro,ine-pro,dra-pro,dra-sou-pr
         import-concepticon import-lsi import-asjp import-wikidata import-aliases validate \
         validate-public validate-research import-research research-db research-dump \
         import-wiktionary import-cognates import-peirosst import-dcs import-dpd import-cdsl-mw \
-        refresh-languages \
+        refresh-languages import-lexibank import-profiles \
         coverage benchmark public-seed load-public-seed fixture test lint
 
 setup:
@@ -48,7 +48,12 @@ import-glottolog:
 	cd backend && .venv/bin/python -m app.cli import-glottolog --cldf ../$(GLOTTOLOG_CLDF)
 
 # Research-use datasets, cited per record; never in the public seed.
-import-research: import-jambu import-peirosst import-dpd import-cdsl-mw
+import-research: import-jambu import-peirosst import-dpd import-cdsl-mw import-lexibank
+
+# Every Lexibank dataset in data/manifests/lexibank.tsv (CC BY ones are open, NC ones are
+# research use), with all their languages, cognate sets and borrowings.
+import-lexibank:
+	cd backend && .venv/bin/python -m app.cli import-lexibank
 
 import-cdsl-mw:
 	cd backend && .venv/bin/python -m app.cli import-cdsl-mw --file ../data/raw/cdsl/mw.txt \

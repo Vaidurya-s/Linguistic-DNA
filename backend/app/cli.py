@@ -10,6 +10,7 @@ python -m app.cli coverage
 """
 
 import argparse
+import csv
 import json
 import sys
 from pathlib import Path
@@ -65,6 +66,10 @@ def main(argv: list[str] | None = None) -> int:
     dp.add_argument("--db", type=Path, required=True, help="dpd.db unpacked from the release")
     dp.add_argument("--archive", type=Path, help="the release dpd.db.tar.xz, for its checksum")
     dp.add_argument("--version", default="unknown")
+    lb = sub.add_parser("import-lexibank", help="every dataset in data/manifests/lexibank.tsv")
+    lb.add_argument("--list", type=Path, default=REPO_ROOT / "data/manifests/lexibank.tsv")
+    lb.add_argument("--raw", type=Path, default=REPO_ROOT / "data/raw/lexibank")
+    lb.add_argument("--only", help="comma-separated dataset ids")
     st = sub.add_parser("import-structure", help="CLDF StructureDataset -> language profiles")
     st.add_argument("--cldf", type=Path, required=True)
     st.add_argument("--dataset", required=True, help="dataset_id from dataset_audit.csv")
@@ -140,6 +145,32 @@ def main(argv: list[str] | None = None) -> int:
         elif args.cmd == "import-dpd":
             load_manifest(conn)
             result = import_dpd(conn, args.db, args.archive, args.version)
+        elif args.cmd == "import-lexibank":
+            load_manifest(conn)
+            conn.commit()
+            only = set(args.only.split(",")) if args.only else None
+            result = {"imported": {}, "failed": {}}
+            with args.list.open(encoding="utf-8", newline="") as fh:
+                datasets = list(csv.DictReader(fh, delimiter="\t"))
+            for d in datasets:
+                if only and d["id"] not in only:
+                    continue
+                cldf = args.raw / d["id"] / "cldf"
+                try:
+                    stats = import_cldf_wordlist(
+                        conn, cldf, d["id"], f"{d['tag']} ({d['commit'][:7]})", all_languages=True
+                    )
+                    conn.commit()  # one dataset at a time: a failure keeps the others
+                    result["imported"][d["id"]] = {
+                        k: stats[k]
+                        for k in ("lexemes", "cognate_relationships", "borrowings")
+                        if k in stats
+                    }
+                    print(d["id"], result["imported"][d["id"]], flush=True)
+                except Exception as exc:  # report and continue with the next dataset
+                    conn.rollback()
+                    result["failed"][d["id"]] = f"{type(exc).__name__}: {exc}"[:300]
+                    print(d["id"], "FAILED", result["failed"][d["id"]], flush=True)
         elif args.cmd == "import-structure":
             load_manifest(conn)
             result = import_cldf_structure(conn, args.cldf, args.dataset)

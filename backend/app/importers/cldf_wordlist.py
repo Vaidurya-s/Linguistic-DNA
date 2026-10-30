@@ -6,8 +6,8 @@ disabled language ``gl-<glottocode>`` shared by every CLDF dataset, ready to be 
 adding the glottocode to the config. Forms are linked to Concepticon concepts.
 
 When the dataset has a cognate table (``cognates.csv``), forms in the same cognate set are
-linked by undirected ``cognate`` relationships citing the dataset and the set, as long as at
-least one of the two forms is in a configured language. A ``Loan`` flag is kept as a tag
+linked by undirected ``cognate`` relationships citing the dataset and the set (see
+``cognate_rows`` for how large sets are kept linear). A ``Loan`` flag is kept as a tag
 because it names no donor.
 """
 
@@ -29,9 +29,10 @@ from app.models.enums import Direction, ReconstructionStatus, RelationshipStatus
 from app.services.ids import lexeme_id, relationship_id
 from app.services.normalize import form_kind, lexeme_search_key, normalize_form, search_key
 
-FORM_COLUMNS = ("ID", "Language_ID", "Parameter_ID", "Value", "Form", "Source", "Loan")
+FORM_COLUMNS = ("ID", "Language_ID", "Parameter_ID", "Value")  # Form, Source, Loan optional
 LANGUAGE_COLUMNS = ("ID", "Name", "Glottocode")
 COGNATE_COLUMNS = ("Form_ID", "Cognateset_ID")
+SMALL_SET = 6
 REL_COLS = (
     "id",
     "source_lexeme_id",
@@ -47,7 +48,7 @@ REL_COLS = (
     "import_batch_id",
 )
 EVIDENCE_COLS = ("relationship_id", "source_id", "citation", "locator", "evidence_note")
-PARAMETER_COLUMNS = ("ID", "Name", "Concepticon_ID", "Concepticon_Gloss")
+PARAMETER_COLUMNS = ("ID", "Name")  # Concepticon_ID, Concepticon_Gloss when linked
 
 LEXEME_COLS = (
     "id",
@@ -153,8 +154,8 @@ def import_cldf_wordlist(
         concept_of: dict[str, str | None] = {}
         for p in params.values():
             concept_of[p["ID"]] = (
-                ensure_concept(cur, p["Concepticon_ID"], p["Concepticon_Gloss"])
-                if p["Concepticon_ID"]
+                ensure_concept(cur, p["Concepticon_ID"], p.get("Concepticon_Gloss") or p["Name"])
+                if p.get("Concepticon_ID")
                 else None
             )
         for f in read_csv(cldf_dir / "forms.csv", FORM_COLUMNS):
@@ -166,7 +167,7 @@ def import_cldf_wordlist(
             raw, native, phonemic = spellings(f, transcription)
             lid = lexeme_id(dataset, f["ID"])
             page = param.get("PageNumber")
-            citation = f"{f['Source'] or dataset}" + (f"[p. {page}]" if page else "")
+            citation = f"{f.get('Source') or dataset}" + (f"[p. {page}]" if page else "")
             rows.append(
                 (
                     lid,
@@ -186,7 +187,7 @@ def import_cldf_wordlist(
                         if raw.startswith("*")
                         else ReconstructionStatus.attested
                     ).value,
-                    ["loan"] if f["Loan"].lower() == "true" else None,
+                    ["loan"] if (f.get("Loan") or "").lower() == "true" else None,
                     dataset,
                     dataset,
                     f["ID"],
@@ -196,25 +197,125 @@ def import_cldf_wordlist(
             )
             if concept_of.get(f["Parameter_ID"]):
                 links.append((lid, concept_of[f["Parameter_ID"]], dataset))
-            stats["loan_flags"] = stats.get("loan_flags", 0) + (f["Loan"].lower() == "true")
+            stats["loan_flags"] = stats.get("loan_flags", 0) + (
+                (f.get("Loan") or "").lower() == "true"
+            )
         copy_rows(cur, "lexeme", LEXEME_COLS, rows)
         copy_rows(
             cur, "lexeme_concept", ("lexeme_id", "concept_id", "source_id"), sorted(set(links))
         )
         stats.update(lexemes=len(rows), concept_links=len(set(links)))
-        if (cldf_dir / "cognates.csv").exists():
-            language_of = {r[0]: r[1] for r in rows}
+        language_of = {r[0]: r[1] for r in rows}
+        if has_table(cldf_dir, "cognates.csv"):
             rels, evidence = cognate_rows(
                 cldf_dir / "cognates.csv", language_of, configured, dataset, batch_id
             )
             copy_rows(cur, "relationship", REL_COLS, rels)
             copy_rows(cur, "evidence", EVIDENCE_COLS, evidence)
             stats["cognate_relationships"] = len(rels)
+        if has_table(cldf_dir, "borrowings.csv"):
+            cur.execute("SELECT id, glottocode FROM language WHERE glottocode IS NOT NULL")
+            language_by_code = {code: lid for lid, code in cur.fetchall()}
+            for code, lang in targets.items():
+                language_by_code[code] = lang.id  # configured languages win
+            b_lexemes, rels, evidence = borrowing_rows(
+                cldf_dir / "borrowings.csv", language_of, language_by_code, dataset, batch_id
+            )
+            copy_rows(cur, "lexeme", BORROWED_SOURCE_COLS, b_lexemes)
+            copy_rows(cur, "relationship", REL_COLS, rels)
+            copy_rows(cur, "evidence", EVIDENCE_COLS, evidence)
+            stats["borrowings"] = len(rels)
+            stats["borrowing_source_words"] = len(b_lexemes)
         cur.execute(
             "UPDATE import_batch SET stats = %s, finished_at = now() WHERE id = %s",
             (psycopg.types.json.Jsonb(stats), batch_id),
         )
     return {"batch_id": batch_id, **stats}
+
+
+def has_table(cldf_dir: Path, name: str) -> bool:
+    return (cldf_dir / name).exists() or (cldf_dir / f"{name}.zip").exists()
+
+
+BORROWED_SOURCE_COLS = (
+    "id",
+    "language_id",
+    "form",
+    "normalized_form",
+    "search_key",
+    "form_kind",
+    "reconstruction_status",
+    "dataset",
+    "source_id",
+    "source_record_id",
+    "source_citation",
+    "import_batch_id",
+)
+
+
+def borrowing_rows(
+    path: Path,
+    language_of: dict[str, str],
+    by_glottocode: dict[str, str],
+    dataset: str,
+    batch_id: int,
+) -> tuple[list[tuple], list[tuple], list[tuple]]:
+    """Directed borrowings from a CLDF BorrowingTable (WOLD, ACD): the borrowed form ->
+    its source form, or -> a source word the table names with its language's glottocode."""
+    lexemes, rels, evidence, seen = [], [], [], set()
+    for r in read_csv(path, ("ID", "Target_Form_ID")):
+        target = lexeme_id(dataset, r["Target_Form_ID"])
+        if target not in language_of:
+            continue
+        source = None
+        if r.get("Source_Form_ID"):
+            candidate = lexeme_id(dataset, r["Source_Form_ID"])
+            source = candidate if candidate in language_of else None
+        word = (r.get("Source_word") or "").strip()
+        code = (r.get("Source_languoid_glottocode") or "").strip()
+        if not source and word and code in by_glottocode:
+            source = lexeme_id(dataset, f"borrowing-source:{code}:{word}")
+            if source not in seen:
+                seen.add(source)
+                lang = by_glottocode[code]
+                lexemes.append(
+                    (
+                        source,
+                        lang,
+                        word,
+                        normalize_form(word),
+                        lexeme_search_key(word, lang),
+                        form_kind(word).value,
+                        ReconstructionStatus.attested.value,
+                        dataset,
+                        dataset,
+                        f"borrowing:{r['ID']}",
+                        f"{dataset}, borrowing {r['ID']} (source word)",
+                        batch_id,
+                    )
+                )
+        if not source or source == target:
+            continue
+        rid = relationship_id(dataset, "borrowing", r["ID"])
+        uncertain = (r.get("Source_certain") or "").lower() in ("false", "no", "0")
+        rels.append(
+            (
+                rid,
+                target,
+                source,
+                "borrowed_from",
+                Direction.directed.value,
+                RelationshipStatus.documented.value,
+                dataset,
+                f"borrowing:{r['ID']}",
+                "borrowing" + (" (source uncertain)" if uncertain else ""),
+                "source marked uncertain" if uncertain else None,
+                dataset,
+                batch_id,
+            )
+        )
+        evidence.append((rid, dataset, f"{dataset}, borrowing {r['ID']}", r["ID"], None))
+    return lexemes, rels, evidence
 
 
 def spellings(f: dict, transcription: str | None) -> tuple[str, str | None, str | None]:
@@ -223,7 +324,7 @@ def spellings(f: dict, transcription: str | None) -> tuple[str, str | None, str 
     Datasets differ: NorthEuraLex puts the native spelling in Value and IPA in Form; IE-CoR
     has a romanised Form plus native_script and phon_form columns; LSI has romanised forms
     only. A ``transcription`` dataset (ASJP) keeps its phonetic code as the form."""
-    value, form = f["Value"], f["Form"]
+    value, form = f["Value"], f.get("Form") or ""
     if transcription:
         return value, None, None
     native = f.get("native_script") or (value if has_native_script(value) else None)
@@ -236,20 +337,31 @@ def spellings(f: dict, transcription: str | None) -> tuple[str, str | None, str 
 def cognate_rows(
     path: Path, language_of: dict[str, str], configured: set[str], dataset: str, batch_id: int
 ) -> tuple[list[tuple], list[tuple]]:
-    """Undirected cognate pairs within each cognate set, kept when either form is in a
-    configured language (the set can be large; pairs among other languages add no value yet)."""
+    """Undirected cognate links within each cognate set.
+
+    Small sets (up to SMALL_SET members) link every cross-language pair. Larger sets are
+    drawn as a star around one representative (a member in a configured language when there
+    is one), plus every pair among configured-language members: the set stays connected while
+    the link count grows linearly, not quadratically (ABVD sets have hundreds of members)."""
     sets: dict[str, set[str]] = defaultdict(set)
     for r in read_csv(path, COGNATE_COLUMNS):
         lid = lexeme_id(dataset, r["Form_ID"])
         if lid in language_of and r["Cognateset_ID"]:
             sets[r["Cognateset_ID"]].add(lid)
-    rels, evidence = [], []
+    rels, evidence, seen = [], [], set()
     for set_id, members in sorted(sets.items()):
-        for a, b in combinations(sorted(members), 2):
-            if language_of[a] not in configured and language_of[b] not in configured:
-                continue
-            if language_of[a] == language_of[b]:
+        ordered = sorted(members, key=lambda m: (language_of[m] not in configured, m))
+        if len(ordered) <= SMALL_SET:
+            pairs = combinations(ordered, 2)
+        else:
+            hub, rest = ordered[0], ordered[1:]
+            ours = [m for m in ordered if language_of[m] in configured]
+            pairs = [(hub, m) for m in rest] + list(combinations(ours, 2))
+        for x, y in pairs:
+            a, b = sorted((x, y))
+            if language_of[a] == language_of[b] or (a, b) in seen:
                 continue  # two variants of one language are not a cross-language cognate
+            seen.add((a, b))
             rid = relationship_id(dataset, "cognate", a, b)
             rels.append(
                 (

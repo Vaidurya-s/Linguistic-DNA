@@ -27,7 +27,10 @@ import psycopg
 from app.importers.common import read_csv
 from app.importers.jambu import load_languages
 
-SOURCE_PREFIXES = ("jb-", "wkt-", "wd-")
+# Rows that may stand for another language's record. "gl-" rows created by a CLDF import
+# for a *dialect* glottocode merge into their language's record; language-level gl- rows
+# map to themselves and are left alone.
+SOURCE_PREFIXES = ("jb-", "wkt-", "wd-", "gl-")
 # A historical stage (Old Hindi, Middle Bengali) often carries its modern language's
 # glottocode; it may only merge into a language that is itself historical (Glottolog's
 # "Old Marathi"), never into the modern language.

@@ -2,7 +2,9 @@
 
 import csv
 import hashlib
+import io
 import re
+import zipfile
 from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -30,12 +32,24 @@ def read_csv(path: Path, required: Sequence[str]) -> Iterator[dict[str, str]]:
     Upstream CLDF metadata can disagree with the files (docs/DATASET_AUDIT.md finding 5),
     so the header in the file is what gets checked.
     """
+    if not path.exists() and path.with_name(path.name + ".zip").exists():
+        # large CLDF tables ship zipped (e.g. forms.csv.zip); read the member in place
+        with (
+            zipfile.ZipFile(path.with_name(path.name + ".zip")) as zf,
+            zf.open(path.name) as raw,
+        ):
+            fh = io.TextIOWrapper(raw, encoding="utf-8", newline="")
+            yield from _rows(csv.DictReader(fh), path.name, required)
+        return
     with path.open(encoding="utf-8", newline="") as fh:
-        reader = csv.DictReader(fh)
-        missing = [c for c in required if c not in (reader.fieldnames or [])]
-        if missing:
-            raise SchemaMismatch(f"{path.name}: missing columns {missing}")
-        yield from reader
+        yield from _rows(csv.DictReader(fh), path.name, required)
+
+
+def _rows(reader: csv.DictReader, name: str, required: Sequence[str]) -> Iterator[dict[str, str]]:
+    missing = [c for c in required if c not in (reader.fieldnames or [])]
+    if missing:
+        raise SchemaMismatch(f"{name}: missing columns {missing}")
+    yield from reader
 
 
 def sha256_file(path: Path) -> str:

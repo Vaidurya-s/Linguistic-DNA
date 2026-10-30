@@ -11,6 +11,7 @@ library, so it works straight after cloning.
 """
 
 import argparse
+import csv
 import hashlib
 import json
 import os
@@ -85,13 +86,35 @@ def fetch_git(entry: dict, raw: Path) -> str:
     return "cloned"
 
 
+def lexibank_entries() -> list[dict]:
+    """The Lexibank datasets listed in data/manifests/lexibank.tsv, fetched as their cldf/
+    folder only, at the pinned commit. Non-commercial ones belong to the research group."""
+    path = MANIFEST.with_name("lexibank.tsv")
+    if not path.exists():
+        return []
+    with path.open(encoding="utf-8", newline="") as fh:
+        return [
+            {
+                "id": f"lexibank-{r['id']}",
+                "group": "research" if "-nc" in r["licence"].lower() else "public",
+                "kind": "git",
+                "url": r["repo_url"],
+                "ref": r["tag"],
+                "commit": r["commit"],
+                "dest": f"lexibank/{r['id']}",
+                "sparse": ["cldf"],
+            }
+            for r in csv.DictReader(fh, delimiter="\t")
+        ]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--dest", type=Path, default=RAW, help="download directory")
     parser.add_argument("--group", default="public",
                         choices=["public", "research", "restricted", "all"])
     args = parser.parse_args()
-    entries = json.loads(MANIFEST.read_text(encoding="utf-8"))["inputs"]
+    entries = json.loads(MANIFEST.read_text(encoding="utf-8"))["inputs"] + lexibank_entries()
     failed = 0
     for entry in entries:
         if args.group != "all" and entry["group"] != args.group:
