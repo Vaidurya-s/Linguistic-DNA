@@ -49,9 +49,9 @@ what it was inherited from, borrowed from, built from, or is cognate with, with 
 
 | | Open public seed<br/><sub>`data/public_seed`, committed</sub> | Research database<br/><sub>open + research-use sources, built locally</sub> |
 |---|---:|---:|
-| Words | **521,466** | **1,812,751** |
-| Documented, cited relationships | **221,567** | **996,749** |
-| Evidence rows (citations with locators) | 221,567 | 1,060,042 |
+| Words | **521,448** | **1,812,733** |
+| Documented, cited relationships | **221,594** | **996,776** |
+| Evidence rows (citations with locators) | 221,594 | 1,060,069 |
 | Transliteration spelling pairs | 947,189 | 947,189 |
 | Concepts linking meanings across wordlists | 1,393 | 4,033 |
 | Sources cited on individual records | 12 | 538 |

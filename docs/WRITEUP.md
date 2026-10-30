@@ -65,40 +65,34 @@ flowchart LR
 
 ## Testing
 
-- **Backend (pytest against PostgreSQL), 74 tests:**
+- **Backend (pytest against PostgreSQL), 91 tests:**
   - importer behaviour, ID stability across re-imports, and a sentinel proving verbatim dictionary text is never stored;
   - a seed that, built from a mixed database, contains only approved data and passes public-mode validation on a fresh load;
   - a multilingual regression suite with one native-script query for each of the 19 modern languages.
-- **Frontend (Vitest), 12 tests.**
+- **Frontend (Vitest), 13 tests.**
 - **Benchmark:** 22 hand-picked relationship and lookup cases. They pass, but are marked unreviewed until a linguist signs off.
 - **CI:** all of the above on every push.
 
 ## Limitations
 
-- **The big gap is CDIAL and DEDR.** The two dictionaries behind most documented Indo-Aryan and Dravidian word histories are not in the public data until reuse permission is established. The public graph is therefore much thinner than the development database.
-- **Wikidata is crowd-sourced.** Its claims are shown with their references, and some are doubtful.
-- **Coverage is uneven.** Malayalam has 67k Wikidata lexemes; several languages have only 40–220-word wordlists.
-- **Not yet handled:** Perso-Arabic, Ol Chiki and Meitei Mayek scripts, which is why Urdu, Kashmiri, Sindhi, Santali and Manipuri are not yet searchable.
+- **Open versus research data.** The richest word-history sources, CDIAL and DEDR (through Jambu), Monier-Williams and the Digital Pāḷi Dictionary, have no open or only a non-commercial licence. They are used in the research database, cited on every record, but are not in the downloadable open dataset, which is therefore thinner.
+- **Crowd-sourced data.** Wikidata and Wiktionary claims are shown with their references, and some are doubtful.
+- **Coverage is uneven.** Sanskrit has 441k words; Bodo has 442.
+- **Not yet handled:** Perso-Arabic, Ol Chiki and Meitei Mayek scripts, which is why Urdu spellings, Kashmiri, Sindhi, Santali and Manipuri are not yet searchable natively.
 
 ## Numbers
 
-From the public seed in `data/public_seed` (14 MB compressed), which passes all 21 validator checks in public mode on a fresh load:
+As of 2026-10-30.
 
-| | |
-|---|---:|
-| Languages configured | 25 (19 modern in 3 families, 6 historical or reference layers) |
-| Words | 98,916 |
-| Cited relationships, each with evidence | 9,413 |
-| of which "from" (Wikidata P5191) | 4,000 |
-| of which "combines" (Wikidata P5238) | 5,413 |
-| Transliteration spelling pairs | 947,189 |
-| Concepts shared across wordlists | 169 |
-| Datasets in the seed, all approved by the audit | 8 |
-| Benchmark cases passing (unreviewed) | 22 / 22 |
+| | Open public seed | Research database |
+|---|---:|---:|
+| Words | 521,448 | 1,812,733 |
+| Cited relationships, each with evidence | 221,594 | 996,776 |
+| Transliteration spelling pairs | 947,189 | 947,189 |
+| Datasets (audit entries) | 15 (14 sources; Aksharantar counts twice) | 19 (adds Jambu, Monier-Williams, DPD and Peiros) |
+| Size | about 55 MB compressed, 680 MB loaded | about 2.2 GB |
 
-Coverage per language is very uneven:
-
-- **Large:** Malayalam 67,838 words, Bengali 12,662, Punjabi 4,227, Hindi 3,404.
-- **Small:** the eight Tier 1 languages each have 73–363 words, almost all from LSI and ASJP wordlists.
-
-The development database, which also holds the restricted Jambu import, has about 350k more words and 221k more relationships, none of which are published.
+- **Open seed:** passes all 25 public-mode validator checks on a fresh load.
+- **Research database:** passes `validate --research`, so every research-use record cites a source.
+- **Benchmark:** all 22 cases pass; they are still unreviewed.
+- **Datasets:** the per-dataset table is in [DATASET_LICENCE_AUDIT.md](DATASET_LICENCE_AUDIT.md), section 4a.

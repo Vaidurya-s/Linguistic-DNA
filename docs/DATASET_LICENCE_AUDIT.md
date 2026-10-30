@@ -129,7 +129,7 @@ Every source below was downloaded, its licence was read from the artefact itself
 | Dataset | Pinned version | Licence | Decision | Words | Links |
 |---|---|---|---|---:|---:|
 | Jambu, in full (CDIAL, DEDR and about 570 cited works) | commit 665850c | none | RESEARCH USE | 991,379 | 492,312 |
-| Wiktionary (wiktextract, kaikki.org) | enwiktionary 2026-10-01, extracted 2026-10-25 | CC BY-SA 4.0 and GFDL | APPROVED WITH CONDITIONS | 202,147 | 158,925 |
+| Wiktionary (wiktextract, kaikki.org) | enwiktionary 2026-10-01, extracted 2026-10-25 | CC BY-SA 4.0 and GFDL | APPROVED WITH CONDITIONS | 202,129 | 158,952 |
 | Monier-Williams 1899 (Cologne CDSL) | csl-orig e4742e1 | CC BY-NC-SA 3.0, stricter of two stated | RESEARCH USE | 194,083 | 192,637 |
 | Digital Corpus of Sanskrit lexicon | 8aeed5a | CC BY 4.0 | APPROVED WITH CONDITIONS | 180,281 | 0 |
 | Digital Pāḷi Dictionary | v0.4.20261026 | CC BY-NC-SA 4.0 | RESEARCH USE | 94,782 | 87,873 |
@@ -140,7 +140,7 @@ Every source below was downloaded, its licence was read from the artefact itself
 | DravLex | v1.1 | CC BY 4.0 | APPROVED WITH CONDITIONS | 2,127 | 3,525 cognate |
 | Hale's Nepal wordlists | v4.0 | CC BY 4.0 | APPROVED WITH CONDITIONS | 1,227 | 0 |
 
-Alongside the existing Wikidata, LSI and ASJP imports, the research database holds **1,812,751 words, 996,749 documented relationships and 1,060,042 evidence rows** (about 2.1 GB).
+Alongside the existing Wikidata, LSI and ASJP imports, the research database holds **1,812,733 words, 996,776 documented relationships and 1,060,069 evidence rows** (about 2.1 GB).
 
 **How each source is mapped.**
 - Wiktionary etymology templates become typed links: `inh` → inherited, `bor`/`lbor` → borrowed, `der` → "from", calques, `af`/`compound` → component, and `cog` → cognate (undirected). Etymology-only Prakrit and Sanskrit varieties merge into their language, with the variety kept in the label.
