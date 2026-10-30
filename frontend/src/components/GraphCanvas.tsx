@@ -140,8 +140,18 @@ export default function GraphCanvas({ nodes, edges, rootId, selection, onSelect,
     })
     // Small graphs: a top-down tree with ancestors (targets of child -> parent edges) on top.
     // Larger, star-like graphs: concentric rings with hubs in the middle and leaves spread
-    // over three outer rings so labels stay readable.
+    // over three outer rings so labels stay readable. The searched word's own ancestors
+    // and cognates take the innermost of those rings, so they are always in view.
     const order = new Map(nodes.map((n, i) => [n.id, i]))
+    const history = new Set(
+      edges
+        .filter(
+          (e) =>
+            (e.source === rootId && e.type !== 'has_component') ||
+            (e.target === rootId && e.type === 'cognate'),
+        )
+        .map((e) => (e.source === rootId ? e.target : e.source)),
+    )
     const sources = new Set(edges.map((e) => e.source))
     const roots = nodes.filter((n) => !sources.has(n.id)).map((n) => `#${CSS.escape(n.id)}`)
     const layout =
@@ -159,6 +169,7 @@ export default function GraphCanvas({ nodes, edges, rootId, selection, onSelect,
             concentric: (n: cytoscape.NodeSingular) => {
               const degree = n.degree(false)
               if (n.id() === rootId || degree > 1) return 10 + degree
+              if (history.has(n.id())) return 4
               return 3 - ((order.get(n.id()) ?? 0) % 3)
             },
             levelWidth: () => 1,

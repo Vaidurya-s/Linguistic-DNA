@@ -4,18 +4,25 @@ Everything below is for a Linux laptop or desktop. Commands are given for Ubuntu
 
 ## Hardware
 
-| | Minimum | Recommended |
-|---|---|---|
-| Free disk | 30 GB | 40 GB, preferably an SSD |
-| Memory (RAM) | 8 GB | 16 GB |
-| Network | about 8 GB of downloads, once | |
+There are three setups (see [docs/DEPLOYMENT.md § 6](docs/DEPLOYMENT.md#6-running-it-on-your-own-linux-machine)):
+
+| | Open data only (`load-public-seed`) | Research database (`research-db`) | Everything, every language (`full-db`) |
+|---|---|---|---|
+| Free disk | 5 GB | 30 GB minimum, 40 GB recommended | **60 GB minimum, 100 GB recommended** |
+| Memory (RAM) | 4 GB | 8 GB minimum, 16 GB recommended | 16 GB recommended (8 GB works, slower) |
+| Downloads | none | about 8 GB, once | about 8 GB, once (the same files) |
+| Time | minutes | 1.5–3 hours | 4–8 hours |
+
+An SSD makes the imports several times faster.
 
 Where the disk goes:
 - about 7.5 GB of downloaded source data in `data/raw/`;
 - the research database (Postgres), several GB with every source imported;
 - about 0.5 GB for Python and Node dependencies.
 
-The open-data-only setup (step 4b in the guide) needs far less: about 2 GB.
+The database lives in a Docker volume, under `/var/lib/docker` by default, so that is the partition that needs the space. `docker system df -v` shows the volume's size; if your large disk is mounted elsewhere, point Docker's `data-root` there (in `/etc/docker/daemon.json`) before `make db-up`.
+
+`full-db` imports the same downloads in every language, so its extra space is all database: about 15–25 GB more for Wiktionary and Wikidata in every language, plus working space while it builds.
 
 ## Software
 

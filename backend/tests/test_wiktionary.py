@@ -170,3 +170,103 @@ def test_form_of_and_etymology_only_filters(db, tmp_path):
         assert forms == {"вода", "jää", "*jäŋe"}  # plus their etymons' terms
     finally:
         db.rollback()
+
+
+def test_all_languages_descendants_and_etymon_template(db, tmp_path):
+    """The English "fuck" pattern: an {{etymon}} chain, plain templates, a cognate, and a
+    Descendants list of borrowings; with all_languages no code needs to be configured."""
+    import json
+
+    lines = [
+        {
+            "word": "fuck",
+            "lang": "English",
+            "lang_code": "en",
+            "pos": "verb",
+            "senses": [{"glosses": ["To have sexual intercourse."]}],
+            "etymology_templates": [
+                {
+                    "name": "etymon",
+                    "args": {"1": "en", "id": "copulate", "2": ":inh", "3": "enm:*fukken<id:x>"},
+                },
+                {"name": "inh", "args": {"1": "en", "2": "enm", "3": "*fukken"}},
+                {"name": "der", "args": {"1": "en", "2": "gem-pro", "3": "*fukkōną"}},
+                {"name": "cog", "args": {"1": "sco", "2": "fuk"}},
+            ],
+        },
+        {  # a homograph on the same page: one record, glosses merged
+            "word": "fuck",
+            "lang": "English",
+            "lang_code": "en",
+            "pos": "intj",
+            "senses": [{"glosses": ["Expressing anger."]}],
+            "descendants": [
+                {"lang": "Tok Pisin", "lang_code": "tpi", "word": "fak"},
+                {"lang": "Afrikaans", "lang_code": "af", "word": "fok", "raw_tags": ["borrowed"]},
+                {"lang_code": "ja", "lang": "Japanese", "raw_tags": ["borrowed"]},
+                {
+                    "lang": "Russian",
+                    "lang_code": "ru",
+                    "word": "фак",
+                    "raw_tags": ["borrowed"],
+                    "roman": "fak",
+                    "descendants": [{"lang": "Ukrainian", "lang_code": "uk", "word": "фак"}],
+                },
+            ],
+        },
+        {
+            "word": "ficken",
+            "lang": "German",
+            "lang_code": "de",
+            "senses": [{"glosses": ["to fuck"]}],
+            "etymology_templates": [{"name": "sl", "args": {"1": "de", "2": "en", "3": "fuck"}}],
+        },
+        {
+            "word": "fukkōną",
+            "lang": "Proto-Germanic",
+            "lang_code": "gem-pro",
+            "original_title": "Reconstruction:Proto-Germanic/fukkōną",
+            "senses": [{"glosses": ["to strike"]}],
+            "descendants": [{"lang": "Old Norse", "lang_code": "non", "word": "*fokka"}],
+        },
+    ]
+    path = tmp_path / "all.jsonl"
+    path.write_text("\n".join(json.dumps(x, ensure_ascii=False) for x in lines), encoding="utf-8")
+    try:
+        stats = import_wiktionary(db, [path], "fixture", {}, all_languages=True)
+        fuck = wid("en", "fuck")
+        assert db.execute("SELECT gloss FROM lexeme WHERE id = %s", (fuck,)).fetchone() == (
+            "To have sexual intercourse.; Expressing anger.",
+        )
+        assert edge(db, fuck, wid("enm", "fukken")) == "inherited_form"  # once, not twice
+        assert stats["inherited_form"] == 4  # fukken, Tok Pisin fak, Ukrainian фак, Norse *fokka
+        assert edge(db, fuck, wid("gem-pro", "fukkōną")) == "etymon"
+        # the Proto-Germanic entry and the template's term are one record, with its gloss
+        assert db.execute(
+            "SELECT form, gloss, reconstruction_status::text FROM lexeme WHERE id = %s",
+            (wid("gem-pro", "fukkōną"),),
+        ).fetchone() == ("*fukkōną", "to strike", "reconstructed")
+        assert edge(db, wid("af", "fok"), fuck) == "borrowed_from"
+        assert edge(db, wid("tpi", "fak"), fuck) == "inherited_form"
+        assert edge(db, wid("uk", "фак"), wid("ru", "фак")) == "inherited_form"  # nested
+        assert edge(db, wid("de", "ficken"), fuck) == "calque_or_loan_translation"
+        assert db.execute(
+            "SELECT transliteration FROM lexeme WHERE id = %s", (wid("ru", "фак"),)
+        ).fetchone() == ("fak",)
+        cite = db.execute(
+            "SELECT e.citation FROM evidence e JOIN relationship r ON r.id = e.relationship_id"
+            " WHERE r.source_lexeme_id = %s",
+            (wid("af", "fok"),),
+        ).fetchone()
+        assert cite == ("Wiktionary, “fuck”, descendants ({{desc}})",)
+        locator = db.execute(
+            "SELECT e.locator FROM evidence e JOIN relationship r ON r.id = e.relationship_id"
+            " WHERE r.source_lexeme_id = %s",
+            (wid("non", "fokka"),),
+        ).fetchone()
+        assert locator == ("https://en.wiktionary.org/wiki/Reconstruction:Proto-Germanic/fukkōną",)
+        langs = {r[0] for r in db.execute("SELECT DISTINCT language_id FROM lexeme")}
+        assert {"wkt-en", "wkt-gem-pro", "wkt-sco", "wkt-tpi"} <= langs
+        assert run_checks(db, research=True)["passed"]
+    finally:
+        db.rollback()

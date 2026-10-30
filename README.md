@@ -207,6 +207,12 @@ make fetch-dev-data
 make research-db            # open imports, research imports, Glottolog, re-key, validate --research
 ```
 
+**Everything, in every language** (about 5,000 languages, with Wiktionary's full etymologies and descendant lists; about 100 GB of free disk recommended, see [`REQUIREMENTS.md`](REQUIREMENTS.md)):
+
+```bash
+make full-db                # all downloads, every import in every language, checks, size report
+```
+
 **Run the app** with `make serve-api` and `make serve-web` (a production build on :5173), or in development mode (the API reads `DATABASE_URL`, default `postgresql+psycopg://postgres@localhost:5432/lsg`):
 
 ```bash

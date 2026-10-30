@@ -70,6 +70,8 @@ def parse_lexicon(xml: bytes) -> dict:
         lemma = e.find("Lemma")
         if lemma is None or not (lemma.get("writtenForm") or "").strip():
             continue
+        if lemma.get("writtenForm").strip().startswith("*"):
+            continue  # a placeholder for a missing translation (e.g. "*account"), not a word
         ilis = [
             synset_ili[s.get("synset")] for s in e.iter("Sense") if s.get("synset") in synset_ili
         ]

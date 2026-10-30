@@ -61,6 +61,24 @@ describe('capNeighbours', () => {
     expect(hidden.get('hub')).toBe(20)
     expect(graph.nodes.some((n) => n.group === null)).toBe(false) // 'other' group goes last
   })
+  it('keeps the hub\'s ancestors and cognates before the words that contain it', () => {
+    const parts = Array.from({ length: 12 }, (_, i) => node(`c${i}`, { degree: 50 }))
+    const ancestors = [node('proto', { group: null, degree: 1 }), node('cog', { group: null })]
+    const h = mergeDuplicates(
+      [node('hub'), ...parts, ...ancestors],
+      [
+        ...parts.map((c, i) => edge(`k${i}`, c.id, 'hub', 'has_component')),
+        edge('a', 'hub', 'proto', 'etymon'),
+        edge('b', 'cog', 'hub', 'cognate'),
+      ],
+      'hub',
+    )
+    const { graph } = capNeighbours(h, 'hub', ['hub'], 5, new Set())
+    const ids = graph.nodes.map((n) => n.id)
+    expect(ids).toContain('proto')
+    expect(ids).toContain('cog')
+    expect(ids).toHaveLength(6)
+  })
   it('shows everything once the user asks', () => {
     const { graph, hidden } = capNeighbours(g, 'hub', ['hub'], 10, new Set(['hub']))
     expect(graph.nodes).toHaveLength(31)

@@ -86,9 +86,29 @@ export function applyFilters(
   return { ...graph, nodes: graph.nodes.filter((n) => keep.has(n.id)), edges }
 }
 
-/** Dense neighbourhoods: around each expanded node show at most `limit` neighbours (those in
- * a configured language group first, then the best connected), unless the user asked for all.
- * Returns the reduced graph and, per node, how many neighbours were hidden. */
+const HISTORY = new Set([
+  'inherited_form',
+  'borrowed_from',
+  'etymon',
+  'calque_or_loan_translation',
+  'derived_form',
+])
+
+/** How much a link tells about the hub's history, lower first: the hub's own ancestors and
+ * donors, then cognates, then words that descend from or borrowed the hub, then the hub's
+ * parts, then everything else, and last the many words that contain the hub. */
+function linkRank(e: GraphEdge, hub: string): number {
+  const fromHub = e.source === hub
+  if (HISTORY.has(e.type)) return fromHub ? 0 : 2
+  if (e.type === 'cognate') return 1
+  if (e.type === 'has_component') return fromHub ? 3 : 5
+  return 4
+}
+
+/** Dense neighbourhoods: around each expanded node show at most `limit` neighbours (the
+ * hub's history first, then words in a configured language group, then the best connected),
+ * unless the user asked for all. Returns the reduced graph and, per node, how many neighbours
+ * were hidden. */
 export function capNeighbours(
   graph: DisplayGraph,
   rootId: string,
@@ -102,15 +122,20 @@ export function capNeighbours(
   const protectedIds = new Set([rootId, ...expanded])
   for (const hub of expanded) {
     if (showAll.has(hub)) continue
-    const neighbours = graph.edges
-      .filter((e) => e.source === hub || e.target === hub)
-      .map((e) => (e.source === hub ? e.target : e.source))
-      .filter((id, i, all) => all.indexOf(id) === i && !protectedIds.has(id))
+    const rank = new Map<string, number>()
+    for (const e of graph.edges) {
+      if (e.source !== hub && e.target !== hub) continue
+      const other = e.source === hub ? e.target : e.source
+      rank.set(other, Math.min(rank.get(other) ?? 9, linkRank(e, hub)))
+    }
+    const neighbours = [...rank.keys()]
+      .filter((id) => !protectedIds.has(id))
       .map((id) => byId.get(id)!)
       .filter(Boolean)
     if (neighbours.length <= limit) continue
     neighbours.sort(
       (a, b) =>
+        rank.get(a.id)! - rank.get(b.id)! ||
         Number(groupOf(b) !== 'other') - Number(groupOf(a) !== 'other') ||
         b.degree - a.degree ||
         a.language_name.localeCompare(b.language_name),

@@ -19,12 +19,25 @@ WIKTIONARY_REFERENCE_CODES ?= inc-pro,iir-pro,ira-pro,ine-pro,dra-pro,dra-sou-pr
 WIKTIONARY_STEPPE_CODES ?= ru,uk,be,orv,cu,sla-pro,os,xsc,ae,peo,pal,sog,xbc,txb,xto,urj-pro,fiu-pro,trk-pro,cv
 # Large languages imported only where an entry has an etymology (disk budget).
 WIKTIONARY_ETYMOLOGY_ONLY_CODES ?= fa,hy,xcl,fi,et,hu,mhr,udm,kv,myv,mdf,mns,kca,tt,ba,kk,ky,tr,ota,mn,lt,lv,la,grc
+# English and the Germanic, Romance and Celtic chain it cites, so English words connect too.
+WIKTIONARY_EUROPE_CODES ?= en,enm,ang,sco,non,gem-pro,gmw-pro,gmq-pro,goh,gmh,de,odt,dum,nl,gml,nds,fy,ofs,da,sv,no,nb,nn,is,got,fr,fro,frm,it,es,pt,ro,ca,la-lat,la-med,la-vul,itc-pro,ga,sga,cy,cel-pro,gd,el,gkm
+WIKIDATA_LEMMA_CODES ?= $(WIKIDATA_STEPPE_CODES)
+WIKTIONARY_FLAGS ?= --reference-codes $(WIKTIONARY_REFERENCE_CODES) \
+	--etymology-only-codes $(WIKTIONARY_ETYMOLOGY_ONLY_CODES),$(WIKTIONARY_EUROPE_CODES)
+
+# FULL=1: every language in Wiktionary (the whole dump, with descendants) and in Wikidata
+# Lexemes. Needs about 100 GB free and several hours; see REQUIREMENTS.md.
+FULL ?= 0
+ifeq ($(FULL),1)
+WIKTIONARY_FLAGS = --all-languages
+WIKIDATA_LEMMA_CODES = all
+endif
 
 .PHONY: setup serve-api serve-web db-up fetch-data fetch-dev-data migrate import-open import-jambu import-glottolog \
         import-concepticon import-lsi import-asjp import-wikidata import-aliases validate \
         validate-public validate-research import-research research-db research-dump \
         import-wiktionary import-cognates import-peirosst import-dcs import-dpd import-cdsl-mw \
-        refresh-languages import-lexibank import-profiles import-omw \
+        refresh-languages import-lexibank import-profiles import-omw full-db db-size \
         coverage benchmark public-seed load-public-seed fixture test lint
 
 setup:
@@ -115,8 +128,7 @@ import-peirosst:
 
 import-wiktionary:
 	cd backend && .venv/bin/python -m app.cli import-wiktionary --dir ../$(WIKTIONARY_DIR) \
-		--version $(WIKTIONARY_VERSION) --reference-codes $(WIKTIONARY_REFERENCE_CODES) \
-		--etymology-only-codes $(WIKTIONARY_ETYMOLOGY_ONLY_CODES)
+		--version $(WIKTIONARY_VERSION) $(WIKTIONARY_FLAGS)
 
 # The full research database: open data, then research-use data, then checks.
 research-db: import-open import-research
@@ -124,6 +136,16 @@ research-db: import-open import-research
 	$(MAKE) refresh-languages
 	cd backend && .venv/bin/python -m app.cli rekey-search
 	cd backend && .venv/bin/python -m app.cli validate --research
+
+# Everything this repository can use, on your own machine: every download (open and
+# research use), every language in Wiktionary and Wikidata, then the checks and a size report.
+full-db:
+	$(MAKE) fetch-dev-data
+	$(MAKE) FULL=1 research-db
+	$(MAKE) db-size
+
+db-size:
+	cd backend && .venv/bin/python -m app.cli db-size
 
 # All Glottolog languages; one record per language across sources; statistics; which
 # languages are searchable (docs/DATA_PIPELINE.md).
@@ -169,7 +191,7 @@ import-aliases:
 import-wikidata:
 	cd backend && .venv/bin/python -m app.cli import-wikidata --dump ../$(WIKIDATA_DUMP) \
 		--version 20261028 \
-		--lemma-codes $(WIKIDATA_STEPPE_CODES) --glottolog ../$(GLOTTOLOG_CLDF) \
+		--lemma-codes $(WIKIDATA_LEMMA_CODES) --glottolog ../$(GLOTTOLOG_CLDF) \
 		--iso ../data/raw/iso639/iso-639-3.tab
 
 validate:

@@ -1,6 +1,12 @@
 services:
   db:
     image: postgres:16
+    # Settings for bulk imports (make research-db / full-db): bigger memory for index builds
+    # and fewer checkpoints; still modest enough for a laptop.
+    command: >
+      postgres -c shared_buffers=1GB -c maintenance_work_mem=1GB -c work_mem=64MB
+      -c max_wal_size=8GB -c checkpoint_timeout=30min
+    shm_size: 1gb
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres

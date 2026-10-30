@@ -97,6 +97,11 @@ def main(argv: list[str] | None = None) -> int:
         default="",
         help="comma-separated codes whose entries are imported only when they have etymologies",
     )
+    wk.add_argument(
+        "--all-languages",
+        action="store_true",
+        help="import entries in every language (the whole dump; about 10 million entries)",
+    )
     c = sub.add_parser("import-concepticon")
     c.add_argument("--data", type=Path, required=True)
     w = sub.add_parser("import-wordlist")
@@ -120,7 +125,8 @@ def main(argv: list[str] | None = None) -> int:
     wd.add_argument(
         "--lemma-codes",
         default="",
-        help="also import these lemma languages (ISO codes, e.g. ru,uk), resolved via Glottolog",
+        help="also import these lemma languages (ISO codes, e.g. ru,uk), resolved via Glottolog;"
+        " 'all' for every language",
     )
     wd.add_argument("--glottolog", type=Path, help="glottolog-cldf/cldf, for --lemma-codes")
     wd.add_argument("--iso", type=Path, help="SIL iso-639-3.tab, for --lemma-codes")
@@ -143,6 +149,7 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("coverage")
     sub.add_parser("benchmark")
     sub.add_parser("rekey-search", help="recompute lexeme.search_key after a rule change")
+    sub.add_parser("db-size", help="database size, and words and links per dataset")
     sub.add_parser("build-public-seed")
     sub.add_parser("load-public-seed")
     sub.add_parser("ensure-seed", help="load the public seed if the database has no lexemes")
@@ -217,6 +224,7 @@ def main(argv: list[str] | None = None) -> int:
                 wiktionary_code_map(),
                 reference_codes=[c for c in args.reference_codes.split(",") if c],
                 etymology_only_codes=[c for c in args.etymology_only_codes.split(",") if c],
+                all_languages=args.all_languages,
             )
         elif args.cmd == "import-concepticon":
             load_manifest(conn)
@@ -238,19 +246,42 @@ def main(argv: list[str] | None = None) -> int:
                 glottolog = Glottolog(args.glottolog)
                 part1, _ = iso_tables(args.iso)
                 targets = canonical_targets(conn)
-                for code in args.lemma_codes.split(","):
+                every = args.lemma_codes == "all"
+                part3 = sorted(glottolog.by_iso)
+                wanted_codes = [*part1, *part3] if every else args.lemma_codes.split(",")
+                for code in wanted_codes:
                     iso = part1.get(code, code)
                     iso = MACROLANGUAGE_MEMBER.get(iso, iso)
                     lang = targets.get(glottolog.language_of(glottolog.by_iso.get(iso)) or "")
                     if lang:
                         extra[code] = lang
-                    else:
+                    elif not every:
                         print(f"lemma code {code}: no language record", file=sys.stderr)
-            result = import_wikidata_lexemes(conn, args.dump, args.version, extra)
+            every = args.lemma_codes == "all"
+            result = import_wikidata_lexemes(conn, args.dump, args.version, extra, every)
             if args.fetch_language_names and result["unknown_language_qids"]:
                 fetch_language_names(result["unknown_language_qids"])
-                result = import_wikidata_lexemes(conn, args.dump, args.version, extra)
+                result = import_wikidata_lexemes(conn, args.dump, args.version, extra, every)
             result["unknown_language_qids"] = len(result["unknown_language_qids"])
+        elif args.cmd == "db-size":
+            result = {
+                "database": conn.execute(
+                    "SELECT pg_size_pretty(pg_database_size(current_database()))"
+                ).fetchone()[0],
+                "words": dict(
+                    conn.execute(
+                        "SELECT dataset, count(*) FROM lexeme GROUP BY 1 ORDER BY 2 DESC"
+                    ).fetchall()
+                ),
+                "links": dict(
+                    conn.execute(
+                        "SELECT dataset, count(*) FROM relationship GROUP BY 1 ORDER BY 2 DESC"
+                    ).fetchall()
+                ),
+                "searchable_languages": conn.execute(
+                    "SELECT count(*) FROM language WHERE is_enabled"
+                ).fetchone()[0],
+            }
         elif args.cmd == "rekey-search":
             result = rekey_search(conn)
         elif args.cmd == "build-public-seed":

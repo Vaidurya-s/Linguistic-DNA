@@ -157,11 +157,14 @@ def import_wikidata_lexemes(
     dump: Path,
     version: str,
     lemma_code_languages: dict[str, str] | None = None,
+    all_languages: bool = False,
 ) -> dict:
     """lemma_code_languages: further languages to import, keyed by lemma spelling code
     (e.g. "ru" -> the Russian record). A language item not in the config is taken on when
-    its lexemes' lemmas use one of these codes; the mapping is learned from the dump, so no
-    network lookup is needed."""
+    its lexemes' lemmas use one of these codes (a regional code such as "sr-el" counts as
+    "sr"); the mapping is learned from the dump, so no network lookup is needed.
+    all_languages: every lexeme; a language item no lemma code resolves becomes the
+    disabled reference language ``wd-<qid>``."""
     names = load_language_names()
     targets_cfg = target_languages()
     extra = lemma_code_languages or {}
@@ -171,10 +174,14 @@ def import_wikidata_lexemes(
     for e in iter_dump(dump):
         qid = e.get("language")
         if qid not in targets_cfg and extra:
-            code = next((c for c in e.get("lemmas", {}) if c in extra), None)
+            code = next(
+                (c for c in e.get("lemmas", {}) if c in extra or c.split("-")[0] in extra), None
+            )
             if code:
-                targets_cfg[qid] = (extra[code], code)
-                stats[f"language_from_lemma_code:{code}={qid}"] = 1
+                targets_cfg[qid] = (extra.get(code) or extra[code.split("-")[0]], code)
+                stats["languages_from_lemma_codes"] = stats.get("languages_from_lemma_codes", 0) + 1
+        if qid and qid not in targets_cfg and all_languages:
+            targets_cfg[qid] = (f"wd-{qid.lower()}", None)
         lang = targets_cfg.get(qid)
         if not lang or not lemma_of(e, lang[1]):
             continue
@@ -216,6 +223,8 @@ def import_wikidata_lexemes(
             target = targets_cfg.get(e.get("language"))
             if lid in targets:
                 language_id, prefer = target
+                if language_id.startswith("wd-"):
+                    unknown_langs.add(e.get("language", "Q0"))
             else:
                 qid = e.get("language", "Q0")
                 language_id = target[0] if target else f"wd-{qid.lower()}"

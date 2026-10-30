@@ -78,9 +78,21 @@ make import-jambu validate
 
 **Wikidata.**
 - Takes the lemma and up to three English glosses per lexeme. Hindi lexemes are filed under Hindustani (Q11051) and are kept when they have a Hindi lemma.
+- With `FULL=1`, every lexeme in every language. The language is resolved through the lemma's language code, ISO 639 and Glottolog; items no code resolves become disabled `wd-<qid>` languages.
 - "Derived from lexeme" (P5191) becomes the `etymon` type, because Wikidata does not say whether a word was inherited or borrowed. "Combines lexemes" (P5238) becomes `has_component`.
 - Every edge cites its statement ID and the statement's own reference, or says it has none.
 - Names of non-target languages are looked up once (`--fetch-language-names`) and committed in `data/config/wikidata_languages.csv`.
+
+**Wiktionary (kaikki.org wiktextract).**
+- One record per language and headword. Up to three English glosses, merged across parts of speech on the same page. Inflected-form entries are skipped outside the configured languages.
+- Etymology templates become typed links: `inh` → `inherited_form`, `bor`/`lbor`/… → `borrowed_from`, `der` → `etymon`, `cal`/`sl` → `calque_or_loan_translation`, `af`/`compound`/… → `has_component`, and `cog` → an undirected `cognate`. `{{etymon}}` follows its `:inh` / `:bor` / `:af` … markers.
+- An entry's Descendants list adds the other direction. Each descendant is `inherited_form` from the entry unless Wiktionary marks it borrowed or calqued. A nested descendant descends from the item above it.
+- Terms a template names but that have no entry are created from the template, in their own language.
+- Every link cites the Wiktionary page and template.
+- Scope:
+  - by default, the configured languages, their ancestors and the steppe corridor, plus large languages (English, German, Persian, Finnish …) where an entry has an etymology;
+  - with `FULL=1` (`make full-db`), every language in the dump, about 5.4 million entries in 5,000 languages.
+- Rows are staged in temporary tables and merged in SQL, so memory stays flat.
 
 **Concepts.** Jambu's concept IDs are Concepticon IDs (all 3,321 match ID and gloss), so all datasets share one concept space.
 

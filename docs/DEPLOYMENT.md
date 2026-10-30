@@ -114,7 +114,7 @@ make migrate
 
 `db-up` starts PostgreSQL 16 in Docker; its data persists in a Docker volume across restarts. `setup` creates `backend/.venv` and installs the frontend packages.
 
-### Load data: open data only (4a) or everything (4b)
+### Load data: open data only (4a), the research database (4b) or everything (4c)
 
 **4a. Open data only.** This takes a few minutes and needs about 2 GB. It loads the public seed committed in `data/public_seed`:
 
@@ -133,6 +133,14 @@ Build the database, which ends with `validate --research`:
 ```bash
 make research-db
 ```
+
+**4c. Everything, in every language (recommended with 100 GB free).** This is 4b plus the whole Wiktionary dump and all of Wikidata Lexemes in every language (about 5,000 languages), with Wiktionary's descendant lists. That adds roughly 5–8 million words and 8–12 million cited links, including the English, European and global etymologies that 4b leaves out. It takes about 4–8 hours and needs about 60 GB at its peak; 16 GB of RAM is recommended. One command does the downloads, the imports, the checks and a size report:
+
+```bash
+make full-db
+```
+
+`make FULL=1 import-wiktionary` (or `import-wikidata`) re-runs just one of the all-language imports, for example after downloading a newer dump; follow it with `make refresh-languages`. `make db-size` prints the database size and the words and links per dataset at any time.
 
 A `fetch-data` line saying *NEWER snapshot* means a rolling source has been updated upstream. The kaikki.org Wiktionary dump and the SIL ISO table both behave this way. The import still works; the pinned checksum and version in `data/manifests/downloads.json` just describe the older file.
 
