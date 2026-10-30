@@ -8,7 +8,7 @@ Both fit on free tiers. Research-use data (Jambu, CDIAL, DEDR) is never part of 
 
 ## 1. Database
 
-Create an empty PostgreSQL 16 database. The loaded seed takes about 335 MB including indexes, so the 500 MB free tiers of [Neon](https://neon.tech) or [Supabase](https://supabase.com) are enough. The `pg_trgm` extension must be available; the migration creates it. Note the connection URL. Both `postgres://…` and `postgresql://…` forms are accepted.
+Create an empty PostgreSQL 16 database. The loaded seed takes about 680 MB including indexes (521k words, 222k links, 947k spelling pairs), which is more than the 500 MB free tiers of [Neon](https://neon.tech) or [Supabase](https://supabase.com): use their smallest paid tier, or a small VM running PostgreSQL 16. The `pg_trgm` extension must be available; the migration creates it. Note the connection URL. Both `postgres://…` and `postgresql://…` forms are accepted.
 
 ## 2. API
 
@@ -68,7 +68,7 @@ The research version adds the research-use sources (Jambu, and through it Turner
    make migrate research-db
    ```
    `research-db` imports the open datasets, then the research-use ones, then runs `validate --research`. That check fails on any BLOCKED data and on any research-use record without a cited source.
-2. **Size the host.** With Jambu in full the database is about 1.7 GB, against about 350 MB for the open seed. That is beyond the 500 MB free tiers of Neon and Supabase. Use a paid tier, or a small VM running PostgreSQL 16 with `pg_trgm`.
+2. **Size the host.** With every research source imported the database is about 2.1 GB (1.81M words, 997k links), against about 680 MB for the open seed. That is beyond the 500 MB free tiers of Neon and Supabase. Use a paid tier, or a small VM running PostgreSQL 16 with `pg_trgm`.
 3. **Copy it to the host.**
    ```bash
    make research-dump
