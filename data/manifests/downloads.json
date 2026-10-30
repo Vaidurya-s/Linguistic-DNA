@@ -290,6 +290,14 @@
       "sha256": "62a3f55d285ae27f5e1d15492cd7bfa92e9e66a0b6bfed9ea97b58a28e346f49",
       "dest": "dpd/dpd.db.tar.xz",
       "note": "unpack with: tar -xJf data/raw/dpd/dpd.db.tar.xz -C data/raw/dpd/x (make import-dpd does this)"
+    },
+    {
+      "id": "cdsl-mw",
+      "group": "research",
+      "kind": "http",
+      "url": "https://raw.githubusercontent.com/sanskrit-lexicon/csl-orig/e4742e12cde786b1a2d10e0507808620a4f2c8eb/v02/mw/mw.txt",
+      "sha256": "e4641dc4384de459408368a9b34b2a13c90a19b0ecd4671f92c055b7578d0129",
+      "dest": "cdsl/mw.txt"
     }
   ]
 }

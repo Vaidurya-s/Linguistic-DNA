@@ -15,6 +15,7 @@ import sys
 from pathlib import Path
 
 from app.config import REPO_ROOT
+from app.importers.cdsl import import_cdsl_mw
 from app.importers.cldf_wordlist import import_cldf_wordlist
 from app.importers.common import connect
 from app.importers.concepticon import import_concepticon
@@ -48,6 +49,9 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="import every form, filing unconfigured languages as disabled reference languages",
     )
+    mw = sub.add_parser("import-cdsl-mw")
+    mw.add_argument("--file", type=Path, required=True, help="csl-orig v02/mw/mw.txt")
+    mw.add_argument("--version", default="unknown")
     dp = sub.add_parser("import-dpd")
     dp.add_argument("--db", type=Path, required=True, help="dpd.db unpacked from the release")
     dp.add_argument("--archive", type=Path, help="the release dpd.db.tar.xz, for its checksum")
@@ -111,6 +115,9 @@ def main(argv: list[str] | None = None) -> int:
                 conn, args.cldf, args.forms, args.version, all_languages=args.all_languages
             ).run()
             result["orphan_sources_removed"] = prune_orphan_sources(conn)
+        elif args.cmd == "import-cdsl-mw":
+            load_manifest(conn)
+            result = import_cdsl_mw(conn, args.file, args.version)
         elif args.cmd == "import-dpd":
             load_manifest(conn)
             result = import_dpd(conn, args.db, args.archive, args.version)

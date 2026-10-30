@@ -16,7 +16,7 @@ WIKTIONARY_REFERENCE_CODES ?= inc-pro,iir-pro,ira-pro,ine-pro,dra-pro,dra-sou-pr
 .PHONY: setup db-up fetch-data fetch-dev-data migrate import-open import-jambu import-glottolog \
         import-concepticon import-lsi import-asjp import-wikidata import-aliases validate \
         validate-public validate-research import-research research-db research-dump \
-        import-wiktionary import-cognates import-peirosst import-dcs import-dpd \
+        import-wiktionary import-cognates import-peirosst import-dcs import-dpd import-cdsl-mw \
         coverage benchmark public-seed load-public-seed fixture test lint
 
 setup:
@@ -47,7 +47,11 @@ import-glottolog:
 	cd backend && .venv/bin/python -m app.cli import-glottolog --cldf ../$(GLOTTOLOG_CLDF)
 
 # Research-use datasets, cited per record; never in the public seed.
-import-research: import-jambu import-peirosst import-dpd
+import-research: import-jambu import-peirosst import-dpd import-cdsl-mw
+
+import-cdsl-mw:
+	cd backend && .venv/bin/python -m app.cli import-cdsl-mw --file ../data/raw/cdsl/mw.txt \
+		--version "csl-orig e4742e1"
 
 import-dpd:
 	mkdir -p data/raw/dpd/x

@@ -1,0 +1,12 @@
+<L>1<pc>1,1<k1>a<k2>a<h>1<e>1
+<hom>1.</hom> <s>a</s> ¦ the first letter of the alphabet
+<LEND>
+<L>2<pc>1,1<k1>akAra<k2>a—kAra<e>3
+<s>a—kAra</s> ¦ <lex>m.</lex> the letter or sound <s>a</s>.<info lex="m"/>
+<LEND>
+<L>3<pc>2,3<k1>kAra<k2>kAra<e>1
+<s>kAra</s> ¦ <lex>m.</lex> making, doing <ls>MBh.</ls>
+<LEND>
+<L>3.1<pc>2,3<k1>kAra<k2>kAra<e>1A
+¦ an act
+<LEND>
