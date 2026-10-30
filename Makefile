@@ -17,7 +17,7 @@ WIKTIONARY_REFERENCE_CODES ?= inc-pro,iir-pro,ira-pro,ine-pro,dra-pro,dra-sou-pr
         import-concepticon import-lsi import-asjp import-wikidata import-aliases validate \
         validate-public validate-research import-research research-db research-dump \
         import-wiktionary import-cognates import-peirosst import-dcs import-dpd import-cdsl-mw \
-        refresh-languages import-lexibank import-profiles \
+        refresh-languages import-lexibank import-profiles import-omw \
         coverage benchmark public-seed load-public-seed fixture test lint
 
 setup:
@@ -84,6 +84,11 @@ import-profiles:
 	cd backend && .venv/bin/python -m app.cli import-structure --cldf ../data/raw/wals/cldf --dataset wals
 	cd backend && .venv/bin/python -m app.cli import-structure --cldf ../data/raw/phoible/cldf --dataset phoible
 
+# Open Multilingual Wordnet 2.0: words in 32 languages linked to shared ILI concepts.
+import-omw:
+	cd backend && .venv/bin/python -m app.cli import-omw --dir ../data/raw/omw \
+		--glottolog ../$(GLOTTOLOG_CLDF) --iso ../data/raw/iso639/iso-639-3.tab --version v2.0
+
 import-dcs:
 	cd backend && .venv/bin/python -m app.cli import-dcs --dictionary ../data/raw/dcs/dictionary.csv \
 		--version "8aeed5a"
@@ -123,7 +128,8 @@ research-dump:
 
 # Every dataset the audit approves, in dependency order.
 import-open: import-concepticon import-lsi import-asjp import-wikidata import-aliases \
-             import-wiktionary import-cognates import-dcs import-glottolog
+             import-wiktionary import-cognates import-dcs import-omw import-profiles \
+             import-glottolog
 
 import-concepticon:
 	cd backend && .venv/bin/python -m app.cli import-concepticon --data ../data/raw/concepticon-data

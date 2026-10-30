@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LexicalResource xmlns:dc="https://globalwordnet.github.io/schemas/dc/">
+  <Lexicon id="omw-en" label="Open English WordNet (fixture)" language="en" email="x@example.org" license="https://wordnet.princeton.edu/license-and-commercial-use" version="2.0" citation="Fixture citation">
+    <LexicalEntry id="omw-en-dog-n"><Lemma writtenForm="dog" partOfSpeech="n"/><Sense id="s1" synset="omw-en-02084071-n"/></LexicalEntry>
+    <LexicalEntry id="omw-en-water-n"><Lemma writtenForm="water" partOfSpeech="n"/><Sense id="s2" synset="omw-en-14845743-n"/></LexicalEntry>
+    <Synset id="omw-en-02084071-n" ili="i46360" partOfSpeech="n"><Definition>a member of the genus Canis</Definition></Synset>
+    <Synset id="omw-en-14845743-n" ili="i97225" partOfSpeech="n"><Definition>binary compound that occurs at room temperature as a clear liquid</Definition></Synset>
+  </Lexicon>
+</LexicalResource>

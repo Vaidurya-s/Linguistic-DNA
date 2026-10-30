@@ -26,6 +26,7 @@ from app.importers.dpd import import_dpd
 from app.importers.glottolog import import_glottolog
 from app.importers.jambu import JambuImporter
 from app.importers.manifest import load_manifest, prune_orphan_sources
+from app.importers.omw import import_omw
 from app.importers.transliteration import import_aksharantar, import_dakshina
 from app.importers.wikidata_lexemes import fetch_language_names, import_wikidata_lexemes
 from app.importers.wiktionary import import_wiktionary, wiktionary_code_map
@@ -70,6 +71,11 @@ def main(argv: list[str] | None = None) -> int:
     lb.add_argument("--list", type=Path, default=REPO_ROOT / "data/manifests/lexibank.tsv")
     lb.add_argument("--raw", type=Path, default=REPO_ROOT / "data/raw/lexibank")
     lb.add_argument("--only", help="comma-separated dataset ids")
+    ow = sub.add_parser("import-omw", help="WN-LMF wordnets (Open Multilingual Wordnet)")
+    ow.add_argument("--dir", type=Path, required=True, help="directory of omw-*-2.0.tar.xz")
+    ow.add_argument("--glottolog", type=Path, required=True)
+    ow.add_argument("--iso", type=Path, required=True)
+    ow.add_argument("--version", default="unknown")
     st = sub.add_parser("import-structure", help="CLDF StructureDataset -> language profiles")
     st.add_argument("--cldf", type=Path, required=True)
     st.add_argument("--dataset", required=True, help="dataset_id from dataset_audit.csv")
@@ -171,6 +177,16 @@ def main(argv: list[str] | None = None) -> int:
                     conn.rollback()
                     result["failed"][d["id"]] = f"{type(exc).__name__}: {exc}"[:300]
                     print(d["id"], "FAILED", result["failed"][d["id"]], flush=True)
+        elif args.cmd == "import-omw":
+            load_manifest(conn)
+            part1, _ = iso_tables(args.iso)
+            result = import_omw(
+                conn,
+                sorted(args.dir.glob("*.tar.xz")),
+                Glottolog(args.glottolog),
+                part1,
+                args.version,
+            )
         elif args.cmd == "import-structure":
             load_manifest(conn)
             result = import_cldf_structure(conn, args.cldf, args.dataset)

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LexicalResource xmlns:dc="https://globalwordnet.github.io/schemas/dc/">
+  <Lexicon id="omw-fi" label="FinnWordNet (fixture)" language="fi" email="x@example.org" license="https://creativecommons.org/licenses/by/3.0/" version="2.0">
+    <LexicalEntry id="omw-fi-koira-n"><Lemma writtenForm="koira" partOfSpeech="n"/><Sense id="f1" synset="omw-fi-02084071-n"/></LexicalEntry>
+    <LexicalEntry id="omw-fi-vesi-n"><Lemma writtenForm="vesi" partOfSpeech="n"/><Sense id="f2" synset="omw-fi-14845743-n"/></LexicalEntry>
+    <Synset id="omw-fi-02084071-n" ili="i46360" partOfSpeech="n"/>
+    <Synset id="omw-fi-14845743-n" ili="i97225" partOfSpeech="n"/>
+  </Lexicon>
+</LexicalResource>

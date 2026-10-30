@@ -333,6 +333,262 @@
         "cldf"
       ],
       "note": "HEAD after v2.0.1: v2.0.1 metadata states no licence; this commit carries CC-BY-4.0 (LICENSE, dc:license)"
+    },
+    {
+      "id": "omw-arb",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-arb-2.0.tar.xz",
+      "sha256": "42003c0ce139219bfd0fff49bbad5a65fed74aeae01f67006c35cddecac791b0",
+      "dest": "omw/omw-arb-2.0.tar.xz"
+    },
+    {
+      "id": "omw-bg",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-bg-2.0.tar.xz",
+      "sha256": "a1a7f2f9423e607caf97501c3c851cf65e27b758be9a16efde1966bf0c7299aa",
+      "dest": "omw/omw-bg-2.0.tar.xz"
+    },
+    {
+      "id": "omw-ca",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-ca-2.0.tar.xz",
+      "sha256": "9f17523225c7d1188dd1791d5a52e5b60a0a1b9772730e5343da8c49fea3469a",
+      "dest": "omw/omw-ca-2.0.tar.xz"
+    },
+    {
+      "id": "omw-cmn",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-cmn-2.0.tar.xz",
+      "sha256": "7d07af60a6ced0cedc4ca114d0b60a796d3f138df0f3be21f6322e53d004e91c",
+      "dest": "omw/omw-cmn-2.0.tar.xz"
+    },
+    {
+      "id": "omw-da",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-da-2.0.tar.xz",
+      "sha256": "48bf938da0b7869809e2767f10bc8c42ba6aec65fa7a4704a5a085eccfff26d5",
+      "dest": "omw/omw-da-2.0.tar.xz"
+    },
+    {
+      "id": "omw-el",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-el-2.0.tar.xz",
+      "sha256": "2b5870ce5b3f04a62aec405e18e3317647d137ba6a4de6c9a6d877ded14af74b",
+      "dest": "omw/omw-el-2.0.tar.xz"
+    },
+    {
+      "id": "omw-en",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-en-2.0.tar.xz",
+      "sha256": "0e09dfb7f096bc3f10b9de68ffecf13839fa22ae46fd9b227cec890d204ca1dc",
+      "dest": "omw/omw-en-2.0.tar.xz"
+    },
+    {
+      "id": "omw-es",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-es-2.0.tar.xz",
+      "sha256": "d8450d42885cd51f3db39fe64219a7a003eeb432b4caa00428285fe6ab224303",
+      "dest": "omw/omw-es-2.0.tar.xz"
+    },
+    {
+      "id": "omw-eu",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-eu-2.0.tar.xz",
+      "sha256": "6875665765f196ec707ea2c3e8168e4d5569c1ceba441310694ae2bacd32fc03",
+      "dest": "omw/omw-eu-2.0.tar.xz"
+    },
+    {
+      "id": "omw-fi",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-fi-2.0.tar.xz",
+      "sha256": "d66f669202b37b679670a0087eeb11ac91a655e2cde14a727ab88666331667dd",
+      "dest": "omw/omw-fi-2.0.tar.xz"
+    },
+    {
+      "id": "omw-fr",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-fr-2.0.tar.xz",
+      "sha256": "a96a1fd046676313a919156502a2b8e6504b8387ea24a58320534d2c9a7da70a",
+      "dest": "omw/omw-fr-2.0.tar.xz"
+    },
+    {
+      "id": "omw-gl",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-gl-2.0.tar.xz",
+      "sha256": "352785a9ba4379a98e6eee259df5bcda5465d6603e6f7e548b313cf6fa319841",
+      "dest": "omw/omw-gl-2.0.tar.xz"
+    },
+    {
+      "id": "omw-he",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-he-2.0.tar.xz",
+      "sha256": "a0037190a1b258cd84068305968bff0ed8b3835fb03b31021b2eb471966ca40b",
+      "dest": "omw/omw-he-2.0.tar.xz"
+    },
+    {
+      "id": "omw-hr",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-hr-2.0.tar.xz",
+      "sha256": "2a3462a3b04968489a2b747cc912596a03743f29659fe1f085a2ae08258fb922",
+      "dest": "omw/omw-hr-2.0.tar.xz"
+    },
+    {
+      "id": "omw-id",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-id-2.0.tar.xz",
+      "sha256": "54a01d197fcf29e3127bc60ea0d5067b3386439d6e1099a3530fcbae0d8154fc",
+      "dest": "omw/omw-id-2.0.tar.xz"
+    },
+    {
+      "id": "omw-is",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-is-2.0.tar.xz",
+      "sha256": "2ef255f68f7268e29413a0e00c79e8d8af16b2749f2f88f22ee9a0eaef1c288c",
+      "dest": "omw/omw-is-2.0.tar.xz"
+    },
+    {
+      "id": "omw-it",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-it-2.0.tar.xz",
+      "sha256": "d329dd3984f3eb19e4ca0cdff22f75ac7edf367c1d3f515d3635ec42825b37bb",
+      "dest": "omw/omw-it-2.0.tar.xz"
+    },
+    {
+      "id": "omw-iwn",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-iwn-2.0.tar.xz",
+      "sha256": "13dcc75db213d658ff3835dd60da17e7a0a1cb19432e4630e82d97569b728216",
+      "dest": "omw/omw-iwn-2.0.tar.xz"
+    },
+    {
+      "id": "omw-ja",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-ja-2.0.tar.xz",
+      "sha256": "dd9d1ee444d5877298083706f011fde4159f3e10cfe48b95f1c334a2a385af44",
+      "dest": "omw/omw-ja-2.0.tar.xz"
+    },
+    {
+      "id": "omw-lt",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-lt-2.0.tar.xz",
+      "sha256": "c6c51f8077c975f8d5f504145e57d61a9c5bcca76eb6591d205881fe2dc1b85b",
+      "dest": "omw/omw-lt-2.0.tar.xz"
+    },
+    {
+      "id": "omw-nb",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-nb-2.0.tar.xz",
+      "sha256": "2d40f3b2bf3ee84553bd251ff82b3dc3822b3c80219b669706761cb1174e8fd4",
+      "dest": "omw/omw-nb-2.0.tar.xz"
+    },
+    {
+      "id": "omw-nl",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-nl-2.0.tar.xz",
+      "sha256": "95419509ea09d08960da1724ec10462562dccfedb1526bf9381a1fb3557b6e44",
+      "dest": "omw/omw-nl-2.0.tar.xz"
+    },
+    {
+      "id": "omw-nn",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-nn-2.0.tar.xz",
+      "sha256": "184d5ef55b97abaf3768961b6608e740f9422eadde87cfddeb32513985409b61",
+      "dest": "omw/omw-nn-2.0.tar.xz"
+    },
+    {
+      "id": "omw-pl",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-pl-2.0.tar.xz",
+      "sha256": "afe0034c25f7c8ff71390768ec238380086cf382164840a9e55237ec9e872c7b",
+      "dest": "omw/omw-pl-2.0.tar.xz"
+    },
+    {
+      "id": "omw-pt",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-pt-2.0.tar.xz",
+      "sha256": "ee1d2b1686299cbed057aba34468576aaa977270902a836c24a01c1f64772c5d",
+      "dest": "omw/omw-pt-2.0.tar.xz"
+    },
+    {
+      "id": "omw-ro",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-ro-2.0.tar.xz",
+      "sha256": "8da0fcaca3b0ebed2973afa2c6ad29d716e623e4eb118d8f932908380677e724",
+      "dest": "omw/omw-ro-2.0.tar.xz"
+    },
+    {
+      "id": "omw-sk",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-sk-2.0.tar.xz",
+      "sha256": "5eff98c62ffc93f44fd3128bf9b8228898b8412c0aab8fdcbce480d5cb2bd44e",
+      "dest": "omw/omw-sk-2.0.tar.xz"
+    },
+    {
+      "id": "omw-sl",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-sl-2.0.tar.xz",
+      "sha256": "54ad419320c13ef60266bcde5be39d80c375ecb3dd3f2a2803f4070f3d5a7635",
+      "dest": "omw/omw-sl-2.0.tar.xz"
+    },
+    {
+      "id": "omw-sq",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-sq-2.0.tar.xz",
+      "sha256": "dc493ae2857aae1b00276cb49b5dc1509a507dcc91aa0a367ef3f3ca9ddcf9b8",
+      "dest": "omw/omw-sq-2.0.tar.xz"
+    },
+    {
+      "id": "omw-sv",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-sv-2.0.tar.xz",
+      "sha256": "b2188550d5f4b580cbe4640fc9389755298c3f2d2ccbb89ba0bd170f5fca1446",
+      "dest": "omw/omw-sv-2.0.tar.xz"
+    },
+    {
+      "id": "omw-th",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-th-2.0.tar.xz",
+      "sha256": "9b5e4c3696269a33ccd46092514440fd33fa81dcecd4969591d661d2d61a63d7",
+      "dest": "omw/omw-th-2.0.tar.xz"
+    },
+    {
+      "id": "omw-zsm",
+      "group": "public",
+      "kind": "http",
+      "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-zsm-2.0.tar.xz",
+      "sha256": "a4f48a9f4abfdfdf404a7c9f87ff1de272c3ea2b6e5002356ed26ee141285bf7",
+      "dest": "omw/omw-zsm-2.0.tar.xz"
     }
   ]
 }

@@ -72,9 +72,11 @@ def fetch_git(entry: dict, raw: Path) -> str:
             return "ok (cached)"
         return f"exists at {head[:7]}, expected {entry['commit'][:7]}"
     if entry.get("sparse"):  # only some folders (e.g. cldf/) of a large repository
-        git("clone", "--quiet", "--filter=blob:none", "--no-checkout", entry["url"], str(dest))
+        # shallow (one commit) and blobless: only the files of the wanted folders arrive
+        git("clone", "--quiet", "--depth", "1", "--branch", entry["ref"], "--filter=blob:none",
+            "--no-checkout", entry["url"], str(dest))
         git("sparse-checkout", "set", "--no-cone", *[f"/{p}/" for p in entry["sparse"]], cwd=dest)
-        git("checkout", "--quiet", entry["commit"], cwd=dest)
+        git("checkout", "--quiet", "HEAD", cwd=dest)
     elif entry.get("full_history"):  # pinned to a commit that is not a tag
         git("clone", "--filter=blob:none", entry["url"], str(dest))
         git("checkout", "--quiet", entry["commit"], cwd=dest)
