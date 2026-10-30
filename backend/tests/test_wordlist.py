@@ -30,3 +30,24 @@ def test_lsi_rows_pass_public_seed_checks_on_their_own(db):
     ).fetchone()[0]
     assert blocked == 0
     assert run_checks(db)["passed"]
+
+
+def test_cognate_sets_link_forms_across_languages(db):
+    cognate = Path(__file__).parent / "fixtures" / "cognate_mini"
+    try:
+        configured_only = import_cldf_wordlist(db, cognate, "lsi", "fixture")
+        assert configured_only["lexemes"] == 2 and configured_only["cognate_relationships"] == 1
+        full = import_cldf_wordlist(db, cognate, "lsi", "fixture", all_languages=True)
+        assert full["lexemes"] == 3 and full["cognate_relationships"] == 3
+        english = db.execute(
+            "SELECT g.id, g.is_enabled FROM lexeme l JOIN language g ON g.id = l.language_id"
+            " WHERE l.form = 'tooth' AND l.dataset = 'lsi'"
+        ).fetchone()
+        assert english == ("gl-stan1293", False)
+        cite = db.execute(
+            "SELECT r.direction::text, e.citation FROM relationship r JOIN evidence e"
+            " ON e.relationship_id = r.id WHERE r.dataset = 'lsi' LIMIT 1"
+        ).fetchone()
+        assert cite == ("undirected", "lsi, cognate set tooth-1")
+    finally:
+        db.rollback()

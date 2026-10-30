@@ -209,6 +209,16 @@
       "sha256": "b08eb1f0e04777ff8a204b013829d5a3c7cdbde4a54665fd948256ed223bfd28",
       "dest": "jambu-lfs/forms.csv",
       "note": "Git LFS object for Jambu cldf/forms.csv"
+    },
+    {
+      "id": "wiktionary-raw",
+      "group": "research",
+      "kind": "http",
+      "rolling": true,
+      "url": "https://kaikki.org/dictionary/raw-wiktextract-data.jsonl.gz",
+      "sha256": "784574cc577d333bbf9e659be38efa27e75e9bfc0a2a8c7ab2371bb5fec29b2d",
+      "dest": "wiktionary/raw-wiktextract-data.jsonl.gz",
+      "note": "wiktextract extraction of the enwiktionary dump of 2026-10-01; file Last-Modified 2026-10-25, 3,082,185,963 bytes. kaikki.org replaces it weekly."
     }
   ]
 }

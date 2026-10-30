@@ -7,10 +7,16 @@ GLOTTOLOG_CLDF ?= data/raw/glottolog-cldf/cldf
 WIKIDATA_DUMP ?= data/raw/wikidata/wikidata-20261028-lexemes.json.bz2
 # libpq URL of the research database, for pg_dump (the app itself reads DATABASE_URL).
 RESEARCH_PG_URL ?= postgresql://postgres@localhost:5432/lsg
+WIKTIONARY_DIR ?= data/raw/wiktionary
+WIKTIONARY_VERSION ?= "kaikki.org wiktextract of enwiktionary 2026-10-01 (file 2026-10-25)"
+# Ancestor languages whose own Wiktionary entries are imported (as disabled reference
+# languages) so that etymology chains continue; chosen from what our entries cite.
+WIKTIONARY_REFERENCE_CODES ?= REFCODES_TBD
 
 .PHONY: setup db-up fetch-data fetch-dev-data migrate import-open import-jambu import-glottolog \
         import-concepticon import-lsi import-asjp import-wikidata import-aliases validate \
         validate-public validate-research import-research research-db research-dump \
+        import-wiktionary \
         coverage benchmark public-seed load-public-seed fixture test lint
 
 setup:
@@ -41,7 +47,11 @@ import-glottolog:
 	cd backend && .venv/bin/python -m app.cli import-glottolog --cldf ../$(GLOTTOLOG_CLDF)
 
 # Research-use datasets, cited per record; never in the public seed.
-import-research: import-jambu
+import-research: import-jambu import-wiktionary
+
+import-wiktionary:
+	cd backend && .venv/bin/python -m app.cli import-wiktionary --dir ../$(WIKTIONARY_DIR) \
+		--version $(WIKTIONARY_VERSION) --reference-codes $(WIKTIONARY_REFERENCE_CODES)
 
 # The full research database: open data, then research-use data, then checks.
 research-db: import-open import-research

@@ -98,6 +98,7 @@ class TargetLanguage:
     extra_glottocodes: str = ""  # ';'-separated codes other datasets use for the language
     wikidata_qid: str = ""
     wikidata_lemma: str = ""  # lemma spelling code to prefer, e.g. 'hi'
+    wiktionary_codes: str = ""  # ';'-separated Wiktionary language codes, e.g. 'hi'
 
     @property
     def glottocodes(self) -> list[str]:

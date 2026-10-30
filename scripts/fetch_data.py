@@ -1,7 +1,8 @@
 """Download the pinned upstream datasets into data/raw/ (git-ignored).
 
     python scripts/fetch_data.py                       # audit-approved datasets (default)
-    python scripts/fetch_data.py --group restricted    # Jambu: local development only
+    python scripts/fetch_data.py --group restricted    # Jambu (research use, cited per record)
+    python scripts/fetch_data.py --group research      # other research inputs (Wiktionary dump)
     python scripts/fetch_data.py --group all
 
 Every input is pinned in data/manifests/downloads.json: git repositories by tag and commit,
@@ -44,6 +45,12 @@ def fetch_http(entry: dict, raw: Path) -> str:
             fh.write(chunk)
     got = sha256(tmp)
     if got != entry["sha256"]:
+        if entry.get("rolling"):
+            # The URL serves the latest snapshot (e.g. kaikki.org rebuilds weekly): keep it,
+            # but the pinned sha256 and version no longer describe it.
+            tmp.replace(dest)
+            return (f"downloaded a NEWER snapshot (sha256 {got}); update sha256 and version "
+                    "in data/manifests/downloads.json and dataset_audit.csv")
         tmp.unlink()
         raise RuntimeError(f"{entry['id']}: checksum mismatch (got {got})")
     tmp.replace(dest)
@@ -78,7 +85,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--dest", type=Path, default=RAW, help="download directory")
     parser.add_argument("--group", default="public",
-                        choices=["public", "restricted", "all"])
+                        choices=["public", "research", "restricted", "all"])
     args = parser.parse_args()
     entries = json.loads(MANIFEST.read_text(encoding="utf-8"))["inputs"]
     failed = 0

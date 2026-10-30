@@ -1,0 +1,4 @@
+{"word": "पानी", "lang": "Hindi", "lang_code": "hi", "pos": "noun", "senses": [{"glosses": ["water"]}], "forms": [{"form": "pānī", "tags": ["romanization"]}], "etymology_templates": [{"name": "inh", "args": {"1": "hi", "2": "inc-pro", "3": "*pāníyam"}}, {"name": "der", "args": {"1": "hi", "2": "sa", "3": "पानीय", "t": "drinkable"}}, {"name": "cog", "args": {"1": "pa", "2": "ਪਾਣੀ"}}]}
+{"word": "जलमार्ग", "lang": "Hindi", "lang_code": "hi", "pos": "noun", "senses": [{"glosses": ["waterway"]}], "etymology_templates": [{"name": "compound", "args": {"1": "hi", "2": "जल", "3": "मार्ग"}}]}
+{"word": "कंप्यूटर", "lang": "Hindi", "lang_code": "hi", "pos": "noun", "senses": [{"glosses": ["computer"]}], "etymology_templates": [{"name": "bor", "args": {"1": "hi", "2": "en", "3": "computer"}}]}
+{"word": "Delhi", "lang": "English", "lang_code": "en", "pos": "name", "senses": [{"glosses": ["a city"]}]}

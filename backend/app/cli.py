@@ -23,6 +23,7 @@ from app.importers.jambu import JambuImporter
 from app.importers.manifest import load_manifest, prune_orphan_sources
 from app.importers.transliteration import import_aksharantar, import_dakshina
 from app.importers.wikidata_lexemes import fetch_language_names, import_wikidata_lexemes
+from app.importers.wiktionary import import_wiktionary, wiktionary_code_map
 from app.pipeline.benchmark import run_benchmark
 from app.pipeline.coverage import coverage, to_markdown
 from app.pipeline.public_seed import build_public_seed, load_public_seed
@@ -45,10 +46,23 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="import every form, filing unconfigured languages as disabled reference languages",
     )
+    wk = sub.add_parser("import-wiktionary")
+    wk.add_argument("--dir", type=Path, required=True, help="directory of wiktextract *.jsonl[.gz]")
+    wk.add_argument("--version", default="unknown")
+    wk.add_argument(
+        "--reference-codes",
+        default="",
+        help="comma-separated Wiktionary codes of ancestor languages whose entries to import",
+    )
     c = sub.add_parser("import-concepticon")
     c.add_argument("--data", type=Path, required=True)
     w = sub.add_parser("import-wordlist")
     w.add_argument("--cldf", type=Path, required=True)
+    w.add_argument(
+        "--all-languages",
+        action="store_true",
+        help="also keep doculects of unconfigured languages, as disabled gl-<glottocode>",
+    )
     w.add_argument("--dataset", required=True, help="dataset_id from dataset_audit.csv")
     w.add_argument("--version", required=True)
     w.add_argument("--transcription", help="phonetic code the forms use, e.g. ASJPcode")
@@ -88,13 +102,28 @@ def main(argv: list[str] | None = None) -> int:
                 conn, args.cldf, args.forms, args.version, all_languages=args.all_languages
             ).run()
             result["orphan_sources_removed"] = prune_orphan_sources(conn)
+        elif args.cmd == "import-wiktionary":
+            load_manifest(conn)
+            files = sorted(args.dir.glob("*.jsonl")) + sorted(args.dir.glob("*.jsonl.gz"))
+            result = import_wiktionary(
+                conn,
+                files,
+                args.version,
+                wiktionary_code_map(),
+                reference_codes=[c for c in args.reference_codes.split(",") if c],
+            )
         elif args.cmd == "import-concepticon":
             load_manifest(conn)
             result = import_concepticon(conn, args.data)
         elif args.cmd == "import-wordlist":
             load_manifest(conn)
             result = import_cldf_wordlist(
-                conn, args.cldf, args.dataset, args.version, args.transcription
+                conn,
+                args.cldf,
+                args.dataset,
+                args.version,
+                args.transcription,
+                all_languages=args.all_languages,
             )
         elif args.cmd == "import-wikidata":
             load_manifest(conn)
