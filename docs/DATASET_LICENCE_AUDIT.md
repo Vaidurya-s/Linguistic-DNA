@@ -10,7 +10,8 @@ Audit date: 2026-10-29. Every input is pinned in [`data/manifests/downloads.json
 |---|---|
 | **APPROVED** | Licence verified on the records themselves, and it permits redistribution. |
 | **APPROVED WITH CONDITIONS** | As above, but attribution, ShareAlike or a subset filter applies. |
-| **BLOCKED** | Unverified, unresolved, or no right to redistribute. The reason is recorded. Blocked data may be used only in a local development database. |
+| **RESEARCH USE** | No right to redistribute, but usable for academic research with a citation on every record. Allowed in the research database and the hosted research app; never in the public seed or the repository (section 4). |
+| **BLOCKED** | Unverified, or not to be used at all. The reason is recorded. Fails `validate --research`. |
 
 **What counts as verified.** A licence is "verified" only when it was read from the downloaded artefact itself: a LICENSE file, CLDF `dc:license`, a dataset card, or a README at a pinned commit. Each row names that evidence in `licence_evidence`. A licence quoted only from the research shortlist is marked "claimed", and its row stays BLOCKED.
 
@@ -91,9 +92,35 @@ Public seed, after the Tier 1 import. "With links" counts words that have at lea
 
 These languages are searchable and appear in meaning-based comparisons, but they have almost no word-history links. The wordlists add words and meanings, not relationships. Aksharantar spelling pairs were added for Nepali, Maithili, Dogri, Bodo and Konkani, from the approved components only.
 
-## 4. Development-only sources
+## 4. Research-use sources
 
-Jambu, CDIAL and DEDR are BLOCKED for public use. Jambu has no licence of its own, and CDIAL and DEDR are in copyright with DSAL reuse terms unestablished (see [DATASET_AUDIT.md](DATASET_AUDIT.md)). They remain in the local development database, are downloaded only from their own upstream, and never enter the public seed.
+The project now serves academic research. A source with no open licence, or one still in copyright, may be used **if every record cites it**. Such sources get the audit decision **RESEARCH USE**:
+
+- **Where it may appear:** the research database and the hosted research app.
+- **Where it never appears:** the public seed and the repository. Anyone can rebuild the research database from the sources' own upstream with `make fetch-dev-data research-db`.
+
+| Dataset | Citation required | Why RESEARCH USE |
+|---|---|---|
+| Jambu | Arora, Aryaman, Adam Farris, Samopriya Basu and Suresh Kolichala. 2023. Jambu: A historical linguistic database for South Asian languages. *Proceedings of the 20th SIGMORPHON Workshop*, 68–77. ACL. doi:10.18653/v1/2023.sigmorphon-1.8 | No repository licence; aggregates works with differing terms |
+| CDIAL, through Jambu | Turner, Ralph Lilley. 1962–1966. *A comparative dictionary of the Indo-Aryan languages*. London: Oxford University Press | In copyright |
+| DEDR, through Jambu | Burrow, Thomas and Murray Barnson Emeneau. 1984. *A Dravidian Etymological Dictionary*. 2nd edn. Oxford: Clarendon Press | In copyright |
+| Wiktionary (wiktextract) | Wiktionary contributors, via wiktextract (Ylonen 2022) and kaikki.org | Provisional, until the extract's licence terms are verified |
+
+Jambu cites the work behind each form and edge: CDIAL, DEDR and about 570 more, listed in its `sources.bib`. That citation is kept on every lexeme (`source_id`) and on every relationship's evidence, with the page or entry locator. `GET /api/v1/citations` lists all of them with record counts.
+
+**Enforcement.**
+- `validate --research` fails on any BLOCKED data, and on any research-use record without a cited source.
+- `validate --public-seed` fails on anything not APPROVED or APPROVED WITH CONDITIONS.
+- The seed builder exports only those two decisions.
+- In the app, research-use records carry a "Research use, not redistributed" note with the citation. Explore has an *Open data only* switch.
+
+**Jambu imported in full.** `import-jambu --all-languages` keeps every form, not only those of our 25 languages and their ancestors, so etymology chains through other languages stay whole. Those other languages are created disabled and become searchable when added to `data/config/languages.csv`.
+
+| | Our 25 languages and ancestors | Full |
+|---|---:|---:|
+| Words | 347,721 | 991,379 |
+| Relationships | 220,972 | 492,312 |
+| Evidence rows | | 555,605 |
 
 ## 5. Shortlist datasets not yet audited
 
