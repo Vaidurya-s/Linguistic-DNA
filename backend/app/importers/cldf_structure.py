@@ -32,7 +32,12 @@ def import_cldf_structure(conn: psycopg.Connection, cldf_dir: Path, dataset: str
         r["ID"]: targets.get(r["Glottocode"])
         for r in read_csv(cldf_dir / "languages.csv", ("ID", "Glottocode"))
     }
-    params = {r["ID"]: r["Name"] for r in read_csv(cldf_dir / "parameters.csv", ("ID", "Name"))}
+    params = {}
+    segment_class = {}  # PHOIBLE: parameters are segments, grouped by class
+    for r in read_csv(cldf_dir / "parameters.csv", ("ID", "Name")):
+        params[r["ID"]] = r["Name"]
+        if r.get("SegmentClass"):
+            segment_class[r["ID"]] = r["SegmentClass"]
     codes = {}
     if (cldf_dir / "codes.csv").exists():
         codes = {r["ID"]: r["Name"] for r in read_csv(cldf_dir / "codes.csv", ("ID", "Name"))}
@@ -47,14 +52,20 @@ def import_cldf_structure(conn: psycopg.Connection, cldf_dir: Path, dataset: str
         value = codes.get(r.get("Code_ID") or "", "") or r["Value"]
         if not value:
             continue
-        key = (lang, r["Parameter_ID"], value)
+        if r["Parameter_ID"] in segment_class:
+            cls = segment_class[r["Parameter_ID"]]
+            feature_id, feature_name = f"segment:{cls}", f"{cls.capitalize()}s"
+        else:
+            feature_id = r["Parameter_ID"]
+            feature_name = params.get(feature_id, feature_id)
+        key = (lang, feature_id, value)
         if key in rows:
             continue
         rows[key] = (
             lang,
             dataset,
-            r["Parameter_ID"],
-            params.get(r["Parameter_ID"], r["Parameter_ID"]),
+            feature_id,
+            feature_name,
             value,
             r["ID"],
             r.get("Source") or None,

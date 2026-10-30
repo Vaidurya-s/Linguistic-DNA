@@ -74,6 +74,11 @@ import-cognates:
 	cd backend && .venv/bin/python -m app.cli import-wordlist --cldf ../data/raw/halenepal/cldf \
 		--dataset halenepal --version "v4.0 (ec54471)" --all-languages
 
+# Language profiles: typology (WALS) and sound inventories (PHOIBLE).
+import-profiles:
+	cd backend && .venv/bin/python -m app.cli import-structure --cldf ../data/raw/wals/cldf --dataset wals
+	cd backend && .venv/bin/python -m app.cli import-structure --cldf ../data/raw/phoible/cldf --dataset phoible
+
 import-dcs:
 	cd backend && .venv/bin/python -m app.cli import-dcs --dictionary ../data/raw/dcs/dictionary.csv \
 		--version "8aeed5a"

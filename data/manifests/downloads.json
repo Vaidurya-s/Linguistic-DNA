@@ -308,6 +308,31 @@
       "sha256": "07ce5fed94472312bdd1a4bd7f297c83e7cd4ac4ff335dfbed0824a270f482ed",
       "dest": "iso639/iso-639-3.tab",
       "note": "SIL ISO 639-3 code table, Last-Modified 2026-10-15; maps Wiktionary's ISO 639-1 codes to 639-3 and Glottolog"
+    },
+    {
+      "id": "wals",
+      "group": "public",
+      "kind": "git",
+      "url": "https://github.com/cldf-datasets/wals",
+      "ref": "v2020.6",
+      "commit": "81298aa26d01fdc11b769bcc7fa87ad9e43d7ccd",
+      "dest": "wals",
+      "sparse": [
+        "cldf"
+      ]
+    },
+    {
+      "id": "phoible",
+      "group": "public",
+      "kind": "git",
+      "url": "https://github.com/cldf-datasets/phoible",
+      "ref": "master",
+      "commit": "5c477f1934f57b3c1a16168fadc08e83dbc03362",
+      "dest": "phoible",
+      "sparse": [
+        "cldf"
+      ],
+      "note": "HEAD after v2.0.1: v2.0.1 metadata states no licence; this commit carries CC-BY-4.0 (LICENSE, dc:license)"
     }
   ]
 }
