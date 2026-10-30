@@ -65,6 +65,7 @@ MACROLANGUAGE_MEMBER = {
     "ori": "ory",
     "kok": "gom",  # Konkani -> Goan Konkani
     "raj": "mwr",
+    "kom": "kpv",  # Komi -> Komi-Zyrian
 }
 
 

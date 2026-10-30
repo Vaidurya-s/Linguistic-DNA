@@ -4,7 +4,7 @@ The public demo is two pieces:
 - **API:** a container built from `backend/Dockerfile`, which contains only the audit-approved public seed;
 - **Site:** a static bundle (`frontend/dist`) that calls the API.
 
-Both fit on free tiers. Research-use data (Jambu, CDIAL, DEDR) is never part of the image or the seed; section 5 covers hosting the research version.
+Research-use data (Jambu, CDIAL, DEDR and the other non-commercial or unlicensed sources) is never part of the image or the seed; section 5 covers hosting the research version. **To run everything on your own Linux machine instead, see section 6** and [REQUIREMENTS.md](../REQUIREMENTS.md).
 
 ## 1. Database
 
@@ -77,3 +77,111 @@ The research version adds the research-use sources (Jambu, and through it Turner
    `data/research_dump/` is gitignored.
 4. **Run the API** from the same Docker image, with `DATABASE_URL` pointing at that database. On start, `ensure-seed` sees a non-empty `lexeme` table and leaves the data alone.
 5. **Check citations.** Research-use records show a "Research use, not redistributed" note with the database citation. `GET /api/v1/citations` and the *How to cite* section on the methodology page list every dataset and every cited work. Ticking *Open data only* in Explore hides research-use data.
+
+## 6. Running it on your own Linux machine
+
+This is the recommended setup for research. It is free, it has no size limits, and research-use data stays on your machine. Install the prerequisites in [REQUIREMENTS.md](../REQUIREMENTS.md) first. Run every command from the repository folder.
+
+### Get the code and configuration
+
+```bash
+git clone https://github.com/Vaidurya-s/Linguistic-DNA.git
+```
+
+```bash
+cd Linguistic-DNA
+```
+
+The Docker database uses the password `postgres`; `.env` tells the app so:
+
+```bash
+cp .env.example .env
+```
+
+### Start the database and install dependencies
+
+```bash
+make db-up
+```
+
+```bash
+make setup
+```
+
+```bash
+make migrate
+```
+
+`db-up` starts PostgreSQL 16 in Docker; its data persists in a Docker volume across restarts. `setup` creates `backend/.venv` and installs the frontend packages.
+
+### Load data: open data only (4a) or everything (4b)
+
+**4a. Open data only.** This takes a few minutes and needs about 2 GB. It loads the public seed committed in `data/public_seed`:
+
+```bash
+make load-public-seed
+```
+
+**4b. The full research database.** This takes 1.5–3 hours and needs about 30 GB. Everything is downloaded from its own upstream, pinned by commit or checksum: about 8 GB, and finished downloads are skipped on a re-run.
+
+```bash
+make fetch-data fetch-dev-data
+```
+
+Build the database, which ends with `validate --research`:
+
+```bash
+make research-db
+```
+
+A `fetch-data` line saying *NEWER snapshot* means a rolling source has been updated upstream. The kaikki.org Wiktionary dump and the SIL ISO table both behave this way. The import still works; the pinned checksum and version in `data/manifests/downloads.json` just describe the older file.
+
+### Run it
+
+In one terminal, start the API on `127.0.0.1:8000`:
+
+```bash
+make serve-api
+```
+
+In a second terminal, build the site and serve it on `http://localhost:5173`. It forwards `/api` to the API.
+
+```bash
+make serve-web
+```
+
+Open <http://localhost:5173>. To stop, press `Ctrl+C` in both terminals. The database keeps running in Docker until you stop it:
+
+```bash
+docker compose stop db
+```
+
+### Share it temporarily (optional)
+
+To show it to colleagues without hosting anything, open a Cloudflare quick tunnel to the site. It is free, needs no account, and gives a random `https://….trycloudflare.com` address that works only while the command runs. Install `cloudflared` from <https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/>, then start the site so that it accepts the tunnel's address:
+
+```bash
+VITE_ALLOWED_HOSTS=.trycloudflare.com make serve-web
+```
+
+In another terminal, open the tunnel:
+
+```bash
+cloudflared tunnel --url http://localhost:5173
+```
+
+Anyone with that address can then read everything the app shows, including research-use data. Share it only with people the research-use terms allow, and close the tunnel when you are done.
+
+### Updating later
+
+Pull the latest code and apply migrations:
+
+```bash
+git pull
+```
+
+```bash
+make setup migrate
+```
+
+Re-run `make research-db` (or `make load-public-seed`) when the data changes. Downloads already on disk are reused.

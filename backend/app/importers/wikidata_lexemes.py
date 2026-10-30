@@ -99,6 +99,22 @@ def lemma_of(entity: dict, prefer: str | None) -> str | None:
     return next(iter(lemmas.values()))["value"] if lemmas else None
 
 
+def slim(entity: dict) -> dict:
+    """Only what the import uses. Lexemes in richly inflected languages (Russian, Finnish)
+    carry hundreds of forms each; keeping whole entities exhausts memory."""
+    return {
+        "id": entity["id"],
+        "language": entity.get("language"),
+        "lemmas": entity.get("lemmas", {}),
+        "senses": [
+            {"glosses": {"en": s["glosses"]["en"]}}
+            for s in entity.get("senses", [])
+            if "en" in s.get("glosses", {})
+        ][:3],
+        "claims": {p: entity.get("claims", {}).get(p, []) for p in ("P5191", "P5238")},
+    }
+
+
 def english_gloss(entity: dict) -> str | None:
     glosses = [
         s["glosses"]["en"]["value"]
@@ -162,13 +178,13 @@ def import_wikidata_lexemes(
         lang = targets_cfg.get(qid)
         if not lang or not lemma_of(e, lang[1]):
             continue
-        targets[e["id"]] = e
+        targets[e["id"]] = slim(e)
         for prop in ("P5191", "P5238"):
             wanted.update(t for t, _ in statement_targets(e, prop))
     referenced = {}
     for e in iter_dump(dump):
         if e["id"] in wanted and e["id"] not in targets:
-            referenced[e["id"]] = e
+            referenced[e["id"]] = slim(e)
 
     with conn.cursor() as cur:
         cur.execute(

@@ -182,7 +182,7 @@ In the app:
 
 ## Quick start
 
-You need Python 3.12+, Node 22, and Docker (or your own PostgreSQL 16 with `pg_trgm`).
+You need Python 3.12+, Node 22, and Docker (or your own PostgreSQL 16 with `pg_trgm`). [`REQUIREMENTS.md`](REQUIREMENTS.md) lists everything to install on Linux, with the commands; [`docs/DEPLOYMENT.md` § 6](docs/DEPLOYMENT.md#6-running-it-on-your-own-linux-machine) walks through running it on your own Linux machine, including sharing it through a tunnel.
 
 ```bash
 make setup db-up migrate    # venv + npm install, Postgres in Docker, schema
@@ -207,7 +207,7 @@ make fetch-dev-data
 make research-db            # open imports, research imports, Glottolog, re-key, validate --research
 ```
 
-**Run the app** (the API reads `DATABASE_URL`, default `postgresql+psycopg://postgres@localhost:5432/lsg`):
+**Run the app** with `make serve-api` and `make serve-web` (a production build on :5173), or in development mode (the API reads `DATABASE_URL`, default `postgresql+psycopg://postgres@localhost:5432/lsg`):
 
 ```bash
 cd backend && .venv/bin/uvicorn app.main:app --reload    # API on :8000, OpenAPI docs at /docs

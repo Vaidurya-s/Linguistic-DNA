@@ -20,7 +20,7 @@ WIKTIONARY_STEPPE_CODES ?= ru,uk,be,orv,cu,sla-pro,os,xsc,ae,peo,pal,sog,xbc,txb
 # Large languages imported only where an entry has an etymology (disk budget).
 WIKTIONARY_ETYMOLOGY_ONLY_CODES ?= fa,hy,xcl,fi,et,hu,mhr,udm,kv,myv,mdf,mns,kca,tt,ba,kk,ky,tr,ota,mn,lt,lv,la,grc
 
-.PHONY: setup db-up fetch-data fetch-dev-data migrate import-open import-jambu import-glottolog \
+.PHONY: setup serve-api serve-web db-up fetch-data fetch-dev-data migrate import-open import-jambu import-glottolog \
         import-concepticon import-lsi import-asjp import-wikidata import-aliases validate \
         validate-public validate-research import-research research-db research-dump \
         import-wiktionary import-cognates import-peirosst import-dcs import-dpd import-cdsl-mw \
@@ -40,6 +40,14 @@ fetch-data:
 # from their own upstream; never redistributed by this repository.
 fetch-dev-data:
 	python3 scripts/fetch_data.py --group all
+
+# Run the app on this machine: the API on 127.0.0.1:8000, the built site on :5173
+# (which forwards /api to the API). Use two terminals.
+serve-api:
+	cd backend && .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+
+serve-web:
+	cd frontend && npm run build && npx vite preview --port 5173 --strictPort
 
 db-up:
 	docker compose up -d --wait db
@@ -135,9 +143,11 @@ research-dump:
 	@ls -lh data/research_dump/lsg-research.dump
 
 # Every dataset the audit approves, in dependency order.
-import-open: import-concepticon import-lsi import-asjp import-wikidata import-aliases \
-             import-wiktionary import-cognates import-dcs import-omw import-profiles \
-             import-glottolog
+# refresh-languages runs first so that every Glottolog language exists before the
+# imports that attach data to it by glottocode or ISO code (wordnets, profiles, Wikidata).
+import-open: refresh-languages import-concepticon import-lsi import-asjp import-wikidata \
+             import-aliases import-wiktionary import-cognates import-dcs import-omw \
+             import-profiles import-glottolog
 
 import-concepticon:
 	cd backend && .venv/bin/python -m app.cli import-concepticon --data ../data/raw/concepticon-data
