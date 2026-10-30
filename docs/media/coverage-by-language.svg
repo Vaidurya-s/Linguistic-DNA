@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="796" viewBox="0 0 880 796" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" role="img" aria-labelledby="t d">
+<title id="t">Words per language: open public seed vs research database</title>
+<desc id="d">Horizontal bars per configured language, grouped by family. Marathi: open 6826, research 66367; Hindi-Urdu: open 42586, research 61061; Bengali: open 24932, research 32083; Punjabi: open 14839, research 23887; Gujarati: open 8855, research 16648; Nepali: open 4456, research 12961; Odia: open 3575, research 11200; Assamese: open 4890, research 8611; Maithili: open 1046, research 5307; Konkani: open 1588, research 4144; Marwari: open 224, research 3696; Awadhi: open 360, research 2835; Bhojpuri: open 360, research 2357; Dogri: open 262, research 1383; Malayalam: open 80983, research 89792; Kannada: open 5456, research 61970; Telugu: open 24625, research 33719; Tamil: open 15505, research 28961; Bodo: open 331, research 442; Sanskrit: open 201119, research 441480; Pali: open 9406, research 92307; Prakrit: open 5096, research 59625; Old Indo-Aryan (CDIAL): open 0, research 25154; Ashokan Prakrit: open 527, research 1827; Apabhramsha: open 309, research 941</desc>
+<style>
+.bg{fill:#fcfcfb}.t1{fill:#0b0b0b}.t2{fill:#52514e}.grid{stroke:#e4e3df}.open{fill:#2a78d6}.res{fill:#eb6834}
+@media (prefers-color-scheme: dark){.bg{fill:#1a1a19}.t1{fill:#f0efec}.t2{fill:#c3c2b7}.grid{stroke:#3a3936}.open{fill:#3987e5}.res{fill:#d95926}}
+</style>
+<rect class="bg" width="880" height="796" rx="10"/>
+<text class="t1" x="20" y="32" font-size="17" font-weight="600">Words per language</text>
+<rect class="open" x="20" y="50" width="12" height="12" rx="2"/><text class="t2" x="38" y="60" font-size="13">Open public seed</text>
+<rect class="res" x="170" y="50" width="12" height="12" rx="2"/><text class="t2" x="188" y="60" font-size="13">Research database (open + research-use sources)</text>
+<text class="t2" x="860" y="60" font-size="12" text-anchor="end">labels: open / research</text>
+<line class="grid" x1="190.0" x2="190.0" y1="84" y2="766" stroke-width="1"/>
+<text class="t2" x="190.0" y="782" font-size="11" text-anchor="middle">0</text>
+<line class="grid" x1="298.0" x2="298.0" y1="84" y2="766" stroke-width="1"/>
+<text class="t2" x="298.0" y="782" font-size="11" text-anchor="middle">20,000</text>
+<line class="grid" x1="406.0" x2="406.0" y1="84" y2="766" stroke-width="1"/>
+<text class="t2" x="406.0" y="782" font-size="11" text-anchor="middle">40,000</text>
+<line class="grid" x1="514.0" x2="514.0" y1="84" y2="766" stroke-width="1"/>
+<text class="t2" x="514.0" y="782" font-size="11" text-anchor="middle">60,000</text>
+<line class="grid" x1="622.0" x2="622.0" y1="84" y2="766" stroke-width="1"/>
+<text class="t2" x="622.0" y="782" font-size="11" text-anchor="middle">80,000</text>
+<line class="grid" x1="730.0" x2="730.0" y1="84" y2="766" stroke-width="1"/>
+<text class="t2" x="730.0" y="782" font-size="11" text-anchor="middle">100,000</text>
+<text class="t1" x="20" y="112" font-size="13" font-weight="600">Indo-Aryan</text>
+<text class="t2" x="180" y="136" font-size="12" text-anchor="end">Marathi</text>
+<rect class="res" x="190" y="125" width="358.4" height="8" rx="2"><title>Marathi: 66,367 words (research database)</title></rect>
+<rect class="open" x="190" y="134" width="36.9" height="6" rx="2"><title>Marathi: 6,826 words (open seed)</title></rect>
+<text class="t2" x="554.4" y="137" font-size="11">6,826 / 66,367</text>
+<text class="t2" x="180" y="158" font-size="12" text-anchor="end">Hindi-Urdu</text>
+<rect class="res" x="190" y="147" width="329.7" height="8" rx="2"><title>Hindi-Urdu: 61,061 words (research database)</title></rect>
+<rect class="open" x="190" y="156" width="230.0" height="6" rx="2"><title>Hindi-Urdu: 42,586 words (open seed)</title></rect>
+<text class="t2" x="525.7" y="159" font-size="11">42,586 / 61,061</text>
+<text class="t2" x="180" y="180" font-size="12" text-anchor="end">Bengali</text>
+<rect class="res" x="190" y="169" width="173.2" height="8" rx="2"><title>Bengali: 32,083 words (research database)</title></rect>
+<rect class="open" x="190" y="178" width="134.6" height="6" rx="2"><title>Bengali: 24,932 words (open seed)</title></rect>
+<text class="t2" x="369.2" y="181" font-size="11">24,932 / 32,083</text>
+<text class="t2" x="180" y="202" font-size="12" text-anchor="end">Punjabi</text>
+<rect class="res" x="190" y="191" width="129.0" height="8" rx="2"><title>Punjabi: 23,887 words (research database)</title></rect>
+<rect class="open" x="190" y="200" width="80.1" height="6" rx="2"><title>Punjabi: 14,839 words (open seed)</title></rect>
+<text class="t2" x="325.0" y="203" font-size="11">14,839 / 23,887</text>
+<text class="t2" x="180" y="224" font-size="12" text-anchor="end">Gujarati</text>
+<rect class="res" x="190" y="213" width="89.9" height="8" rx="2"><title>Gujarati: 16,648 words (research database)</title></rect>
+<rect class="open" x="190" y="222" width="47.8" height="6" rx="2"><title>Gujarati: 8,855 words (open seed)</title></rect>
+<text class="t2" x="285.9" y="225" font-size="11">8,855 / 16,648</text>
+<text class="t2" x="180" y="246" font-size="12" text-anchor="end">Nepali</text>
+<rect class="res" x="190" y="235" width="70.0" height="8" rx="2"><title>Nepali: 12,961 words (research database)</title></rect>
+<rect class="open" x="190" y="244" width="24.1" height="6" rx="2"><title>Nepali: 4,456 words (open seed)</title></rect>
+<text class="t2" x="266.0" y="247" font-size="11">4,456 / 12,961</text>
+<text class="t2" x="180" y="268" font-size="12" text-anchor="end">Odia</text>
+<rect class="res" x="190" y="257" width="60.5" height="8" rx="2"><title>Odia: 11,200 words (research database)</title></rect>
+<rect class="open" x="190" y="266" width="19.3" height="6" rx="2"><title>Odia: 3,575 words (open seed)</title></rect>
+<text class="t2" x="256.5" y="269" font-size="11">3,575 / 11,200</text>
+<text class="t2" x="180" y="290" font-size="12" text-anchor="end">Assamese</text>
+<rect class="res" x="190" y="279" width="46.5" height="8" rx="2"><title>Assamese: 8,611 words (research database)</title></rect>
+<rect class="open" x="190" y="288" width="26.4" height="6" rx="2"><title>Assamese: 4,890 words (open seed)</title></rect>
+<text class="t2" x="242.5" y="291" font-size="11">4,890 / 8,611</text>
+<text class="t2" x="180" y="312" font-size="12" text-anchor="end">Maithili</text>
+<rect class="res" x="190" y="301" width="28.7" height="8" rx="2"><title>Maithili: 5,307 words (research database)</title></rect>
+<rect class="open" x="190" y="310" width="5.6" height="6" rx="2"><title>Maithili: 1,046 words (open seed)</title></rect>
+<text class="t2" x="224.7" y="313" font-size="11">1,046 / 5,307</text>
+<text class="t2" x="180" y="334" font-size="12" text-anchor="end">Konkani</text>
+<rect class="res" x="190" y="323" width="22.4" height="8" rx="2"><title>Konkani: 4,144 words (research database)</title></rect>
+<rect class="open" x="190" y="332" width="8.6" height="6" rx="2"><title>Konkani: 1,588 words (open seed)</title></rect>
+<text class="t2" x="218.4" y="335" font-size="11">1,588 / 4,144</text>
+<text class="t2" x="180" y="356" font-size="12" text-anchor="end">Marwari</text>
+<rect class="res" x="190" y="345" width="20.0" height="8" rx="2"><title>Marwari: 3,696 words (research database)</title></rect>
+<rect class="open" x="190" y="354" width="2.0" height="6" rx="2"><title>Marwari: 224 words (open seed)</title></rect>
+<text class="t2" x="216.0" y="357" font-size="11">224 / 3,696</text>
+<text class="t2" x="180" y="378" font-size="12" text-anchor="end">Awadhi</text>
+<rect class="res" x="190" y="367" width="15.3" height="8" rx="2"><title>Awadhi: 2,835 words (research database)</title></rect>
+<rect class="open" x="190" y="376" width="2.0" height="6" rx="2"><title>Awadhi: 360 words (open seed)</title></rect>
+<text class="t2" x="211.3" y="379" font-size="11">360 / 2,835</text>
+<text class="t2" x="180" y="400" font-size="12" text-anchor="end">Bhojpuri</text>
+<rect class="res" x="190" y="389" width="12.7" height="8" rx="2"><title>Bhojpuri: 2,357 words (research database)</title></rect>
+<rect class="open" x="190" y="398" width="2.0" height="6" rx="2"><title>Bhojpuri: 360 words (open seed)</title></rect>
+<text class="t2" x="208.7" y="401" font-size="11">360 / 2,357</text>
+<text class="t2" x="180" y="422" font-size="12" text-anchor="end">Dogri</text>
+<rect class="res" x="190" y="411" width="7.5" height="8" rx="2"><title>Dogri: 1,383 words (research database)</title></rect>
+<rect class="open" x="190" y="420" width="2.0" height="6" rx="2"><title>Dogri: 262 words (open seed)</title></rect>
+<text class="t2" x="203.5" y="423" font-size="11">262 / 1,383</text>
+<text class="t1" x="20" y="450" font-size="13" font-weight="600">Dravidian</text>
+<text class="t2" x="180" y="474" font-size="12" text-anchor="end">Malayalam</text>
+<rect class="res" x="190" y="463" width="484.9" height="8" rx="2"><title>Malayalam: 89,792 words (research database)</title></rect>
+<rect class="open" x="190" y="472" width="437.3" height="6" rx="2"><title>Malayalam: 80,983 words (open seed)</title></rect>
+<text class="t2" x="680.9" y="475" font-size="11">80,983 / 89,792</text>
+<text class="t2" x="180" y="496" font-size="12" text-anchor="end">Kannada</text>
+<rect class="res" x="190" y="485" width="334.6" height="8" rx="2"><title>Kannada: 61,970 words (research database)</title></rect>
+<rect class="open" x="190" y="494" width="29.5" height="6" rx="2"><title>Kannada: 5,456 words (open seed)</title></rect>
+<text class="t2" x="530.6" y="497" font-size="11">5,456 / 61,970</text>
+<text class="t2" x="180" y="518" font-size="12" text-anchor="end">Telugu</text>
+<rect class="res" x="190" y="507" width="182.1" height="8" rx="2"><title>Telugu: 33,719 words (research database)</title></rect>
+<rect class="open" x="190" y="516" width="133.0" height="6" rx="2"><title>Telugu: 24,625 words (open seed)</title></rect>
+<text class="t2" x="378.1" y="519" font-size="11">24,625 / 33,719</text>
+<text class="t2" x="180" y="540" font-size="12" text-anchor="end">Tamil</text>
+<rect class="res" x="190" y="529" width="156.4" height="8" rx="2"><title>Tamil: 28,961 words (research database)</title></rect>
+<rect class="open" x="190" y="538" width="83.7" height="6" rx="2"><title>Tamil: 15,505 words (open seed)</title></rect>
+<text class="t2" x="352.4" y="541" font-size="11">15,505 / 28,961</text>
+<text class="t1" x="20" y="568" font-size="13" font-weight="600">Sino-Tibetan</text>
+<text class="t2" x="180" y="592" font-size="12" text-anchor="end">Bodo</text>
+<rect class="res" x="190" y="581" width="2.4" height="8" rx="2"><title>Bodo: 442 words (research database)</title></rect>
+<rect class="open" x="190" y="590" width="2.0" height="6" rx="2"><title>Bodo: 331 words (open seed)</title></rect>
+<text class="t2" x="198.4" y="593" font-size="11">331 / 442</text>
+<text class="t1" x="20" y="620" font-size="13" font-weight="600">Historical and reference</text>
+<text class="t2" x="180" y="644" font-size="12" text-anchor="end">Sanskrit</text>
+<rect class="res" x="190" y="633" width="572.4" height="8" rx="2"><title>Sanskrit: 441,480 words (research database)</title></rect>
+<rect class="open" x="190" y="642" width="572.4" height="6" rx="2"><title>Sanskrit: 201,119 words (open seed)</title></rect>
+<path class="bg" d="M736.0 631 l6 0 l-4 19 l-6 0 z"/>
+<text class="t2" x="768.4" y="645" font-size="11">201,119 / 441,480</text>
+<text class="t2" x="180" y="666" font-size="12" text-anchor="end">Pali</text>
+<rect class="res" x="190" y="655" width="498.5" height="8" rx="2"><title>Pali: 92,307 words (research database)</title></rect>
+<rect class="open" x="190" y="664" width="50.8" height="6" rx="2"><title>Pali: 9,406 words (open seed)</title></rect>
+<text class="t2" x="694.5" y="667" font-size="11">9,406 / 92,307</text>
+<text class="t2" x="180" y="688" font-size="12" text-anchor="end">Prakrit</text>
+<rect class="res" x="190" y="677" width="322.0" height="8" rx="2"><title>Prakrit: 59,625 words (research database)</title></rect>
+<rect class="open" x="190" y="686" width="27.5" height="6" rx="2"><title>Prakrit: 5,096 words (open seed)</title></rect>
+<text class="t2" x="518.0" y="689" font-size="11">5,096 / 59,625</text>
+<text class="t2" x="180" y="710" font-size="12" text-anchor="end">Old Indo-Aryan (CDIAL)</text>
+<rect class="res" x="190" y="699" width="135.8" height="8" rx="2"><title>Old Indo-Aryan (CDIAL): 25,154 words (research database)</title></rect>
+<rect class="open" x="190" y="708" width="0.0" height="6" rx="2"><title>Old Indo-Aryan (CDIAL): 0 words (open seed)</title></rect>
+<text class="t2" x="331.8" y="711" font-size="11">0 / 25,154</text>
+<text class="t2" x="180" y="732" font-size="12" text-anchor="end">Ashokan Prakrit</text>
+<rect class="res" x="190" y="721" width="9.9" height="8" rx="2"><title>Ashokan Prakrit: 1,827 words (research database)</title></rect>
+<rect class="open" x="190" y="730" width="2.8" height="6" rx="2"><title>Ashokan Prakrit: 527 words (open seed)</title></rect>
+<text class="t2" x="205.9" y="733" font-size="11">527 / 1,827</text>
+<text class="t2" x="180" y="754" font-size="12" text-anchor="end">Apabhramsha</text>
+<rect class="res" x="190" y="743" width="5.1" height="8" rx="2"><title>Apabhramsha: 941 words (research database)</title></rect>
+<rect class="open" x="190" y="752" width="2.0" height="6" rx="2"><title>Apabhramsha: 309 words (open seed)</title></rect>
+<text class="t2" x="201.1" y="755" font-size="11">309 / 941</text>
+<text class="t2" x="20" y="782" font-size="11">Bars cut at the break: Sanskrit</text>
+</svg>
