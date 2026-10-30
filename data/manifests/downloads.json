@@ -212,13 +212,75 @@
     },
     {
       "id": "wiktionary-raw",
-      "group": "research",
+      "group": "public",
       "kind": "http",
       "rolling": true,
       "url": "https://kaikki.org/dictionary/raw-wiktextract-data.jsonl.gz",
       "sha256": "784574cc577d333bbf9e659be38efa27e75e9bfc0a2a8c7ab2371bb5fec29b2d",
       "dest": "wiktionary/raw-wiktextract-data.jsonl.gz",
       "note": "wiktextract extraction of the enwiktionary dump of 2026-10-01; file Last-Modified 2026-10-25, 3,082,185,963 bytes. kaikki.org replaces it weekly."
+    },
+    {
+      "id": "iecor",
+      "group": "public",
+      "kind": "git",
+      "url": "https://github.com/lexibank/iecor",
+      "ref": "v1.2.1",
+      "commit": "dd1ebc997bc38c824fb18a1ef234bbf2c229420b",
+      "dest": "iecor"
+    },
+    {
+      "id": "dravlex",
+      "group": "public",
+      "kind": "git",
+      "url": "https://github.com/lexibank/dravlex",
+      "ref": "v1.1",
+      "commit": "0afb2cd8f941e31e6f825e4cdf9fe8d68e3902f5",
+      "dest": "dravlex"
+    },
+    {
+      "id": "dunnielex",
+      "group": "public",
+      "kind": "git",
+      "url": "https://github.com/sequencecomparison/dunnielex",
+      "ref": "v1.1",
+      "commit": "f6f9150e707f49294f4b84d2e6e9d04cf446e50e",
+      "dest": "dunnielex"
+    },
+    {
+      "id": "northeuralex",
+      "group": "public",
+      "kind": "git",
+      "url": "https://github.com/lexibank/northeuralex",
+      "ref": "v4.1",
+      "commit": "e9a8119f25cf6078299132d8c4e7db338d46ff23",
+      "dest": "northeuralex"
+    },
+    {
+      "id": "halenepal",
+      "group": "public",
+      "kind": "git",
+      "url": "https://github.com/lexibank/halenepal",
+      "ref": "v4.0",
+      "commit": "ec5447105a8fa6ab1f0a955a0803b4f912378217",
+      "dest": "halenepal"
+    },
+    {
+      "id": "peirosst",
+      "group": "research",
+      "kind": "git",
+      "url": "https://github.com/lexibank/peirosst",
+      "ref": "master",
+      "commit": "4619b46ac0b9cdba83f19debc1108faebccab229",
+      "dest": "peirosst"
+    },
+    {
+      "id": "dcs-dictionary",
+      "group": "public",
+      "kind": "http",
+      "url": "https://raw.githubusercontent.com/OliverHellwig/sanskrit/8aeed5a1343d0e48b64eb32af8c00e8c6eb29359/dcs/data/conllu/lookup/dictionary.csv",
+      "sha256": "95172e5a626ada6322ec67173657b834b7f2bbe1db71250b8b2551c07feb60cd",
+      "dest": "dcs/dictionary.csv"
     }
   ]
 }

@@ -16,7 +16,7 @@ WIKTIONARY_REFERENCE_CODES ?= inc-pro,iir-pro,ira-pro,ine-pro,dra-pro,dra-sou-pr
 .PHONY: setup db-up fetch-data fetch-dev-data migrate import-open import-jambu import-glottolog \
         import-concepticon import-lsi import-asjp import-wikidata import-aliases validate \
         validate-public validate-research import-research research-db research-dump \
-        import-wiktionary \
+        import-wiktionary import-cognates import-peirosst import-dcs \
         coverage benchmark public-seed load-public-seed fixture test lint
 
 setup:
@@ -47,7 +47,30 @@ import-glottolog:
 	cd backend && .venv/bin/python -m app.cli import-glottolog --cldf ../$(GLOTTOLOG_CLDF)
 
 # Research-use datasets, cited per record; never in the public seed.
-import-research: import-jambu import-wiktionary
+import-research: import-jambu import-peirosst
+
+# Expert cognate sets (CLDF, CC BY 4.0). --all-languages keeps every doculect, so cognate
+# links to languages we do not configure yet stay in the data (disabled gl-<glottocode>).
+import-cognates:
+	cd backend && .venv/bin/python -m app.cli import-wordlist --cldf ../data/raw/iecor/cldf \
+		--dataset iecor --version "v1.2.1 (dd1ebc9)" --all-languages
+	cd backend && .venv/bin/python -m app.cli import-wordlist --cldf ../data/raw/dravlex/cldf \
+		--dataset dravlex --version "v1.1 (0afb2cd)" --all-languages
+	cd backend && .venv/bin/python -m app.cli import-wordlist --cldf ../data/raw/dunnielex/cldf \
+		--dataset dunnielex --version "v1.1 (f6f9150)" --all-languages
+	cd backend && .venv/bin/python -m app.cli import-wordlist --cldf ../data/raw/northeuralex/cldf \
+		--dataset northeuralex --version "v4.1 (e9a8119)"
+	cd backend && .venv/bin/python -m app.cli import-wordlist --cldf ../data/raw/halenepal/cldf \
+		--dataset halenepal --version "v4.0 (ec54471)"
+
+import-dcs:
+	cd backend && .venv/bin/python -m app.cli import-dcs --dictionary ../data/raw/dcs/dictionary.csv \
+		--version "8aeed5a"
+
+# Non-commercial licence: research use only.
+import-peirosst:
+	cd backend && .venv/bin/python -m app.cli import-wordlist --cldf ../data/raw/peirosst/cldf \
+		--dataset peirosst --version "master (4619b46)" --all-languages
 
 import-wiktionary:
 	cd backend && .venv/bin/python -m app.cli import-wiktionary --dir ../$(WIKTIONARY_DIR) \
@@ -72,7 +95,7 @@ research-dump:
 
 # Every dataset the audit approves, in dependency order.
 import-open: import-concepticon import-lsi import-asjp import-wikidata import-aliases \
-             import-glottolog
+             import-wiktionary import-cognates import-dcs import-glottolog
 
 import-concepticon:
 	cd backend && .venv/bin/python -m app.cli import-concepticon --data ../data/raw/concepticon-data

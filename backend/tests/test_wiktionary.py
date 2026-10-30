@@ -74,3 +74,20 @@ def test_wiktionary_entries_and_typed_etymologies(db):
         assert run_checks(db, research=True)["passed"]
     finally:
         db.rollback()
+
+
+def test_template_terms_with_modifiers_lists_and_html():
+    from app.importers.wiktionary import parse_terms, strip_html
+
+    assert parse_terms("பட்டினம்<t:town>,பட்டி,பட்டு<t:hamlet, village>") == [
+        ("பட்டினம்", "town", None),
+        ("பட்டி", None, None),
+        ("பட்டு", "hamlet, village", None),
+    ]
+    assert parse_terms("𑀕𑀪𑀺𑀦𑀻<ts:gabbhinī>") == [("𑀕𑀪𑀺𑀦𑀻", None, "gabbhinī")]
+    assert parse_terms("*𑀲𑁂𑀓𑁆𑀓𑀇<alt:*सेक्कइ>") == [("*𑀲𑁂𑀓𑁆𑀓𑀇", None, None)]
+    assert parse_terms('<i class="Latn mention" lang="en">tele-</i> + -scope') == []
+    assert parse_terms("-") == []
+    assert strip_html('feminine of <i class="Arab mention">فُلَان</i> (fulān)') == (
+        "feminine of فُلَان (fulān)"
+    )

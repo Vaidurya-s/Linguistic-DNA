@@ -159,15 +159,50 @@ class Edge:
     variety: str = ""  # etymology-only variety merged into the parent code, e.g. pra-sau
 
 
+_HTML = re.compile(r"</?[a-zA-Z][^>]*>")
+_MODIFIER = re.compile(r"<(\w+):([^>]*)>")
+
+
+def strip_html(text: str) -> str:
+    return re.sub(r"\s+", " ", _HTML.sub("", text)).strip()
+
+
+def parse_terms(raw: str) -> list[tuple[str, str | None, str | None]]:
+    """(term, gloss, transliteration) triples from a template term argument.
+
+    Wiktionary allows several comma-separated terms in one argument and inline modifiers
+    such as ``term<t:gloss>``, ``<alt:...>``, ``<tr:...>`` and ``<ts:...>``. Arguments that
+    carry rendered HTML are not terms and are skipped."""
+    if not raw or raw == "-" or re.search(r"</?(i|b|span|a)\b", raw):
+        return []
+    pieces, depth, cur = [], 0, ""
+    for ch in raw:  # split on commas outside <...>
+        depth += ch == "<"
+        depth -= ch == ">"
+        if ch == "," and depth == 0:
+            pieces.append(cur)
+            cur = ""
+        else:
+            cur += ch
+    pieces.append(cur)
+    out = []
+    for piece in pieces:
+        mods = dict(_MODIFIER.findall(piece))
+        term = re.sub(r"<[^>]*>", "", piece).strip()
+        if term and term != "-":
+            out.append((term, mods.get("t") or mods.get("gloss"), mods.get("tr") or mods.get("ts")))
+    return out
+
+
 def template_edges(entry: dict, child_key: str, code: str) -> Iterator[tuple[Edge, Term]]:
     """(edge, other term) pairs from one entry's etymology templates."""
     for rank, t in enumerate(entry.get("etymology_templates") or [], start=1):
         name, args = t.get("name", ""), t.get("args") or {}
         if name in DIRECTED and args.get("1") == code:
-            raw_src, term = args.get("2", ""), args.get("3", "")
+            raw_src = args.get("2", "")
             src = ETYMOLOGY_ONLY.get(raw_src, raw_src)
             gloss = args.get("t") or args.get("gloss") or args.get("5")
-            if src and term and term != "-":
+            for term, t_gloss, tr in parse_terms(args.get("3", "")) if src else []:
                 yield (
                     Edge(
                         child_key,
@@ -178,25 +213,31 @@ def template_edges(entry: dict, child_key: str, code: str) -> Iterator[tuple[Edg
                         rank,
                         variety=raw_src if raw_src != src else "",
                     ),
-                    Term(src, term, gloss or None, args.get("tr") or None),
+                    Term(src, term, t_gloss or gloss or None, tr or args.get("tr") or None),
                 )
         elif name in COMPONENT and args.get("1") == code:
             parts = [args[k] for k in sorted((k for k in args if k.isdigit()), key=int)][1:]
             for part in parts:
-                if not part or part == "-":
-                    continue
-                src, _, term = part.rpartition(":") if ":" in part[:12] else ("", "", part)
-                src = src or code
-                yield (
-                    Edge(
-                        child_key, term_key(src, term), "has_component", name, entry["word"], rank
-                    ),
-                    Term(src, term),
-                )
+                src, _, rest = part.rpartition(":") if ":" in part[:12] else ("", "", part)
+                if src and not re.fullmatch(r"[a-z]{2,3}(-[a-z]{2,4})*", src):
+                    src, rest = "", part  # a colon inside the term, not a language prefix
+                src = ETYMOLOGY_ONLY.get(src, src) or code
+                for term, t_gloss, tr in parse_terms(rest)[:1]:
+                    yield (
+                        Edge(
+                            child_key,
+                            term_key(src, term),
+                            "has_component",
+                            name,
+                            entry["word"],
+                            rank,
+                        ),
+                        Term(src, term, t_gloss, tr),
+                    )
         elif name in COGNATE:
             src = ETYMOLOGY_ONLY.get(args.get("1", ""), args.get("1", ""))
-            term = args.get("2", "")
-            if src and term and term != "-":
+            gloss = args.get("t") or args.get("4")
+            for term, t_gloss, tr in parse_terms(args.get("2", "")) if src else []:
                 yield (
                     Edge(
                         child_key,
@@ -207,7 +248,7 @@ def template_edges(entry: dict, child_key: str, code: str) -> Iterator[tuple[Edg
                         rank,
                         directed=False,
                     ),
-                    Term(src, term, args.get("t") or args.get("4") or None, args.get("tr") or None),
+                    Term(src, term, t_gloss or gloss or None, tr or args.get("tr") or None),
                 )
 
 
@@ -221,7 +262,7 @@ def romanization(entry: dict) -> str | None:
 def entry_glosses(entry: dict) -> list[str]:
     out = []
     for s in entry.get("senses") or []:
-        out.extend(g for g in s.get("glosses") or [] if g)
+        out.extend(strip_html(g) for g in s.get("glosses") or [] if g)
     return out
 
 
@@ -330,7 +371,10 @@ def import_wiktionary(
             if not form:
                 continue
             lang = language_of(t.code)
-            gloss = "; ".join(dict.fromkeys(t.glosses[:3])) if t.glosses else t.gloss
+            if t.glosses:
+                gloss = "; ".join(dict.fromkeys(t.glosses[:3]))
+            else:
+                gloss = strip_html(t.gloss) if t.gloss else None
             reconstructed = form.startswith("*") or t.code.endswith("-pro")
             status = (
                 ReconstructionStatus.reconstructed

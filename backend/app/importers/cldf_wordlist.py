@@ -19,10 +19,15 @@ import psycopg
 
 from app.importers.common import copy_rows, read_csv, sha256_file
 from app.importers.concepticon import ensure_concept
-from app.importers.jambu import LANGUAGE_CONFIG, TargetLanguage, load_languages
+from app.importers.jambu import (
+    LANGUAGE_CONFIG,
+    TargetLanguage,
+    has_native_script,
+    load_languages,
+)
 from app.models.enums import Direction, ReconstructionStatus, RelationshipStatus
 from app.services.ids import lexeme_id, relationship_id
-from app.services.normalize import form_kind, normalize_form, search_key
+from app.services.normalize import form_kind, lexeme_search_key, normalize_form, search_key
 
 FORM_COLUMNS = ("ID", "Language_ID", "Parameter_ID", "Value", "Form", "Source", "Loan")
 LANGUAGE_COLUMNS = ("ID", "Name", "Glottocode")
@@ -51,6 +56,8 @@ LEXEME_COLS = (
     "form",
     "normalized_form",
     "search_key",
+    "native_form",
+    "native_form_origin",
     "transliteration",
     "phonemic",
     "gloss",
@@ -156,7 +163,7 @@ def import_cldf_wordlist(
                 continue
             lang_id, _ = doc
             param = params.get(f["Parameter_ID"], {})
-            raw = f["Value"] if transcription else (f["Form"] or f["Value"])
+            raw, native, phonemic = spellings(f, transcription)
             lid = lexeme_id(dataset, f["ID"])
             page = param.get("PageNumber")
             citation = f"{f['Source'] or dataset}" + (f"[p. {page}]" if page else "")
@@ -167,9 +174,11 @@ def import_cldf_wordlist(
                     f"{dataset}:{f['Language_ID']}",
                     raw,
                     normalize_form(raw),
-                    search_key(raw),
-                    None if transcription else raw,
-                    raw if transcription else None,
+                    search_key(raw) if transcription else lexeme_search_key(raw, lang_id),
+                    native,
+                    "source" if native else None,
+                    None if transcription or raw == native else raw,
+                    raw if transcription else phonemic,
                     param.get("Name"),
                     form_kind(raw).value,
                     ReconstructionStatus.attested.value,
@@ -202,6 +211,22 @@ def import_cldf_wordlist(
             (psycopg.types.json.Jsonb(stats), batch_id),
         )
     return {"batch_id": batch_id, **stats}
+
+
+def spellings(f: dict, transcription: str | None) -> tuple[str, str | None, str | None]:
+    """(form to show, native-script spelling, phonetic form) for one CLDF form row.
+
+    Datasets differ: NorthEuraLex puts the native spelling in Value and IPA in Form; IE-CoR
+    has a romanised Form plus native_script and phon_form columns; LSI has romanised forms
+    only. A ``transcription`` dataset (ASJP) keeps its phonetic code as the form."""
+    value, form = f["Value"], f["Form"]
+    if transcription:
+        return value, None, None
+    native = f.get("native_script") or (value if has_native_script(value) else None)
+    phonemic = f.get("phon_form") or f.get("Phonemic") or None
+    if native and value == native:  # Value is the spelling; Form is a phonetic rendering
+        return native, native, phonemic or (form if form != value else None)
+    return form or value, native, phonemic
 
 
 def cognate_rows(

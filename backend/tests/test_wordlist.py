@@ -51,3 +51,16 @@ def test_cognate_sets_link_forms_across_languages(db):
         assert cite == ("undirected", "lsi, cognate set tooth-1")
     finally:
         db.rollback()
+
+
+def test_spellings_from_each_cldf_layout():
+    from app.importers.cldf_wordlist import spellings
+
+    # NorthEuraLex: Value is the native spelling, Form is IPA
+    assert spellings({"Value": "आँख", "Form": "ãːkʰ"}, None) == ("आँख", "आँख", "ãːkʰ")
+    # IE-CoR: romanised Form with native_script and phon_form columns
+    row = {"Value": "chāi", "Form": "chāi", "native_script": "ছাই", "phon_form": "tʃʰai"}
+    assert spellings(row, None) == ("chāi", "ছাই", "tʃʰai")
+    # LSI: romanised only; ASJP: a phonetic code kept as the form
+    assert spellings({"Value": "pani", "Form": "pani"}, None) == ("pani", None, None)
+    assert spellings({"Value": "pani", "Form": "p a n i"}, "ASJPcode") == ("pani", None, None)
