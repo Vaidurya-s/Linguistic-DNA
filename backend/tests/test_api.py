@@ -77,3 +77,28 @@ def test_stems_are_not_word_matches(client):
     assert body["matches"] == []
     assert [(m["form"], m["form_kind"]) for m in body["related_forms"]] == [("svatva-", "stem")]
     assert all(c["form_kind"] == "word" for c in body["spelling_candidates"])
+
+
+def test_research_records_carry_their_citation(client):
+    body = client.get("/api/v1/search", params={"q": "dānt"}).json()
+    detail = client.get(f"/api/v1/lexemes/{body['matches'][0]['id']}").json()
+    source = detail["source"]
+    assert source["dataset_decision"] == "RESEARCH USE"
+    assert source["dataset_citation"]
+
+
+def test_open_only_hides_research_use_data(client):
+    assert client.get("/api/v1/search", params={"q": "dānt"}).json()["matches"]
+    body = client.get("/api/v1/search", params={"q": "dānt", "open_only": True}).json()
+    assert body["matches"] == []
+    root = lexeme_id("jambu", "6152")
+    assert client.get(f"/api/v1/graph/{root}").json()["edges"]
+    assert client.get(f"/api/v1/graph/{root}", params={"open_only": True}).json()["edges"] == []
+
+
+def test_citations_list_datasets_and_cited_works(client):
+    body = client.get("/api/v1/citations").json()
+    jambu = next(d for d in body["datasets"] if d["id"] == "jambu")
+    assert jambu["decision"] == "RESEARCH USE" and "Arora" in jambu["citation"]
+    assert jambu["lexeme_count"] > 0
+    assert any("Indo-Aryan" in w["title"] for w in body["works"])  # Turner's CDIAL

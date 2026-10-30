@@ -197,8 +197,13 @@ class JambuImporter:
         forms_path: Path | None = None,
         version: str = "unknown",
         languages: dict[str, TargetLanguage] | None = None,
+        all_languages: bool = False,
     ):
         self.conn = conn
+        # False: only the configured languages and their ancestors. True: every Jambu form,
+        # so that chains through unconfigured languages stay whole; those languages are
+        # created disabled (role "other") and are enabled later by adding them to the config.
+        self.all_languages = all_languages
         self.cldf = cldf_dir
         self.forms_path = forms_path or cldf_dir / "forms.csv"
         self.version = version
@@ -276,7 +281,9 @@ class JambuImporter:
 
     def _scope(self, forms_path: Path, edges_path: Path) -> set[str]:
         keep = {
-            r["ID"] for r in read_csv(forms_path, FORM_COLUMNS) if r["Language_ID"] in self.targets
+            r["ID"]
+            for r in read_csv(forms_path, FORM_COLUMNS)
+            if self.all_languages or r["Language_ID"] in self.targets
         }
         parents: dict[str, list[str]] = defaultdict(list)
         self.compounds: set[str] = set()

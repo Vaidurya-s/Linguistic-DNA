@@ -1,8 +1,9 @@
 """Data-quality checks from docs/DATASET_AND_LICENSING_PLAN.md §8.
 
 Each check is a SQL query that counts violations. ``error`` checks must be zero for any
-build. ``release`` checks must be zero only for a public seed; they are reported but do
-not fail a development import.
+build. ``research`` checks must also be zero for the research database (no BLOCKED data,
+every research-use record cited). ``release`` checks must additionally be zero for a
+public seed (only data approved for redistribution). Non-blocking checks are reported.
 """
 
 from dataclasses import asdict, dataclass
@@ -149,17 +150,46 @@ CHECKS = [
     ),
     Check(
         "lexemes_from_blocked_datasets",
-        "release",
+        "research",
         "Lexemes imported from a dataset the audit marks BLOCKED",
         """SELECT count(*) FROM lexeme l JOIN dataset_audit d ON d.id = l.dataset
            WHERE d.decision = 'BLOCKED'""",
     ),
     Check(
         "relationships_from_blocked_datasets",
-        "release",
+        "research",
         "Relationships imported from a dataset the audit marks BLOCKED",
         """SELECT count(*) FROM relationship r JOIN dataset_audit d ON d.id = r.dataset
            WHERE d.decision = 'BLOCKED'""",
+    ),
+    Check(
+        "research_lexeme_without_citation",
+        "research",
+        "Lexemes from a RESEARCH USE dataset that cite no source",
+        """SELECT count(*) FROM lexeme l JOIN dataset_audit d ON d.id = l.dataset
+           WHERE d.decision = 'RESEARCH USE' AND l.source_id IS NULL""",
+    ),
+    Check(
+        "research_relationship_without_evidence",
+        "research",
+        "Relationships from a RESEARCH USE dataset with no evidence row citing a source",
+        """SELECT count(*) FROM relationship r JOIN dataset_audit d ON d.id = r.dataset
+           WHERE d.decision = 'RESEARCH USE'
+             AND NOT EXISTS (SELECT 1 FROM evidence e WHERE e.relationship_id = r.id)""",
+    ),
+    Check(
+        "lexemes_not_redistributable",
+        "release",
+        "Lexemes from a dataset the audit does not approve for redistribution",
+        """SELECT count(*) FROM lexeme l JOIN dataset_audit d ON d.id = l.dataset
+           WHERE d.decision NOT IN ('APPROVED', 'APPROVED WITH CONDITIONS')""",
+    ),
+    Check(
+        "relationships_not_redistributable",
+        "release",
+        "Relationships from a dataset the audit does not approve for redistribution",
+        """SELECT count(*) FROM relationship r JOIN dataset_audit d ON d.id = r.dataset
+           WHERE d.decision NOT IN ('APPROVED', 'APPROVED WITH CONDITIONS')""",
     ),
     Check(
         "stem_or_affix_marked_word",
@@ -171,13 +201,21 @@ CHECKS = [
 ]
 
 
-def run_checks(conn: psycopg.Connection, public_seed: bool = False) -> dict:
+BLOCKING = {
+    "development": {"error"},
+    "research": {"error", "research"},
+    "public_seed": {"error", "research", "release"},
+}
+
+
+def run_checks(conn: psycopg.Connection, public_seed: bool = False, research: bool = False) -> dict:
+    mode = "public_seed" if public_seed else "research" if research else "development"
     results = []
     with conn.cursor() as cur:
         for check in CHECKS:
             cur.execute(check.sql)
             violations = cur.fetchone()[0]
-            blocking = check.severity == "error" or (public_seed and check.severity == "release")
+            blocking = check.severity in BLOCKING[mode]
             results.append(
                 {
                     **asdict(check),
@@ -188,7 +226,7 @@ def run_checks(conn: psycopg.Connection, public_seed: bool = False) -> dict:
                 }
             )
     return {
-        "mode": "public_seed" if public_seed else "development",
+        "mode": mode,
         "passed": all(r["passed"] for r in results),
         "checks": results,
     }

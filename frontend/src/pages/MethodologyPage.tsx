@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { getLanguages } from '../api/client.ts'
-import type { Language } from '../types/api.ts'
+import { getCitations, getLanguages } from '../api/client.ts'
+import type { CitationsResponse, Language } from '../types/api.ts'
 
 const SOURCES = [
   {
@@ -54,6 +54,29 @@ const SOURCES = [
   },
 ]
 
+// Unlicensed or in-copyright sources, used for academic research with a citation on every
+// record. They are shown in this app but never included in the downloadable open dataset.
+const RESEARCH_SOURCES = [
+  {
+    name: 'Jambu',
+    use: 'Etymological database of South Asian languages; the route by which the works below enter',
+    credit: 'Arora, Farris, Basu & Kolichala (2023), SIGMORPHON 2023, doi:10.18653/v1/2023.sigmorphon-1.8',
+    url: 'https://github.com/moli-mandala/data',
+  },
+  {
+    name: 'A Comparative Dictionary of the Indo-Aryan Languages (CDIAL)',
+    use: 'Indo-Aryan word histories: inherited forms, borrowings, derivations',
+    credit: 'Turner (1962–1966), Oxford University Press',
+    url: 'https://dsal.uchicago.edu/dictionaries/soas/',
+  },
+  {
+    name: 'A Dravidian Etymological Dictionary (DEDR)',
+    use: 'Dravidian cognate sets',
+    credit: 'Burrow & Emeneau (1984, 2nd edn), Clarendon Press',
+    url: 'https://dsal.uchicago.edu/dictionaries/burrow/',
+  },
+]
+
 const SECTIONS: [string, string[]][] = [
   [
     'How search works',
@@ -77,7 +100,7 @@ const SECTIONS: [string, string[]][] = [
     'Known limitations',
     [
       'Coverage is very uneven (see the table below). Malayalam and Bengali have many Wikidata entries; several languages have only a 40–200-word comparative wordlist.',
-      'The richest scholarly sources on Indo-Aryan and Dravidian word history, Turner’s Comparative Dictionary and Burrow & Emeneau’s Dravidian Etymological Dictionary, are still in copyright. They are not part of this public dataset until reuse permission is established, so many well-known relationships are missing here.',
+      'The richest scholarly sources on Indo-Aryan and Dravidian word history, Turner’s Comparative Dictionary and Burrow & Emeneau’s Dravidian Etymological Dictionary, are still in copyright. This research app uses them, through Jambu, with a citation on every record; they are not part of the downloadable open dataset. Tick “Open data only” in Explore to see what remains without them.',
       'Wikidata is edited by volunteers. Its claims are shown with their references, but some are doubtful and none has been reviewed for this project.',
       'Spelling-based matching ignores vowel length, so a romanised query can surface unrelated words with similar consonants. These are labelled as transliteration matches and never presented as relationships.',
     ],
@@ -86,8 +109,11 @@ const SECTIONS: [string, string[]][] = [
 
 export default function MethodologyPage() {
   const [languages, setLanguages] = useState<Language[]>([])
+  const [citations, setCitations] = useState<CitationsResponse | null>(null)
+  const [allWorks, setAllWorks] = useState(false)
   useEffect(() => {
     getLanguages().then(setLanguages).catch(() => setLanguages([]))
+    getCitations().then(setCitations).catch(() => setCitations(null))
   }, [])
   const rows = [...languages].sort((a, b) => b.lexeme_count - a.lexeme_count)
 
@@ -138,6 +164,72 @@ export default function MethodologyPage() {
         <p className="mt-2 text-xs text-slate-500">
           Spelling pairs adapted from Dakshina are shared under CC BY-SA 4.0, as its licence requires.
         </p>
+        <h3 className="mt-6 font-semibold">Used for research only</h3>
+        <p className="mt-1 text-sm text-slate-600">
+          These sources have no open licence. They are used here for academic research, cited on every
+          record, and never redistributed.
+        </p>
+        <div className="mt-2 overflow-x-auto">
+          <table className="w-full min-w-[36rem] text-left text-sm">
+            <tbody>
+              {RESEARCH_SOURCES.map((s) => (
+                <tr key={s.name} className="border-t border-slate-200 align-top">
+                  <td className="py-2 pr-3">
+                    <a className="text-blue-700 underline" href={s.url} target="_blank" rel="noreferrer">{s.name}</a>
+                    <div className="text-xs text-slate-500">{s.credit}</div>
+                  </td>
+                  <td>{s.use}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-xl font-semibold">How to cite</h2>
+        <p className="mt-1 text-sm text-slate-600">
+          When you use a word or a link from this app, cite the work named on that record, and the
+          dataset it was taken from. Every dataset in use, with the citation it asks for:
+        </p>
+        {citations ? (
+          <>
+            <ul className="mt-3 space-y-3 text-sm">
+              {citations.datasets.map((d) => (
+                <li key={d.id} className="rounded-md border border-slate-200 p-3">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <strong>{d.name}</strong>
+                    <span className={`rounded px-1.5 py-0.5 text-xs ${d.decision === 'RESEARCH USE' ? 'bg-amber-100 text-amber-900' : 'bg-emerald-50 text-emerald-800'}`}>
+                      {d.decision === 'RESEARCH USE' ? 'research use' : 'open licence'}
+                    </span>
+                  </div>
+                  {d.citation && <p className="mt-1 text-slate-700">{d.citation}</p>}
+                  <p className="mt-1 text-xs text-slate-500">
+                    {d.lexeme_count.toLocaleString()} words, {d.relationship_count.toLocaleString()} links
+                  </p>
+                </li>
+              ))}
+            </ul>
+            <h3 className="mt-6 font-semibold">
+              Works cited by individual records ({citations.works.length.toLocaleString()})
+            </h3>
+            <ol className="mt-2 list-decimal space-y-1 pl-6 text-sm text-slate-700">
+              {(allWorks ? citations.works : citations.works.slice(0, 15)).map((w) => (
+                <li key={w.id}>
+                  {w.url ? <a className="text-blue-700 underline" href={w.url} target="_blank" rel="noreferrer">{w.title}</a> : w.title}
+                  <span className="text-xs text-slate-500"> — {w.record_count.toLocaleString()} records</span>
+                </li>
+              ))}
+            </ol>
+            {citations.works.length > 15 && (
+              <button type="button" className="mt-2 text-sm text-blue-700 underline" onClick={() => setAllWorks((v) => !v)}>
+                {allWorks ? 'Show fewer' : `Show all ${citations.works.length.toLocaleString()}`}
+              </button>
+            )}
+          </>
+        ) : (
+          <p className="mt-2 text-sm text-slate-500">The citation list needs the API to be running.</p>
+        )}
       </section>
 
       <section className="mt-10">

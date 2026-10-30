@@ -15,6 +15,22 @@ from app.services.transliterate import ISO15924, romanize_variants, script_of
 EXTRA_SCRIPT_LANGUAGES = {"Deva": ["oia", "pra", "pli", "x-apabhramsha", "x-ashokan-prakrit"]}
 MATCH_RANK = {"exact": 0, "native_exact": 1, "transliteration": 2, "loose": 3}
 
+OPEN_DECISIONS = ("APPROVED", "APPROVED WITH CONDITIONS")
+
+
+def open_datasets(conn: Connection, open_only: bool) -> list[str] | None:
+    """Datasets approved for redistribution, or None (no filter) when open_only is off.
+
+    Research-use datasets (e.g. Jambu, CDIAL, DEDR) are left out of an open-only view."""
+    if not open_only:
+        return None
+    rows = conn.execute(
+        text("SELECT id FROM dataset_audit WHERE decision::text = ANY(:d)"),
+        {"d": list(OPEN_DECISIONS)},
+    )
+    return [r[0] for r in rows]
+
+
 LEXEME_FIELDS = """
     l.id, l.form, l.native_form, l.language_id, g.name AS language_name,
     g.metadata_json->>'group' AS "group", l.gloss, l.reconstruction_status::text,
@@ -45,6 +61,51 @@ def list_languages(conn: Connection) -> list[dict]:
     return _languages_cache[batch]
 
 
+_citations_cache: dict[int | None, dict] = {}
+
+
+def list_citations(conn: Connection) -> dict:
+    """Every dataset in use and every work cited by its records, with record counts.
+
+    Research-use datasets are listed with the citation the audit requires; works cited by
+    an aggregate (e.g. the dictionaries Jambu draws on) are listed under it."""
+    batch = conn.execute(text("SELECT max(id) FROM import_batch")).scalar()
+    if batch not in _citations_cache:
+        _citations_cache.clear()
+        datasets = _rows(
+            conn,
+            """
+            WITH lx AS (SELECT dataset, count(*) AS n FROM lexeme GROUP BY dataset),
+                 rel AS (SELECT dataset, count(*) AS n FROM relationship GROUP BY dataset)
+            SELECT d.id, d.name, d.decision::text AS decision, d.licence_name,
+                   d.attribution_text AS citation, d.licence_url, d.version,
+                   coalesce(lx.n, 0) AS lexeme_count, coalesce(rel.n, 0) AS relationship_count
+            FROM dataset_audit d LEFT JOIN lx ON lx.dataset = d.id
+            LEFT JOIN rel ON rel.dataset = d.id
+            WHERE coalesce(lx.n, 0) + coalesce(rel.n, 0) > 0
+            ORDER BY lexeme_count DESC, d.id
+        """,
+            {},
+        )
+        works = _rows(
+            conn,
+            """
+            WITH cited AS (
+                SELECT source_id, count(*) AS n FROM lexeme
+                WHERE source_id IS NOT NULL GROUP BY source_id
+                UNION ALL
+                SELECT source_id, count(*) FROM evidence GROUP BY source_id
+            )
+            SELECT s.id, s.title, s.url, s.dataset_id, sum(c.n)::bigint AS record_count
+            FROM cited c JOIN source s ON s.id = c.source_id
+            GROUP BY s.id ORDER BY record_count DESC, s.title
+        """,
+            {},
+        )
+        _citations_cache[batch] = {"datasets": datasets, "works": works}
+    return _citations_cache[batch]
+
+
 def _language_rows(conn: Connection) -> list[dict]:
     rows = conn.execute(
         text("""
@@ -68,12 +129,15 @@ def _language_rows(conn: Connection) -> list[dict]:
     return [dict(r) for r in rows]
 
 
-def search(conn: Connection, q: str, language_id: str | None, limit: int) -> dict:
+def search(
+    conn: Connection, q: str, language_id: str | None, limit: int, open_only: bool = False
+) -> dict:
     normalized = normalize_form(q)
     key = search_key(q)
     script = detect_script(normalized)
     warnings: list[str] = []
-    params = {"q": normalized, "key": key, "lang": language_id, "limit": limit}
+    ds = open_datasets(conn, open_only)
+    params = {"q": normalized, "key": key, "lang": language_id, "limit": limit, "ds": ds}
 
     routes = transliteration_routes(conn, normalized, key)
     hits = _rows(
@@ -90,17 +154,20 @@ def search(conn: Connection, q: str, language_id: str | None, limit: int) -> dic
             WHERE (l.normalized_form = :q OR l.native_form = :q
                    OR (:latin AND l.search_key = :key))
               AND (CAST(:lang AS text) IS NULL OR l.language_id = :lang)
+              AND (CAST(:ds AS text[]) IS NULL OR l.dataset = ANY(:ds))
             UNION ALL
             SELECT l.*, 'transliteration', t.via
             FROM lexeme l JOIN t ON l.search_key = t.key AND l.language_id = t.lang
-            WHERE CAST(:lang AS text) IS NULL OR l.language_id = :lang
+            WHERE (CAST(:lang AS text) IS NULL OR l.language_id = :lang)
+              AND (CAST(:ds AS text[]) IS NULL OR l.dataset = ANY(:ds))
         ), best AS (
             SELECT DISTINCT ON (id) * FROM hits
             ORDER BY id, CASE match_type WHEN 'exact' THEN 0 WHEN 'native_exact' THEN 1
                                          WHEN 'transliteration' THEN 2 ELSE 3 END
         ), ranked AS (
             SELECT h.*, (SELECT count(*) FROM relationship r
-                         WHERE r.source_lexeme_id = h.id OR r.target_lexeme_id = h.id) AS rels
+                         WHERE (r.source_lexeme_id = h.id OR r.target_lexeme_id = h.id)
+                           AND (CAST(:ds AS text[]) IS NULL OR r.dataset = ANY(:ds))) AS rels
             FROM best h
         ), grouped AS (
             SELECT DISTINCT ON (language_id, form, coalesce(gloss, '')) *,
@@ -139,7 +206,7 @@ def search(conn: Connection, q: str, language_id: str | None, limit: int) -> dic
     # happen to share the spelling are listed separately (they are different units).
     matches = [h for h in hits if h["form_kind"] == "word"][:limit]
     related_forms = [h for h in hits if h["form_kind"] != "word"][:limit]
-    compounds = _compounds_containing(conn, [m["id"] for m in matches], limit)
+    compounds = _compounds_containing(conn, [m["id"] for m in matches], limit, ds)
 
     candidates = []
     if len(key) >= 3:
@@ -152,13 +219,15 @@ def search(conn: Connection, q: str, language_id: str | None, limit: int) -> dic
             + """,
                    'spelling_candidate' AS match_type, NULL::text AS via,
                    similarity(l.search_key, :key) AS score,
-                   (SELECT count(*) FROM relationship r WHERE r.source_lexeme_id = l.id)
+                   (SELECT count(*) FROM relationship r WHERE r.source_lexeme_id = l.id
+                    AND (CAST(:ds AS text[]) IS NULL OR r.dataset = ANY(:ds)))
                        AS relationship_count,
                    1 AS duplicate_count
             FROM lexeme l JOIN language g ON g.id = l.language_id
             WHERE l.search_key % :key AND l.search_key <> :key AND g.is_enabled
               AND l.form_kind = 'word'
               AND (CAST(:lang AS text) IS NULL OR l.language_id = :lang)
+              AND (CAST(:ds AS text[]) IS NULL OR l.dataset = ANY(:ds))
             ORDER BY l.language_id, l.form, score DESC
         """,
             params,
@@ -233,7 +302,9 @@ def transliteration_routes(conn: Connection, normalized: str, key: str) -> list[
     return unique
 
 
-def _compounds_containing(conn: Connection, ids: list[str], limit: int) -> list[dict]:
+def _compounds_containing(
+    conn: Connection, ids: list[str], limit: int, ds: list[str] | None = None
+) -> list[dict]:
     """Compounds documented (has_component) as containing one of the matched words."""
     if not ids:
         return []
@@ -250,10 +321,11 @@ def _compounds_containing(conn: Connection, ids: list[str], limit: int) -> list[
         JOIN lexeme l ON l.id = r.source_lexeme_id
         JOIN language g ON g.id = l.language_id
         WHERE r.type_id = 'has_component' AND r.target_lexeme_id = ANY(:ids)
+          AND (CAST(:ds AS text[]) IS NULL OR r.dataset = ANY(:ds))
         ORDER BY l.id
         LIMIT :limit
     """,
-        {"ids": ids, "limit": limit},
+        {"ids": ids, "limit": limit, "ds": ds},
     )
 
 
@@ -292,9 +364,11 @@ def build_graph(
     types: list[str] | None,
     language_ids: list[str] | None,
     limit_nodes: int,
+    open_only: bool = False,
 ) -> dict | None:
     if not conn.execute(text("SELECT 1 FROM lexeme WHERE id = :id"), {"id": root}).first():
         return None
+    ds = open_datasets(conn, open_only)
     seen = {root}
     frontier = [root]
     edges: dict[str, dict] = {}
@@ -318,9 +392,10 @@ def build_graph(
             WHERE (r.source_lexeme_id = ANY(:ids) OR r.target_lexeme_id = ANY(:ids))
               AND r.status <> 'rejected'
               AND (CAST(:types AS text[]) IS NULL OR r.type_id = ANY(:types))
+              AND (CAST(:ds AS text[]) IS NULL OR r.dataset = ANY(:ds))
             ORDER BY r.type_id, r.id
         """,
-            {"ids": frontier, "types": types},
+            {"ids": frontier, "types": types, "ds": ds},
         )
         nxt = []
         for e in rows:
@@ -344,10 +419,11 @@ def build_graph(
         f"""
         SELECT {LEXEME_FIELDS},
                (SELECT count(*) FROM relationship r
-                WHERE r.source_lexeme_id = l.id OR r.target_lexeme_id = l.id) AS degree
+                WHERE (r.source_lexeme_id = l.id OR r.target_lexeme_id = l.id)
+                  AND (CAST(:ds AS text[]) IS NULL OR r.dataset = ANY(:ds))) AS degree
         FROM lexeme l JOIN language g ON g.id = l.language_id WHERE l.id = ANY(:ids)
     """,
-        {"ids": list(seen)},
+        {"ids": list(seen), "ds": ds},
     )
     warnings = []
     if truncated:
@@ -410,7 +486,10 @@ def _source(conn: Connection, source_id: str | None) -> dict | None:
     row = (
         conn.execute(
             text("""
-        SELECT id, title, reuse_status::text, licence_name, url FROM source WHERE id = :id
+        SELECT s.id, s.title, s.reuse_status::text, s.licence_name, s.url,
+               s.dataset_id, d.decision::text AS dataset_decision,
+               d.attribution_text AS dataset_citation
+        FROM source s LEFT JOIN dataset_audit d ON d.id = s.dataset_id WHERE s.id = :id
     """),
             {"id": source_id},
         )

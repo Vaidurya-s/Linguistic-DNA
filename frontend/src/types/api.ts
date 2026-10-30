@@ -56,7 +56,32 @@ export type Source = {
   reuse_status: string
   licence_name: string | null
   url: string | null
+  dataset_id?: string | null
+  dataset_decision?: string | null
+  dataset_citation?: string | null
 }
+
+export type CitedDataset = {
+  id: string
+  name: string
+  decision: string
+  licence_name: string | null
+  citation: string | null
+  licence_url: string | null
+  version: string | null
+  lexeme_count: number
+  relationship_count: number
+}
+
+export type CitedWork = {
+  id: string
+  title: string
+  url: string | null
+  dataset_id: string | null
+  record_count: number
+}
+
+export type CitationsResponse = { datasets: CitedDataset[]; works: CitedWork[] }
 
 export type LexemeDetail = LexemeSummary & {
   transliteration: string | null

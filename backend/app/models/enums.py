@@ -68,4 +68,7 @@ class FormKind(enum.StrEnum):
 class AuditDecision(enum.StrEnum):
     approved = "APPROVED"
     approved_with_conditions = "APPROVED WITH CONDITIONS"
+    # Usable for academic research in the research database and hosted app, with a citation
+    # on every record; never redistributed in the public seed.
+    research_use = "RESEARCH USE"
     blocked = "BLOCKED"

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getGraph, getLanguages, searchLexemes } from '../api/client.ts'
 import { replaceParams } from '../app/router.ts'
 import DetailsPanel from '../components/DetailsPanel.tsx'
@@ -84,6 +84,10 @@ export default function ExplorePage({ initialQuery = '', initialLanguage = '' }:
   const [languages, setLanguages] = useState<Language[]>([])
   const [query, setQuery] = useState(initialQuery)
   const [languageId, setLanguageId] = useState(initialLanguage)
+  // Hide research-use data (unlicensed sources such as Jambu, CDIAL, DEDR). A ref keeps the
+  // search and graph callbacks stable; the state drives the checkbox.
+  const [openOnly, setOpenOnly] = useState(false)
+  const openOnlyRef = useRef(false)
   const [results, setResults] = useState<SearchResponse | null>(null)
   const [rootId, setRootId] = useState<string | null>(null)
   const [nodes, setNodes] = useState<Map<string, GraphNode>>(new Map())
@@ -108,7 +112,7 @@ export default function ExplorePage({ initialQuery = '', initialLanguage = '' }:
     setBusy('Searching…')
     setError(null)
     try {
-      const res = await searchLexemes(q.trim(), lang || undefined)
+      const res = await searchLexemes(q.trim(), lang || undefined, openOnlyRef.current)
       setResults(res)
       setResultsOpen(true)
       setSelection(null) // the old word's details no longer match the new results
@@ -125,7 +129,7 @@ export default function ExplorePage({ initialQuery = '', initialLanguage = '' }:
     setBusy('Loading connections…')
     setError(null)
     try {
-      const g = await getGraph(id)
+      const g = await getGraph(id, openOnlyRef.current)
       setNodes((prev) => {
         const next = reset ? new Map<string, GraphNode>() : new Map(prev)
         g.nodes.forEach((n) => next.set(n.id, n))
@@ -248,6 +252,22 @@ export default function ExplorePage({ initialQuery = '', initialLanguage = '' }:
         </button>
       </form>
       <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+        <label className="mr-3 flex items-center gap-1.5" title="Hide data from sources used for research only (Jambu, CDIAL, DEDR)">
+          <input
+            type="checkbox"
+            checked={openOnly}
+            onChange={(e) => {
+              openOnlyRef.current = e.target.checked
+              setOpenOnly(e.target.checked)
+              setRootId(null)
+              setNodes(new Map())
+              setEdges(new Map())
+              setSelection(null)
+              if (query.trim()) void runSearch(query, languageId)
+            }}
+          />
+          Open data only
+        </label>
         Try:
         {EXAMPLES.map((ex) => (
           <button

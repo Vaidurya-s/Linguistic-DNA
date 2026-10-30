@@ -40,7 +40,8 @@ export default function Layout({ path, children }: { path: string; children: Rea
         <div className="mx-auto max-w-7xl px-4 py-5 text-xs leading-relaxed text-slate-600">
           Data: Glottolog, Concepticon, the Linguistic Survey of India and ASJP (CC BY 4.0);
           Wikidata Lexemes (CC0); Dakshina (CC BY-SA 4.0) and Aksharantar (CC BY / CC0) for
-          transliteration. Full credits and licences are on the{' '}
+          transliteration. For research use, with citation: Jambu (Arora et al. 2023), Turner&apos;s
+          CDIAL and Burrow &amp; Emeneau&apos;s DEDR. Full credits, licences and how to cite are on the{' '}
           <a className="underline" href={href('/methodology')}>
             Data &amp; methodology
           </a>{' '}

@@ -28,10 +28,12 @@ def migrated_db() -> str:
     return TEST_DB
 
 
-def run_fixture_import(url: str) -> dict:
+def run_fixture_import(url: str, all_languages: bool = False) -> dict:
     with connect(url) as conn:
         load_manifest(conn)
-        stats = JambuImporter(conn, FIXTURES / "jambu_mini", version="fixture").run()
+        stats = JambuImporter(
+            conn, FIXTURES / "jambu_mini", version="fixture", all_languages=all_languages
+        ).run()
         import_glottolog(conn, FIXTURES / "glottolog_mini")
     return stats
 

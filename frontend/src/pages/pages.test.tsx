@@ -35,13 +35,24 @@ describe('pages', () => {
     expect(await screen.findByText('5,549')).toBeInTheDocument() // words indexed
   })
 
-  it('methodology page credits every source and lists coverage', async () => {
-    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(new Response(JSON.stringify(languages)))))
+  it('methodology page credits every source, lists coverage and how to cite', async () => {
+    const citations = {
+      datasets: [
+        { id: 'jambu', name: 'Jambu CLDF database', decision: 'RESEARCH USE', licence_name: null,
+          citation: 'Arora, Aryaman, et al. 2023. Jambu.', licence_url: null, version: 'x',
+          lexeme_count: 1000, relationship_count: 500 },
+      ],
+      works: [{ id: 'cdial', title: 'Turner, CDIAL', url: null, dataset_id: 'cdial', record_count: 42 }],
+    }
+    vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve(
+      new Response(JSON.stringify(url.includes('/citations') ? citations : languages)))))
     render(<MethodologyPage />)
     for (const name of [/Glottolog/, /Linguistic Survey of India/, /ASJP/, /Concepticon/,
-                        /Wikidata Lexemes/, /Dakshina/, /Aksharantar/]) {
+                        /Wikidata Lexemes/, /Dakshina/, /Aksharantar/, /Jambu/, /CDIAL/, /DEDR/]) {
       expect(screen.getAllByText(name).length).toBeGreaterThan(0)
     }
     expect(await screen.findByText('Tamil')).toBeInTheDocument()
+    expect(await screen.findByText('Arora, Aryaman, et al. 2023. Jambu.')).toBeInTheDocument()
+    expect(screen.getByText('research use')).toBeInTheDocument()
   })
 })

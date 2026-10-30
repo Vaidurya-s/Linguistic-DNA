@@ -56,6 +56,34 @@ class SourceOut(BaseModel):
     reuse_status: str
     licence_name: str | None
     url: str | None
+    dataset_id: str | None = None
+    dataset_decision: str | None = None  # audit decision, e.g. "RESEARCH USE"
+    dataset_citation: str | None = None  # how the dataset must be cited
+
+
+class CitedDataset(BaseModel):
+    id: str
+    name: str
+    decision: str
+    licence_name: str | None
+    citation: str | None
+    licence_url: str | None
+    version: str | None
+    lexeme_count: int
+    relationship_count: int
+
+
+class CitedWork(BaseModel):
+    id: str
+    title: str
+    url: str | None
+    dataset_id: str | None
+    record_count: int
+
+
+class CitationsResponse(BaseModel):
+    datasets: list[CitedDataset]
+    works: list[CitedWork]
 
 
 class ConceptOut(BaseModel):

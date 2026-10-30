@@ -32,7 +32,7 @@ migrate:
 
 import-jambu:
 	cd backend && .venv/bin/python -m app.cli import-jambu --cldf ../$(JAMBU_CLDF) \
-		--forms ../$(JAMBU_FORMS) --version $(JAMBU_COMMIT)
+		--forms ../$(JAMBU_FORMS) --version $(JAMBU_COMMIT) --all-languages
 
 import-glottolog:
 	cd backend && .venv/bin/python -m app.cli import-glottolog --cldf ../$(GLOTTOLOG_CLDF)

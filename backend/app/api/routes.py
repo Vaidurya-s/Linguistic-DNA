@@ -5,6 +5,7 @@ from sqlalchemy import Connection
 
 from app.db.deps import get_conn
 from app.schemas.api import (
+    CitationsResponse,
     GraphResponse,
     LanguageOut,
     LexemeDetail,
@@ -29,10 +30,11 @@ def search(
     q: Annotated[str, Query(min_length=1, max_length=MAX_QUERY)],
     language_id: str | None = None,
     limit: Annotated[int, Query(ge=1, le=50)] = 10,
+    open_only: bool = False,
 ):
     if not q.strip():
         raise HTTPException(422, "Query is empty")
-    return retrieval.search(conn, q, language_id, limit)
+    return retrieval.search(conn, q, language_id, limit, open_only)
 
 
 @router.get("/lexemes/{lexeme_id}", response_model=LexemeDetail)
@@ -51,13 +53,20 @@ def graph(
     relationship_types: Annotated[list[str] | None, Query()] = None,
     language_ids: Annotated[list[str] | None, Query()] = None,
     limit_nodes: Annotated[int, Query(ge=1, le=150)] = 50,
+    open_only: bool = False,
 ):
     found = retrieval.build_graph(
-        conn, lexeme_id, depth, relationship_types, language_ids, limit_nodes
+        conn, lexeme_id, depth, relationship_types, language_ids, limit_nodes, open_only
     )
     if not found:
         raise HTTPException(404, "Lexeme not found")
     return found
+
+
+@router.get("/citations", response_model=CitationsResponse)
+def citations(conn: Conn):
+    """Datasets in use and the works their records cite, for 'how to cite' pages."""
+    return retrieval.list_citations(conn)
 
 
 @router.get("/relationships/{relationship_id}", response_model=RelationshipDetail)

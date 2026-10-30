@@ -81,8 +81,48 @@ def test_ids_stable_across_reimport(imported_db, db):
     assert lexeme_id("jambu", "6152") in after
 
 
-def test_validation_passes_for_development_but_blocks_public_seed(db):
+def test_validation_passes_for_research_but_blocks_public_seed(db):
     dev = run_checks(db)
     assert dev["passed"], [c for c in dev["checks"] if not c["passed"]]
+    research = run_checks(db, research=True)  # Jambu is RESEARCH USE: allowed, cited
+    assert research["passed"], [c for c in research["checks"] if not c["passed"]]
     public = run_checks(db, public_seed=True)
-    assert not public["passed"]
+    failed = {c["name"] for c in public["checks"] if not c["passed"]}
+    assert {"lexemes_not_redistributable", "relationships_not_redistributable"} <= failed
+
+
+def test_research_validation_fails_on_blocked_data(db):
+    db.execute("UPDATE dataset_audit SET decision = 'BLOCKED' WHERE id = 'jambu'")
+    try:
+        result = run_checks(db, research=True)
+        failed = {c["name"] for c in result["checks"] if not c["passed"]}
+        assert "lexemes_from_blocked_datasets" in failed
+    finally:
+        db.rollback()
+
+
+def test_all_languages_keeps_unconfigured_forms_as_disabled_languages(imported_db, db):
+    sindhi = lexeme_id("jambu", "f_fixturesindhi1")
+    assert scalar(db, "SELECT count(*) FROM lexeme WHERE id = %s", sindhi) == 0  # default scope
+    try:
+        run_fixture_import(imported_db, all_languages=True)
+        db.rollback()  # fresh snapshot
+        lang = db.execute(
+            "SELECT g.id, g.role, g.is_enabled FROM lexeme l JOIN language g"
+            " ON g.id = l.language_id WHERE l.id = %s",
+            (sindhi,),
+        ).fetchone()
+        assert lang == ("jb-s", "other", False)
+        assert (
+            scalar(
+                db,
+                "SELECT count(*) FROM relationship WHERE source_lexeme_id = %s"
+                " AND target_lexeme_id = %s",
+                sindhi,
+                lexeme_id("jambu", "6152"),
+            )
+            == 1
+        )
+        assert run_checks(db, research=True)["passed"]
+    finally:
+        run_fixture_import(imported_db)

@@ -17,7 +17,7 @@ const PRINCIPLES = [
   ['Evidence first', 'Every link in the graph points to the record that states it: a dictionary page, a dataset row or a Wikidata statement.'],
   ['Resemblance is not ancestry', 'Words that look or sound alike are listed as candidates and never drawn as relationships.'],
   ['Uncertainty stays visible', 'Reconstructed forms are marked, and a link whose source does not say whether a word was inherited or borrowed is shown exactly that way.'],
-  ['Only licensed data', 'The public dataset contains only sources whose licences allow redistribution, each one credited.'],
+  ['Every source cited', 'Scholarly dictionaries without an open licence are used for research and cited on every record; the downloadable open dataset contains only openly licensed sources.'],
 ]
 
 export default function HomePage() {

@@ -14,6 +14,7 @@ const REUSE_LABEL: Record<string, string> = {
 
 function SourceLine({ source }: { source: Source | null }) {
   if (!source) return <span className="text-slate-500">no source recorded</span>
+  const research = source.dataset_decision === 'RESEARCH USE'
   return (
     <span>
       {source.url ? (
@@ -23,7 +24,14 @@ function SourceLine({ source }: { source: Source | null }) {
       ) : (
         source.title
       )}{' '}
-      <span className="text-xs text-slate-500">({REUSE_LABEL[source.reuse_status] ?? source.reuse_status})</span>
+      {research ? (
+        <span className="mt-1 block rounded border border-amber-300 bg-amber-50 px-2 py-1 text-xs text-amber-900">
+          <strong>Research use, not redistributed.</strong> Cite the work above
+          {source.dataset_citation && <> and the database it was taken from: {source.dataset_citation}</>}
+        </span>
+      ) : (
+        <span className="text-xs text-slate-500">({REUSE_LABEL[source.reuse_status] ?? source.reuse_status})</span>
+      )}
     </span>
   )
 }

@@ -5,7 +5,7 @@ python -m app.cli import-jambu --cldf data/raw/jambu/cldf --version <commit>
 python -m app.cli import-glottolog --cldf data/raw/glottolog-cldf/cldf
 python -m app.cli import-concepticon --data data/raw/concepticon-data
 python -m app.cli import-wordlist --cldf data/raw/lsi/cldf --dataset lsi --version v1.1
-python -m app.cli validate [--public-seed]
+python -m app.cli validate [--public-seed | --research]
 python -m app.cli coverage
 """
 
@@ -40,6 +40,11 @@ def main(argv: list[str] | None = None) -> int:
     j.add_argument("--cldf", type=Path, required=True)
     j.add_argument("--forms", type=Path, help="forms.csv if not inside --cldf (LFS object)")
     j.add_argument("--version", default="unknown")
+    j.add_argument(
+        "--all-languages",
+        action="store_true",
+        help="import every form, filing unconfigured languages as disabled reference languages",
+    )
     c = sub.add_parser("import-concepticon")
     c.add_argument("--data", type=Path, required=True)
     w = sub.add_parser("import-wordlist")
@@ -63,6 +68,7 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--cldf", type=Path, required=True)
     v = sub.add_parser("validate")
     v.add_argument("--public-seed", action="store_true")
+    v.add_argument("--research", action="store_true", help="checks for the research database")
     sub.add_parser("coverage")
     sub.add_parser("benchmark")
     sub.add_parser("rekey-search", help="recompute lexeme.search_key after a rule change")
@@ -78,7 +84,9 @@ def main(argv: list[str] | None = None) -> int:
             result = {"sources": load_manifest(conn)}
         elif args.cmd == "import-jambu":
             load_manifest(conn)
-            result = JambuImporter(conn, args.cldf, args.forms, args.version).run()
+            result = JambuImporter(
+                conn, args.cldf, args.forms, args.version, all_languages=args.all_languages
+            ).run()
             result["orphan_sources_removed"] = prune_orphan_sources(conn)
         elif args.cmd == "import-concepticon":
             load_manifest(conn)
@@ -114,7 +122,7 @@ def main(argv: list[str] | None = None) -> int:
             load_manifest(conn)
             result = import_glottolog(conn, args.cldf)
         elif args.cmd == "validate":
-            result = run_checks(conn, public_seed=args.public_seed)
+            result = run_checks(conn, public_seed=args.public_seed, research=args.research)
             _write("validation.json", json.dumps(result, indent=2))
             for c in result["checks"]:
                 flag = "ok  " if c["passed"] else "FAIL"

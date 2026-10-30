@@ -1,4 +1,5 @@
 import type {
+  CitationsResponse,
   GraphResponse,
   Language,
   LexemeDetail,
@@ -39,13 +40,22 @@ export const getHealth = () => getJson<Health>('/health')
 
 export const getLanguages = () => getJson<Language[]>('/languages')
 
-export const searchLexemes = (q: string, languageId?: string) =>
-  getJson<SearchResponse>(`/search?${qs({ q, language_id: languageId, limit: 20 })}`)
+// openOnly: hide research-use data (unlicensed sources such as Jambu, CDIAL and DEDR).
+const openFlag = (openOnly?: boolean) => (openOnly ? 'true' : undefined)
+
+export const searchLexemes = (q: string, languageId?: string, openOnly?: boolean) =>
+  getJson<SearchResponse>(
+    `/search?${qs({ q, language_id: languageId, limit: 20, open_only: openFlag(openOnly) })}`,
+  )
 
 export const getLexeme = (id: string) => getJson<LexemeDetail>(`/lexemes/${encodeURIComponent(id)}`)
 
-export const getGraph = (id: string) =>
-  getJson<GraphResponse>(`/graph/${encodeURIComponent(id)}?${qs({ depth: 1, limit_nodes: 60 })}`)
+export const getGraph = (id: string, openOnly?: boolean) =>
+  getJson<GraphResponse>(
+    `/graph/${encodeURIComponent(id)}?${qs({ depth: 1, limit_nodes: 60, open_only: openFlag(openOnly) })}`,
+  )
+
+export const getCitations = () => getJson<CitationsResponse>('/citations')
 
 export const getRelationship = (id: string) =>
   getJson<RelationshipDetail>(`/relationships/${encodeURIComponent(id)}`)
