@@ -122,6 +122,37 @@ Jambu cites the work behind each form and edge: CDIAL, DEDR and about 570 more, 
 | Relationships | 220,972 | 492,312 |
 | Evidence rows | | 555,605 |
 
+## 4a. Datasets added in the research expansion (2026-10-30)
+
+Every source below was downloaded, its licence was read from the artefact itself, and it was audited with the citation it asks for. The exact citation text is in `data/manifests/dataset_audit.csv`, served at `/api/v1/citations`. "Links" are documented relationships, each with an evidence row.
+
+| Dataset | Pinned version | Licence | Decision | Words | Links |
+|---|---|---|---|---:|---:|
+| Jambu, in full (CDIAL, DEDR and about 570 cited works) | commit 665850c | none | RESEARCH USE | 991,379 | 492,312 |
+| Wiktionary (wiktextract, kaikki.org) | enwiktionary 2026-10-01, extracted 2026-10-25 | CC BY-SA 4.0 and GFDL | APPROVED WITH CONDITIONS | 202,147 | 158,925 |
+| Monier-Williams 1899 (Cologne CDSL) | csl-orig e4742e1 | CC BY-NC-SA 3.0, stricter of two stated | RESEARCH USE | 194,083 | 192,637 |
+| Digital Corpus of Sanskrit lexicon | 8aeed5a | CC BY 4.0 | APPROVED WITH CONDITIONS | 180,281 | 0 |
+| Digital Pāḷi Dictionary | v0.4.20261026 | CC BY-NC-SA 4.0 | RESEARCH USE | 94,782 | 87,873 |
+| IE-CoR | v1.2.1 | CC BY 4.0 | APPROVED WITH CONDITIONS | 25,731 | 46,781 cognate |
+| Peiros, Sino-Tibetan wordlists (Bodo) | 4619b46 | CC BY-NC 4.0 | RESEARCH USE | 11,041 | 2,360 cognate |
+| NorthEuraLex | v4.1 | CC BY 4.0 | APPROVED WITH CONDITIONS | 6,600 | 0 |
+| IELex (Dunn) | v1.1 | CC BY 4.0 | APPROVED WITH CONDITIONS | 4,393 | 2,923 cognate |
+| DravLex | v1.1 | CC BY 4.0 | APPROVED WITH CONDITIONS | 2,127 | 3,525 cognate |
+| Hale's Nepal wordlists | v4.0 | CC BY 4.0 | APPROVED WITH CONDITIONS | 1,227 | 0 |
+
+Alongside the existing Wikidata, LSI and ASJP imports, the research database holds **1,812,751 words, 996,749 documented relationships and 1,060,042 evidence rows** (about 2.1 GB).
+
+**How each source is mapped.**
+- Wiktionary etymology templates become typed links: `inh` → inherited, `bor`/`lbor` → borrowed, `der` → "from", calques, `af`/`compound` → component, and `cog` → cognate (undirected). Etymology-only Prakrit and Sanskrit varieties merge into their language, with the variety kept in the label.
+- Cognate tables (IE-CoR, IELex, DravLex, Peiros) give undirected `cognate` links between members of a set. A link is kept only when at least one member is in a configured language.
+- DPD's Sanskrit equivalents are `related_form` links, because DPD does not say whether a word was inherited. Its `derived_from` links become derived, and its compound constructions become components.
+- Monier-Williams compounds marked in `k2` (`agni—hotra`) link to their parts.
+
+**Examined but not used.**
+- **DSAL dictionaries (Platts, Tamil Lexicon, Kittel and others):** no bulk download. The terms are CC BY-NC-ND or all rights reserved, and `robots.txt` disallows automated agents. Their entries reach the project only where Jambu cites them.
+- **IndoWordNet:** no working bulk download. The Hindi licence is GPL/FDL; licences for the other languages are not stated.
+- **CogNet v2 (CC BY-NC-SA):** its cognates are computed automatically and include loans. It can return later as a *candidate* layer once the graph draws candidates distinctly.
+
 ## 5. Shortlist datasets not yet audited
 
 The other 22 shortlisted resources have rows with decision BLOCKED and reason "unverified": Lexibank (as a collection), Open English WordNet, Unicode CLDR, IndicLID, Samanantar, IndicCorp v2, Naamapadam, BPCC-Mined, BPCC-H-Wiki, BPCC-H-Daily, IN22-Gen, IN22-Conv, FLORES-200, NLLB-Seed, Tatoeba, Wiktionary, Wikipedia, Open Multilingual Wordnet, Universal Dependencies, Common Voice, FLEURS, and CLDF datasets on Zenodo.

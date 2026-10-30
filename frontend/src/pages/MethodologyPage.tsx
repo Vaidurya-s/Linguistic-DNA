@@ -52,6 +52,34 @@ const SOURCES = [
     credit: 'Madhani et al. (2022), AI4Bharat',
     url: 'https://huggingface.co/datasets/ai4bharat/Aksharantar',
   },
+  {
+    name: 'Wiktionary (via wiktextract)',
+    licence: 'CC BY-SA 4.0 / GFDL',
+    use: 'Words, glosses and typed etymologies: inherited, borrowed, calques, compounds, cognates',
+    credit: 'Wiktionary contributors; Ylonen (2022), LREC; kaikki.org',
+    url: 'https://kaikki.org/dictionary/',
+  },
+  {
+    name: 'IE-CoR, IELex, DravLex',
+    licence: 'CC BY 4.0',
+    use: 'Expert cognate judgments for Indo-European and Dravidian languages',
+    credit: 'Heggarty, Anderson & Scarborough (2024); Dunn (2012); Kolipakam, Dunn, Jordan & Verkerk (2018)',
+    url: 'https://github.com/lexibank/iecor',
+  },
+  {
+    name: 'NorthEuraLex; Hale’s Nepal wordlists',
+    licence: 'CC BY 4.0',
+    use: 'Concept-aligned wordlists',
+    credit: 'Dellert et al. (2020); Hale (1973), Lexibank editions',
+    url: 'https://github.com/lexibank/northeuralex',
+  },
+  {
+    name: 'Digital Corpus of Sanskrit (lexicon)',
+    licence: 'CC BY 4.0',
+    use: 'Sanskrit words with English meanings',
+    credit: 'Hellwig (2010–2021)',
+    url: 'https://github.com/OliverHellwig/sanskrit',
+  },
 ]
 
 // Unlicensed or in-copyright sources, used for academic research with a citation on every
@@ -74,6 +102,24 @@ const RESEARCH_SOURCES = [
     use: 'Dravidian cognate sets',
     credit: 'Burrow & Emeneau (1984, 2nd edn), Clarendon Press',
     url: 'https://dsal.uchicago.edu/dictionaries/burrow/',
+  },
+  {
+    name: 'A Sanskrit-English Dictionary (Monier-Williams)',
+    use: 'Sanskrit headwords, senses and compound structure, with page and column',
+    credit: 'Monier-Williams (1899); Cologne Digital Sanskrit Dictionaries (CC BY-NC-SA)',
+    url: 'https://www.sanskrit-lexicon.uni-koeln.de',
+  },
+  {
+    name: 'Digital Pāḷi Dictionary',
+    use: 'Pali words, Sanskrit equivalents, derivations and compounds',
+    credit: 'Bodhirasa Bhikkhu, v0.4.20261026 (CC BY-NC-SA), doi:10.5281/zenodo.22979413',
+    url: 'https://www.dpdict.net/',
+  },
+  {
+    name: 'Comparative Sino-Tibetan Wordlists',
+    use: 'Bodo words and cognate sets',
+    credit: 'Peiros (2004), Lexibank edition (CC BY-NC)',
+    url: 'https://github.com/lexibank/peirosst',
   },
 ]
 
@@ -166,8 +212,8 @@ export default function MethodologyPage() {
         </p>
         <h3 className="mt-6 font-semibold">Used for research only</h3>
         <p className="mt-1 text-sm text-slate-600">
-          These sources have no open licence. They are used here for academic research, cited on every
-          record, and never redistributed.
+          These sources have no open licence, or only a non-commercial one. They are used here for
+          academic research, cited on every record, and never redistributed.
         </p>
         <div className="mt-2 overflow-x-auto">
           <table className="w-full min-w-[36rem] text-left text-sm">
