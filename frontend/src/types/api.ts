@@ -9,6 +9,8 @@ export type Language = {
   primary_script: string | null
   lexeme_count: number
   linked_count: number
+  open_lexeme_count?: number | null // words from openly licensed datasets only
+  open_linked_count?: number | null
 }
 
 export type LexemeSummary = {

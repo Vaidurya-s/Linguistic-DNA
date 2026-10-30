@@ -107,22 +107,32 @@ def list_citations(conn: Connection) -> dict:
 
 
 def _language_rows(conn: Connection) -> list[dict]:
+    """Searchable languages with word counts: from language_stats (computed after imports by
+    ``app.cli refresh-languages``), or counted live when that table is empty."""
+    precomputed = conn.execute(text("SELECT EXISTS (SELECT 1 FROM language_stats)")).scalar()
+    counts = (
+        """coalesce(st.lexeme_count, 0) AS lexeme_count,
+               coalesce(st.linked_count, 0) AS linked_count,
+               coalesce(st.open_lexeme_count, 0) AS open_lexeme_count,
+               coalesce(st.open_linked_count, 0) AS open_linked_count
+        FROM language g LEFT JOIN language_stats st ON st.language_id = g.id"""
+        if precomputed
+        else """(SELECT count(*) FROM lexeme l WHERE l.language_id = g.id) AS lexeme_count,
+               (SELECT count(*) FROM lexeme l WHERE l.language_id = g.id AND (
+                   EXISTS (SELECT 1 FROM relationship r WHERE r.source_lexeme_id = l.id)
+                   OR EXISTS (SELECT 1 FROM relationship r WHERE r.target_lexeme_id = l.id)))
+                   AS linked_count,
+               NULL::int AS open_lexeme_count, NULL::int AS open_linked_count
+        FROM language g"""
+    )
     rows = conn.execute(
-        text("""
-                SELECT g.id, g.name, g.role, g.metadata_json->>'group' AS "group", g.family_id,
+        text(f"""
+        SELECT g.id, g.name, g.role, g.metadata_json->>'group' AS "group", g.family_id,
                f.name AS family_name, g.glottocode, ls.script_id AS primary_script,
-               count(l.id) AS lexeme_count,
-               count(l.id) FILTER (WHERE EXISTS (
-                   SELECT 1 FROM relationship r WHERE r.source_lexeme_id = l.id
-                     AND r.status = 'documented') OR EXISTS (
-                   SELECT 1 FROM relationship r WHERE r.target_lexeme_id = l.id
-                     AND r.status = 'documented')) AS linked_count
-        FROM language g
+               {counts}
         LEFT JOIN language_family f ON f.id = g.family_id
         LEFT JOIN language_script ls ON ls.language_id = g.id AND ls.is_primary
-        LEFT JOIN lexeme l ON l.language_id = g.id
         WHERE g.is_enabled
-        GROUP BY g.id, f.name, ls.script_id
         ORDER BY CASE g.role WHEN 'modern' THEN 0 WHEN 'historical' THEN 1 ELSE 2 END, g.name
     """)
     ).mappings()

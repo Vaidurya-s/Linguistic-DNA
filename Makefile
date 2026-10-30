@@ -17,6 +17,7 @@ WIKTIONARY_REFERENCE_CODES ?= inc-pro,iir-pro,ira-pro,ine-pro,dra-pro,dra-sou-pr
         import-concepticon import-lsi import-asjp import-wikidata import-aliases validate \
         validate-public validate-research import-research research-db research-dump \
         import-wiktionary import-cognates import-peirosst import-dcs import-dpd import-cdsl-mw \
+        refresh-languages \
         coverage benchmark public-seed load-public-seed fixture test lint
 
 setup:
@@ -89,8 +90,15 @@ import-wiktionary:
 # The full research database: open data, then research-use data, then checks.
 research-db: import-open import-research
 	$(MAKE) import-glottolog  # classify the languages the research imports created
+	$(MAKE) refresh-languages
 	cd backend && .venv/bin/python -m app.cli rekey-search
 	cd backend && .venv/bin/python -m app.cli validate --research
+
+# All Glottolog languages; one record per language across sources; statistics; which
+# languages are searchable (docs/DATA_PIPELINE.md).
+refresh-languages:
+	cd backend && .venv/bin/python -m app.cli refresh-languages \
+		--glottolog ../$(GLOTTOLOG_CLDF) --iso ../data/raw/iso639/iso-639-3.tab
 
 validate-research:
 	cd backend && .venv/bin/python -m app.cli validate --research

@@ -29,6 +29,14 @@ from app.importers.wikidata_lexemes import fetch_language_names, import_wikidata
 from app.importers.wiktionary import import_wiktionary, wiktionary_code_map
 from app.pipeline.benchmark import run_benchmark
 from app.pipeline.coverage import coverage, to_markdown
+from app.pipeline.languages import (
+    Glottolog,
+    canonicalize_languages,
+    enable_searchable,
+    import_glottolog_languages,
+    iso_tables,
+    refresh_language_stats,
+)
 from app.pipeline.public_seed import build_public_seed, load_public_seed
 from app.pipeline.validate import run_checks
 
@@ -96,6 +104,13 @@ def main(argv: list[str] | None = None) -> int:
     v = sub.add_parser("validate")
     v.add_argument("--public-seed", action="store_true")
     v.add_argument("--research", action="store_true", help="checks for the research database")
+    gl = sub.add_parser(
+        "refresh-languages",
+        help="all Glottolog languages, one record per language, statistics, searchable flags",
+    )
+    gl.add_argument("--glottolog", type=Path, help="glottolog-cldf/cldf (omit: statistics only)")
+    gl.add_argument("--iso", type=Path, help="SIL iso-639-3.tab")
+    gl.add_argument("--min-words", type=int, default=200)
     sub.add_parser("coverage")
     sub.add_parser("benchmark")
     sub.add_parser("rekey-search", help="recompute lexeme.search_key after a rule change")
@@ -160,9 +175,12 @@ def main(argv: list[str] | None = None) -> int:
             result = build_public_seed(conn)
         elif args.cmd == "load-public-seed":
             result = load_public_seed(conn)
+            result["language_stats"] = refresh_language_stats(conn)
         elif args.cmd == "ensure-seed":
             empty = conn.execute("SELECT NOT EXISTS (SELECT 1 FROM lexeme)").fetchone()[0]
             result = load_public_seed(conn) if empty else {"skipped": "database already has data"}
+            if empty:
+                result["language_stats"] = refresh_language_stats(conn)
         elif args.cmd == "import-dakshina":
             load_manifest(conn)
             result = import_dakshina(conn, args.tar)
@@ -172,6 +190,20 @@ def main(argv: list[str] | None = None) -> int:
         elif args.cmd == "import-glottolog":
             load_manifest(conn)
             result = import_glottolog(conn, args.cldf)
+        elif args.cmd == "refresh-languages":
+            result = {}
+            if args.glottolog:
+                glottolog = Glottolog(args.glottolog)
+                part1, _ = iso_tables(args.iso) if args.iso else ({}, set())
+                result.update(import_glottolog_languages(conn, glottolog))
+                result.update(canonicalize_languages(conn, glottolog, part1))
+            result["language_stats"] = refresh_language_stats(conn)
+            if args.glottolog:
+                result["searchable_glottolog_languages"] = enable_searchable(conn, args.min_words)
+                result["language_stats"] = refresh_language_stats(conn)
+                # planner statistics go stale after moving many rows between languages
+                conn.execute("ANALYZE lexeme")
+                conn.execute("ANALYZE language")
         elif args.cmd == "validate":
             result = run_checks(conn, public_seed=args.public_seed, research=args.research)
             _write("validation.json", json.dumps(result, indent=2))

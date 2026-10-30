@@ -90,3 +90,29 @@ describe('ExplorePage', () => {
     expect(await screen.findByText(/Search failed: offline/)).toBeInTheDocument()
   })
 })
+
+describe('language picker', () => {
+  afterEach(() => {
+    cleanup()
+    vi.unstubAllGlobals()
+  })
+
+  it('filters hundreds of languages by name or family', async () => {
+    const lang = (id: string, name: string, role: string, group: string, family_name: string) => ({
+      id, name, role, group, family_id: null, family_name, glottocode: null, primary_script: null,
+      lexeme_count: 10, linked_count: 1, open_lexeme_count: 4, open_linked_count: 0,
+    })
+    const languages = [
+      lang('hin', 'Hindi-Urdu', 'modern', 'Indo-Aryan', 'Indo-European'),
+      lang('gl-dutc1256', 'Dutch', 'other', 'Indo-European', 'Germanic'),
+      lang('gl-tagu1234', 'Tagalog', 'other', 'Austronesian', 'Austronesian'),
+    ]
+    vi.stubGlobal('fetch', vi.fn(() => json(languages)))
+    render(<ExplorePage />)
+    expect(await screen.findByRole('option', { name: /Tagalog/ })).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Filter languages'), { target: { value: 'germ' } })
+    expect(screen.getByRole('option', { name: /Dutch/ })).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: /Tagalog/ })).toBeNull()
+    expect(screen.queryByRole('option', { name: /Hindi/ })).toBeNull()
+  })
+})

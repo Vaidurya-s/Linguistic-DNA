@@ -87,6 +87,7 @@ export default function ExplorePage({ initialQuery = '', initialLanguage = '' }:
   // Hide research-use data (unlicensed sources such as Jambu, CDIAL, DEDR). A ref keeps the
   // search and graph callbacks stable; the state drives the checkbox.
   const [openOnly, setOpenOnly] = useState(false)
+  const [languageFilter, setLanguageFilter] = useState('')
   const openOnlyRef = useRef(false)
   const [results, setResults] = useState<SearchResponse | null>(null)
   const [rootId, setRootId] = useState<string | null>(null)
@@ -192,16 +193,32 @@ export default function ExplorePage({ initialQuery = '', initialLanguage = '' }:
     return next
   }
   const languageGroups = useMemo(() => {
-    // Modern languages grouped by family (alphabetically), historical layers last.
+    // Languages grouped by family (alphabetically), historical layers last. With hundreds of
+    // languages, the filter box narrows the list by language or family name.
     const groups = new Map<string, Language[]>()
-    const label = (l: Language) => (l.role === 'modern' ? (l.group ?? 'Other') : 'Historical and reference')
-    const sorted = [...languages].sort((a, b) => a.name.localeCompare(b.name))
+    const label = (l: Language) =>
+      l.role === 'modern'
+        ? (l.group ?? 'Other')
+        : l.role === 'other'
+          ? (l.family_name ?? l.group ?? 'Other')
+          : 'Historical and reference'
+    const needle = languageFilter.trim().toLowerCase()
+    const shown = languages.filter(
+      (l) =>
+        !needle ||
+        l.id === languageId ||
+        l.name.toLowerCase().includes(needle) ||
+        label(l).toLowerCase().includes(needle),
+    )
+    const sorted = [...shown].sort((a, b) => a.name.localeCompare(b.name))
     sorted.forEach((l) => groups.set(label(l), [...(groups.get(label(l)) ?? []), l]))
     const order = [...groups.keys()].sort((a, b) =>
       a === 'Historical and reference' ? 1 : b === 'Historical and reference' ? -1 : a.localeCompare(b),
     )
     return new Map(order.map((k) => [k, groups.get(k)!]))
-  }, [languages])
+  }, [languages, languageFilter, languageId])
+  const wordCount = (l: Language) =>
+    (openOnly ? (l.open_lexeme_count ?? l.lexeme_count) : l.lexeme_count).toLocaleString()
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-6 text-slate-900">
@@ -229,6 +246,14 @@ export default function ExplorePage({ initialQuery = '', initialLanguage = '' }:
           className="min-w-0 flex-1 basis-64 rounded-md border border-slate-300 px-3 py-2"
           maxLength={64}
         />
+        <label className="sr-only" htmlFor="lang-filter">Filter languages</label>
+        <input
+          id="lang-filter"
+          value={languageFilter}
+          onChange={(e) => setLanguageFilter(e.target.value)}
+          placeholder={`Filter ${languages.length.toLocaleString()} languages`}
+          className="w-40 rounded-md border border-slate-300 px-2 py-2 text-sm"
+        />
         <label className="sr-only" htmlFor="lang">Language</label>
         <select
           id="lang"
@@ -241,7 +266,7 @@ export default function ExplorePage({ initialQuery = '', initialLanguage = '' }:
             <optgroup key={family} label={family}>
               {langs.map((l) => (
                 <option key={l.id} value={l.id}>
-                  {l.name} ({l.lexeme_count.toLocaleString()} words)
+                  {l.name} ({wordCount(l)} words)
                 </option>
               ))}
             </optgroup>

@@ -14,6 +14,8 @@ class LanguageOut(BaseModel):
     primary_script: str | None
     lexeme_count: int
     linked_count: int
+    open_lexeme_count: int | None = None  # words from openly licensed datasets only
+    open_linked_count: int | None = None
 
 
 class LexemeSummary(BaseModel):
