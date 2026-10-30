@@ -64,3 +64,20 @@ def test_spellings_from_each_cldf_layout():
     # LSI: romanised only; ASJP: a phonetic code kept as the form
     assert spellings({"Value": "pani", "Form": "pani"}, None) == ("pani", None, None)
     assert spellings({"Value": "pani", "Form": "p a n i"}, "ASJPcode") == ("pani", None, None)
+
+
+def test_starred_forms_are_reconstructed(db, tmp_path):
+    import shutil
+
+    data = tmp_path / "cldf"
+    shutil.copytree(Path(__file__).parent / "fixtures" / "cognate_mini", data)
+    forms = (data / "forms.csv").read_text(encoding="utf-8").replace(",dā̃t,dā̃t,", ",*dā̃t,*dā̃t,")
+    (data / "forms.csv").write_text(forms, encoding="utf-8")
+    try:
+        import_cldf_wordlist(db, data, "lsi", "fixture")
+        status = db.execute(
+            "SELECT reconstruction_status::text FROM lexeme WHERE form = '*dā̃t'"
+        ).fetchone()
+        assert status == ("reconstructed",)
+    finally:
+        db.rollback()

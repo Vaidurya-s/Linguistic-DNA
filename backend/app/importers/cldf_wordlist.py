@@ -181,7 +181,11 @@ def import_cldf_wordlist(
                     raw if transcription else phonemic,
                     param.get("Name"),
                     form_kind(raw).value,
-                    ReconstructionStatus.attested.value,
+                    (
+                        ReconstructionStatus.reconstructed
+                        if raw.startswith("*")
+                        else ReconstructionStatus.attested
+                    ).value,
                     ["loan"] if f["Loan"].lower() == "true" else None,
                     dataset,
                     dataset,
