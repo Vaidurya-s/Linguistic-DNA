@@ -129,3 +129,44 @@ def test_language_lists_bad_codes_script_names_and_proto_stars(db, tmp_path):
         assert proto == ("*pal",)
     finally:
         db.rollback()
+
+
+def test_form_of_and_etymology_only_filters(db, tmp_path):
+    import json
+
+    lines = [
+        {
+            "word": "вода",
+            "lang": "Russian",
+            "lang_code": "ru",
+            "senses": [{"glosses": ["water"]}],
+            "etymology_templates": [{"name": "inh", "args": {"1": "ru", "2": "orv", "3": "вода"}}],
+        },
+        {
+            "word": "воды",
+            "lang": "Russian",
+            "lang_code": "ru",
+            "senses": [{"glosses": ["genitive of вода"], "form_of": [{"word": "вода"}]}],
+        },
+        {"word": "vesi", "lang": "Finnish", "lang_code": "fi", "senses": [{"glosses": ["water"]}]},
+        {
+            "word": "jää",
+            "lang": "Finnish",
+            "lang_code": "fi",
+            "senses": [{"glosses": ["ice"]}],
+            "etymology_templates": [
+                {"name": "inh", "args": {"1": "fi", "2": "urj-pro", "3": "*jäŋe"}}
+            ],
+        },
+    ]
+    path = tmp_path / "x.jsonl"
+    path.write_text("\n".join(json.dumps(x, ensure_ascii=False) for x in lines), encoding="utf-8")
+    try:
+        stats = import_wiktionary(
+            db, [path], "fixture", {}, reference_codes=["ru"], etymology_only_codes=["fi"]
+        )
+        assert stats["skipped_form_of"] == 1 and stats["skipped_without_etymology"] == 1
+        forms = {r[0] for r in db.execute("SELECT form FROM lexeme WHERE dataset = 'wiktionary'")}
+        assert forms == {"вода", "jää", "*jäŋe"}  # plus their etymons' terms
+    finally:
+        db.rollback()

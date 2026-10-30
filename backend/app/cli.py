@@ -33,7 +33,9 @@ from app.importers.wiktionary import import_wiktionary, wiktionary_code_map
 from app.pipeline.benchmark import run_benchmark
 from app.pipeline.coverage import coverage, to_markdown
 from app.pipeline.languages import (
+    MACROLANGUAGE_MEMBER,
     Glottolog,
+    canonical_targets,
     canonicalize_languages,
     enable_searchable,
     import_glottolog_languages,
@@ -90,6 +92,11 @@ def main(argv: list[str] | None = None) -> int:
         default="",
         help="comma-separated Wiktionary codes of ancestor languages whose entries to import",
     )
+    wk.add_argument(
+        "--etymology-only-codes",
+        default="",
+        help="comma-separated codes whose entries are imported only when they have etymologies",
+    )
     c = sub.add_parser("import-concepticon")
     c.add_argument("--data", type=Path, required=True)
     w = sub.add_parser("import-wordlist")
@@ -110,6 +117,13 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="look up names of unfamiliar language items once (needs network)",
     )
+    wd.add_argument(
+        "--lemma-codes",
+        default="",
+        help="also import these lemma languages (ISO codes, e.g. ru,uk), resolved via Glottolog",
+    )
+    wd.add_argument("--glottolog", type=Path, help="glottolog-cldf/cldf, for --lemma-codes")
+    wd.add_argument("--iso", type=Path, help="SIL iso-639-3.tab, for --lemma-codes")
     dk = sub.add_parser("import-dakshina")
     dk.add_argument("--tar", type=Path, required=True)
     ak = sub.add_parser("import-aksharantar")
@@ -202,6 +216,7 @@ def main(argv: list[str] | None = None) -> int:
                 args.version,
                 wiktionary_code_map(),
                 reference_codes=[c for c in args.reference_codes.split(",") if c],
+                etymology_only_codes=[c for c in args.etymology_only_codes.split(",") if c],
             )
         elif args.cmd == "import-concepticon":
             load_manifest(conn)
@@ -218,10 +233,23 @@ def main(argv: list[str] | None = None) -> int:
             )
         elif args.cmd == "import-wikidata":
             load_manifest(conn)
-            result = import_wikidata_lexemes(conn, args.dump, args.version)
+            extra = {}
+            if args.lemma_codes:
+                glottolog = Glottolog(args.glottolog)
+                part1, _ = iso_tables(args.iso)
+                targets = canonical_targets(conn)
+                for code in args.lemma_codes.split(","):
+                    iso = part1.get(code, code)
+                    iso = MACROLANGUAGE_MEMBER.get(iso, iso)
+                    lang = targets.get(glottolog.language_of(glottolog.by_iso.get(iso)) or "")
+                    if lang:
+                        extra[code] = lang
+                    else:
+                        print(f"lemma code {code}: no language record", file=sys.stderr)
+            result = import_wikidata_lexemes(conn, args.dump, args.version, extra)
             if args.fetch_language_names and result["unknown_language_qids"]:
                 fetch_language_names(result["unknown_language_qids"])
-                result = import_wikidata_lexemes(conn, args.dump, args.version)
+                result = import_wikidata_lexemes(conn, args.dump, args.version, extra)
             result["unknown_language_qids"] = len(result["unknown_language_qids"])
         elif args.cmd == "rekey-search":
             result = rekey_search(conn)

@@ -272,6 +272,14 @@ def template_edges(entry: dict, child_key: str, code: str) -> Iterator[tuple[Edg
                 )
 
 
+def is_form_of(entry: dict) -> bool:
+    """An entry whose every sense only points to another form (inflections, spellings)."""
+    senses = entry.get("senses") or []
+    return bool(senses) and all(
+        s.get("form_of") or "form-of" in (s.get("tags") or []) for s in senses
+    )
+
+
 def romanization(entry: dict) -> str | None:
     for f in entry.get("forms") or []:
         if "romanization" in (f.get("tags") or []):
@@ -300,11 +308,15 @@ def import_wiktionary(
     code_map: dict[str, str],
     language_names: dict[str, str] | None = None,
     reference_codes: Iterable[str] = (),
+    etymology_only_codes: Iterable[str] = (),
 ) -> dict:
     """code_map: Wiktionary code -> configured language id (the entry languages).
 
-    reference_codes: further languages (e.g. Prakrit, Proto-Indo-Aryan) whose own entries
-    are imported too, as disabled reference languages, so etymology chains continue."""
+    reference_codes: further languages (e.g. Russian, Proto-Indo-Aryan) whose own entries are
+    imported too, so etymology chains continue; ``refresh-languages`` then maps them to one
+    record per language. etymology_only_codes: languages whose entries are imported only
+    when they carry etymology templates (to keep large languages within the disk budget).
+    Outside the configured languages, inflected-form entries ("form of ...") are skipped."""
     files = list(files)
     names = dict(language_names or {})
     stats: dict[str, int] = {}
@@ -312,7 +324,8 @@ def import_wiktionary(
     def bump(k: str, n: int = 1) -> None:
         stats[k] = stats.get(k, 0) + n
 
-    wanted = set(code_map) | set(reference_codes)
+    etymology_only = set(etymology_only_codes)
+    wanted = set(code_map) | set(reference_codes) | etymology_only
     terms: dict[str, Term] = {}
     edges: list[Edge] = []
     for path in files:
@@ -322,6 +335,12 @@ def import_wiktionary(
                 continue
             if e.get("lang"):
                 names[code] = e["lang"]  # an entry's own language name beats nested mentions
+            if code not in code_map and is_form_of(e):
+                bump("skipped_form_of")
+                continue
+            if code in etymology_only and not e.get("etymology_templates"):
+                bump("skipped_without_etymology")
+                continue
             key = term_key(code, word)
             t = terms.get(key)
             if not t or not t.is_entry:

@@ -11,7 +11,14 @@ WIKTIONARY_DIR ?= data/raw/wiktionary
 WIKTIONARY_VERSION ?= "kaikki.org wiktextract of enwiktionary 2026-10-01 (file 2026-10-25)"
 # Ancestor languages whose own Wiktionary entries are imported (as disabled reference
 # languages) so that etymology chains continue; chosen from what our entries cite.
-WIKTIONARY_REFERENCE_CODES ?= inc-pro,iir-pro,ira-pro,ine-pro,dra-pro,dra-sou-pro,inc-mid,omr,inc-ohi,inc-oaw,inc-ogu,inc-mgu,inc-opa,inc-oas,inc-mas,inc-obn,inc-mbn,inc-kam,oty,dra-okn,dra-mkn,dra-ote
+# Wikidata lexemes in the steppe-corridor languages, by lemma spelling code.
+WIKIDATA_STEPPE_CODES ?= ru,uk,be,os,fa,fi,et,hu,lt,lv,tt,kk,ba,cv,tr,hy,la,grc,mhr,udm,kv,myv
+WIKTIONARY_REFERENCE_CODES ?= inc-pro,iir-pro,ira-pro,ine-pro,dra-pro,dra-sou-pro,inc-mid,omr,inc-ohi,inc-oaw,inc-ogu,inc-mgu,inc-opa,inc-oas,inc-mas,inc-obn,inc-mbn,inc-kam,oty,dra-okn,dra-mkn,dra-ote,$(WIKTIONARY_STEPPE_CODES)
+# The steppe corridor (Indo-European homeland, Indo-Iranian, Uralic and Turkic contact):
+# Russian and its neighbours and ancestors, imported with all their lemma entries.
+WIKTIONARY_STEPPE_CODES ?= ru,uk,be,orv,cu,sla-pro,os,xsc,ae,peo,pal,sog,xbc,txb,xto,urj-pro,fiu-pro,trk-pro,cv
+# Large languages imported only where an entry has an etymology (disk budget).
+WIKTIONARY_ETYMOLOGY_ONLY_CODES ?= fa,hy,xcl,fi,et,hu,mhr,udm,kv,myv,mdf,mns,kca,tt,ba,kk,ky,tr,ota,mn,lt,lv,la,grc
 
 .PHONY: setup db-up fetch-data fetch-dev-data migrate import-open import-jambu import-glottolog \
         import-concepticon import-lsi import-asjp import-wikidata import-aliases validate \
@@ -100,7 +107,8 @@ import-peirosst:
 
 import-wiktionary:
 	cd backend && .venv/bin/python -m app.cli import-wiktionary --dir ../$(WIKTIONARY_DIR) \
-		--version $(WIKTIONARY_VERSION) --reference-codes $(WIKTIONARY_REFERENCE_CODES)
+		--version $(WIKTIONARY_VERSION) --reference-codes $(WIKTIONARY_REFERENCE_CODES) \
+		--etymology-only-codes $(WIKTIONARY_ETYMOLOGY_ONLY_CODES)
 
 # The full research database: open data, then research-use data, then checks.
 research-db: import-open import-research
@@ -150,7 +158,9 @@ import-aliases:
 
 import-wikidata:
 	cd backend && .venv/bin/python -m app.cli import-wikidata --dump ../$(WIKIDATA_DUMP) \
-		--version 20261028
+		--version 20261028 \
+		--lemma-codes $(WIKIDATA_STEPPE_CODES) --glottolog ../$(GLOTTOLOG_CLDF) \
+		--iso ../data/raw/iso639/iso-639-3.tab
 
 validate:
 	cd backend && .venv/bin/python -m app.cli validate

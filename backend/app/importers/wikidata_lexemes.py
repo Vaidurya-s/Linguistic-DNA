@@ -136,14 +136,30 @@ def load_language_names(path: Path = LANGUAGE_NAMES) -> dict[str, str]:
         return {r["qid"]: r["name"] for r in csv.DictReader(fh)}
 
 
-def import_wikidata_lexemes(conn: psycopg.Connection, dump: Path, version: str) -> dict:
+def import_wikidata_lexemes(
+    conn: psycopg.Connection,
+    dump: Path,
+    version: str,
+    lemma_code_languages: dict[str, str] | None = None,
+) -> dict:
+    """lemma_code_languages: further languages to import, keyed by lemma spelling code
+    (e.g. "ru" -> the Russian record). A language item not in the config is taken on when
+    its lexemes' lemmas use one of these codes; the mapping is learned from the dump, so no
+    network lookup is needed."""
     names = load_language_names()
     targets_cfg = target_languages()
+    extra = lemma_code_languages or {}
     stats: dict[str, int] = {}
     targets: dict[str, dict] = {}
     wanted: set[str] = set()
     for e in iter_dump(dump):
-        lang = targets_cfg.get(e.get("language"))
+        qid = e.get("language")
+        if qid not in targets_cfg and extra:
+            code = next((c for c in e.get("lemmas", {}) if c in extra), None)
+            if code:
+                targets_cfg[qid] = (extra[code], code)
+                stats[f"language_from_lemma_code:{code}={qid}"] = 1
+        lang = targets_cfg.get(qid)
         if not lang or not lemma_of(e, lang[1]):
             continue
         targets[e["id"]] = e
