@@ -99,6 +99,7 @@ def import_omw(
     targets = canonical_targets(conn)
 
     def language_for(code: str) -> str | None:
+        code = code.split("-")[0]  # BCP 47 tags such as cmn-Hans carry a script subtag
         iso = part1.get(code, code)
         iso = MACROLANGUAGE_MEMBER.get(iso, iso)
         gc = glottolog.language_of(glottolog.by_iso.get(iso))
