@@ -1,131 +1,265 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="880" height="796" viewBox="0 0 880 796" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" role="img" aria-labelledby="t d">
-<title id="t">Words per language: open public seed vs research database</title>
-<desc id="d">Horizontal bars per configured language, grouped by family. Marathi: open 6831, research 66372; Hindi-Urdu: open 42589, research 61064; Bengali: open 24932, research 32083; Punjabi: open 14839, research 23887; Gujarati: open 8855, research 16648; Nepali: open 4458, research 12963; Odia: open 3575, research 11200; Assamese: open 4890, research 8611; Maithili: open 1046, research 5307; Konkani: open 1591, research 4147; Marwari: open 224, research 3696; Awadhi: open 361, research 2836; Bhojpuri: open 364, research 2361; Dogri: open 262, research 1383; Malayalam: open 80983, research 89792; Kannada: open 5456, research 61970; Telugu: open 24625, research 33719; Tamil: open 15505, research 28961; Bodo: open 331, research 442; Sanskrit: open 201119, research 441480; Pali: open 9406, research 92307; Prakrit: open 5096, research 59625; Old Indo-Aryan (CDIAL): open 0, research 25154; Ashokan Prakrit: open 527, research 1827; Apabhramsha: open 309, research 941</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1705" viewBox="0 0 900 1705" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" role="img" aria-labelledby="t d">
+<title id="t">Words per language in the research database, open-licensed and research-use sources</title>
+<desc id="d">Finnish: 305,995 words (3 research-use), 167,612 with links; Russian: 193,952 words (9 research-use), 72,214 with links; Ukrainian: 58,820 words (0 research-use), 25,094 with links; Persian (Western Farsi): 42,716 words (690 research-use), 18,718 with links; Turkish: 42,178 words (227 research-use), 27,522 with links; Hungarian: 41,679 words (1 research-use), 37,378 with links; Lithuanian: 23,720 words (52 research-use), 10,298 with links; Belarusian: 21,946 words (0 research-use), 18,745 with links; Kazakh: 15,529 words (0 research-use), 13,257 with links; Proto-Indo-European: 11,988 words (0 research-use), 11,984 with links; Latvian: 11,125 words (11 research-use), 8,679 with links; Proto-Slavic: 7,835 words (0 research-use), 7,781 with links; Old Church Slavonic: 7,625 words (0 research-use), 6,590 with links; Kirghiz: 7,130 words (192 research-use), 5,844 with links; Halh Mongolian: 5,348 words (0 research-use), 3,216 with links; Old Russian: 5,291 words (0 research-use), 5,157 with links; Bashkir: 5,019 words (0 research-use), 3,720 with links; Tatar: 4,563 words (0 research-use), 2,946 with links; Udmurt: 4,258 words (0 research-use), 1,363 with links; Erzya: 4,138 words (0 research-use), 1,265 with links; Komi-Zyrian: 4,106 words (0 research-use), 917 with links; Eastern Mari: 3,854 words (0 research-use), 955 with links; Chuvash: 3,558 words (0 research-use), 1,818 with links; Avestan: 3,479 words (222 research-use), 2,028 with links; Proto-Indo-Iranian: 3,239 words (0 research-use), 3,238 with links; Proto-Turkic: 2,983 words (0 research-use), 2,975 with links; Proto-Balto-Slavic: 2,202 words (0 research-use), 2,202 with links; Proto-Iranian: 2,114 words (0 research-use), 2,114 with links; Old Persian: 1,321 words (79 research-use), 1,062 with links; Ossetian: 1,251 words (0 research-use), 4 with links; Sogdian: 1,178 words (12 research-use), 1,071 with links; Proto-Uralic: 923 words (0 research-use), 921 with links; Sanskrit: 444,091 words (240,361 research-use), 185,837 with links; Pali: 93,394 words (82,901 research-use), 66,514 with links; Malayalam: 90,418 words (9,055 research-use), 16,796 with links; Hindi-Urdu: 68,064 words (18,475 research-use), 40,670 with links; Marathi: 67,702 words (59,541 research-use), 15,407 with links; Kannada: 62,479 words (56,514 research-use), 44,840 with links; Prakrit: 61,346 words (54,529 research-use), 47,660 with links; Telugu: 34,097 words (9,094 research-use), 18,712 with links; Bengali: 33,249 words (7,151 research-use), 17,066 with links; Tamil: 30,049 words (13,456 research-use), 22,349 with links; Punjabi: 27,653 words (9,048 research-use), 20,114 with links; Old Indo-Aryan (CDIAL): 25,154 words (25,154 research-use), 24,491 with links; Gujarati: 19,161 words (8,598 research-use), 14,824 with links; Nepali: 13,790 words (8,505 research-use), 8,097 with links; Odia: 12,140 words (7,625 research-use), 9,610 with links; Assamese: 9,070 words (3,721 research-use), 7,612 with links; Maithili: 6,023 words (4,261 research-use), 3,583 with links; Konkani: 4,834 words (2,556 research-use), 2,571 with links; Marwari: 3,696 words (3,472 research-use), 2,000 with links; Awadhi: 3,034 words (2,475 research-use), 1,123 with links; Bhojpuri: 2,905 words (1,997 research-use), 1,435 with links; Ashokan Prakrit: 1,960 words (1,300 research-use), 1,803 with links; Dogri: 1,508 words (1,121 research-use), 612 with links; Apabhramsha: 983 words (632 research-use), 715 with links; Bodo: 470 words (111 research-use), 178 with links; English: 631,453 words (361 research-use), 411,057 with links; Spanish: 116,039 words (0 research-use), 18,579 with links; Latin: 113,966 words (37 research-use), 45,614 with links; Japanese: 112,656 words (0 research-use), 14,630 with links; Dutch: 107,254 words (0 research-use), 56,668 with links; Mandarin Chinese: 95,073 words (123 research-use), 8,934 with links; Estonian: 93,389 words (0 research-use), 13,230 with links; French: 91,535 words (2 research-use), 29,417 with links; Thai: 90,357 words (0 research-use), 2,416 with links; German: 87,631 words (0 research-use), 83,161 with links; Italian: 85,712 words (2 research-use), 21,256 with links; Catalan: 81,547 words (0 research-use), 10,303 with links</desc>
 <style>
 .bg{fill:#fcfcfb}.t1{fill:#0b0b0b}.t2{fill:#52514e}.grid{stroke:#e4e3df}.open{fill:#2a78d6}.res{fill:#eb6834}
 @media (prefers-color-scheme: dark){.bg{fill:#1a1a19}.t1{fill:#f0efec}.t2{fill:#c3c2b7}.grid{stroke:#3a3936}.open{fill:#3987e5}.res{fill:#d95926}}
 </style>
-<rect class="bg" width="880" height="796" rx="10"/>
-<text class="t1" x="20" y="32" font-size="17" font-weight="600">Words per language</text>
-<rect class="open" x="20" y="50" width="12" height="12" rx="2"/><text class="t2" x="38" y="60" font-size="13">Open public seed</text>
-<rect class="res" x="170" y="50" width="12" height="12" rx="2"/><text class="t2" x="188" y="60" font-size="13">Research database (open + research-use sources)</text>
-<text class="t2" x="860" y="60" font-size="12" text-anchor="end">labels: open / research</text>
-<line class="grid" x1="190.0" x2="190.0" y1="84" y2="766" stroke-width="1"/>
-<text class="t2" x="190.0" y="782" font-size="11" text-anchor="middle">0</text>
-<line class="grid" x1="298.0" x2="298.0" y1="84" y2="766" stroke-width="1"/>
-<text class="t2" x="298.0" y="782" font-size="11" text-anchor="middle">20,000</text>
-<line class="grid" x1="406.0" x2="406.0" y1="84" y2="766" stroke-width="1"/>
-<text class="t2" x="406.0" y="782" font-size="11" text-anchor="middle">40,000</text>
-<line class="grid" x1="514.0" x2="514.0" y1="84" y2="766" stroke-width="1"/>
-<text class="t2" x="514.0" y="782" font-size="11" text-anchor="middle">60,000</text>
-<line class="grid" x1="622.0" x2="622.0" y1="84" y2="766" stroke-width="1"/>
-<text class="t2" x="622.0" y="782" font-size="11" text-anchor="middle">80,000</text>
-<line class="grid" x1="730.0" x2="730.0" y1="84" y2="766" stroke-width="1"/>
-<text class="t2" x="730.0" y="782" font-size="11" text-anchor="middle">100,000</text>
-<text class="t1" x="20" y="112" font-size="13" font-weight="600">Indo-Aryan</text>
-<text class="t2" x="180" y="136" font-size="12" text-anchor="end">Marathi</text>
-<rect class="res" x="190" y="125" width="358.4" height="8" rx="2"><title>Marathi: 66,372 words (research database)</title></rect>
-<rect class="open" x="190" y="134" width="36.9" height="6" rx="2"><title>Marathi: 6,831 words (open seed)</title></rect>
-<text class="t2" x="554.4" y="137" font-size="11">6,831 / 66,372</text>
-<text class="t2" x="180" y="158" font-size="12" text-anchor="end">Hindi-Urdu</text>
-<rect class="res" x="190" y="147" width="329.7" height="8" rx="2"><title>Hindi-Urdu: 61,064 words (research database)</title></rect>
-<rect class="open" x="190" y="156" width="230.0" height="6" rx="2"><title>Hindi-Urdu: 42,589 words (open seed)</title></rect>
-<text class="t2" x="525.7" y="159" font-size="11">42,589 / 61,064</text>
-<text class="t2" x="180" y="180" font-size="12" text-anchor="end">Bengali</text>
-<rect class="res" x="190" y="169" width="173.2" height="8" rx="2"><title>Bengali: 32,083 words (research database)</title></rect>
-<rect class="open" x="190" y="178" width="134.6" height="6" rx="2"><title>Bengali: 24,932 words (open seed)</title></rect>
-<text class="t2" x="369.2" y="181" font-size="11">24,932 / 32,083</text>
-<text class="t2" x="180" y="202" font-size="12" text-anchor="end">Punjabi</text>
-<rect class="res" x="190" y="191" width="129.0" height="8" rx="2"><title>Punjabi: 23,887 words (research database)</title></rect>
-<rect class="open" x="190" y="200" width="80.1" height="6" rx="2"><title>Punjabi: 14,839 words (open seed)</title></rect>
-<text class="t2" x="325.0" y="203" font-size="11">14,839 / 23,887</text>
-<text class="t2" x="180" y="224" font-size="12" text-anchor="end">Gujarati</text>
-<rect class="res" x="190" y="213" width="89.9" height="8" rx="2"><title>Gujarati: 16,648 words (research database)</title></rect>
-<rect class="open" x="190" y="222" width="47.8" height="6" rx="2"><title>Gujarati: 8,855 words (open seed)</title></rect>
-<text class="t2" x="285.9" y="225" font-size="11">8,855 / 16,648</text>
-<text class="t2" x="180" y="246" font-size="12" text-anchor="end">Nepali</text>
-<rect class="res" x="190" y="235" width="70.0" height="8" rx="2"><title>Nepali: 12,963 words (research database)</title></rect>
-<rect class="open" x="190" y="244" width="24.1" height="6" rx="2"><title>Nepali: 4,458 words (open seed)</title></rect>
-<text class="t2" x="266.0" y="247" font-size="11">4,458 / 12,963</text>
-<text class="t2" x="180" y="268" font-size="12" text-anchor="end">Odia</text>
-<rect class="res" x="190" y="257" width="60.5" height="8" rx="2"><title>Odia: 11,200 words (research database)</title></rect>
-<rect class="open" x="190" y="266" width="19.3" height="6" rx="2"><title>Odia: 3,575 words (open seed)</title></rect>
-<text class="t2" x="256.5" y="269" font-size="11">3,575 / 11,200</text>
-<text class="t2" x="180" y="290" font-size="12" text-anchor="end">Assamese</text>
-<rect class="res" x="190" y="279" width="46.5" height="8" rx="2"><title>Assamese: 8,611 words (research database)</title></rect>
-<rect class="open" x="190" y="288" width="26.4" height="6" rx="2"><title>Assamese: 4,890 words (open seed)</title></rect>
-<text class="t2" x="242.5" y="291" font-size="11">4,890 / 8,611</text>
-<text class="t2" x="180" y="312" font-size="12" text-anchor="end">Maithili</text>
-<rect class="res" x="190" y="301" width="28.7" height="8" rx="2"><title>Maithili: 5,307 words (research database)</title></rect>
-<rect class="open" x="190" y="310" width="5.6" height="6" rx="2"><title>Maithili: 1,046 words (open seed)</title></rect>
-<text class="t2" x="224.7" y="313" font-size="11">1,046 / 5,307</text>
-<text class="t2" x="180" y="334" font-size="12" text-anchor="end">Konkani</text>
-<rect class="res" x="190" y="323" width="22.4" height="8" rx="2"><title>Konkani: 4,147 words (research database)</title></rect>
-<rect class="open" x="190" y="332" width="8.6" height="6" rx="2"><title>Konkani: 1,591 words (open seed)</title></rect>
-<text class="t2" x="218.4" y="335" font-size="11">1,591 / 4,147</text>
-<text class="t2" x="180" y="356" font-size="12" text-anchor="end">Marwari</text>
-<rect class="res" x="190" y="345" width="20.0" height="8" rx="2"><title>Marwari: 3,696 words (research database)</title></rect>
-<rect class="open" x="190" y="354" width="2.0" height="6" rx="2"><title>Marwari: 224 words (open seed)</title></rect>
-<text class="t2" x="216.0" y="357" font-size="11">224 / 3,696</text>
-<text class="t2" x="180" y="378" font-size="12" text-anchor="end">Awadhi</text>
-<rect class="res" x="190" y="367" width="15.3" height="8" rx="2"><title>Awadhi: 2,836 words (research database)</title></rect>
-<rect class="open" x="190" y="376" width="2.0" height="6" rx="2"><title>Awadhi: 361 words (open seed)</title></rect>
-<text class="t2" x="211.3" y="379" font-size="11">361 / 2,836</text>
-<text class="t2" x="180" y="400" font-size="12" text-anchor="end">Bhojpuri</text>
-<rect class="res" x="190" y="389" width="12.7" height="8" rx="2"><title>Bhojpuri: 2,361 words (research database)</title></rect>
-<rect class="open" x="190" y="398" width="2.0" height="6" rx="2"><title>Bhojpuri: 364 words (open seed)</title></rect>
-<text class="t2" x="208.7" y="401" font-size="11">364 / 2,361</text>
-<text class="t2" x="180" y="422" font-size="12" text-anchor="end">Dogri</text>
-<rect class="res" x="190" y="411" width="7.5" height="8" rx="2"><title>Dogri: 1,383 words (research database)</title></rect>
-<rect class="open" x="190" y="420" width="2.0" height="6" rx="2"><title>Dogri: 262 words (open seed)</title></rect>
-<text class="t2" x="203.5" y="423" font-size="11">262 / 1,383</text>
-<text class="t1" x="20" y="450" font-size="13" font-weight="600">Dravidian</text>
-<text class="t2" x="180" y="474" font-size="12" text-anchor="end">Malayalam</text>
-<rect class="res" x="190" y="463" width="484.9" height="8" rx="2"><title>Malayalam: 89,792 words (research database)</title></rect>
-<rect class="open" x="190" y="472" width="437.3" height="6" rx="2"><title>Malayalam: 80,983 words (open seed)</title></rect>
-<text class="t2" x="680.9" y="475" font-size="11">80,983 / 89,792</text>
-<text class="t2" x="180" y="496" font-size="12" text-anchor="end">Kannada</text>
-<rect class="res" x="190" y="485" width="334.6" height="8" rx="2"><title>Kannada: 61,970 words (research database)</title></rect>
-<rect class="open" x="190" y="494" width="29.5" height="6" rx="2"><title>Kannada: 5,456 words (open seed)</title></rect>
-<text class="t2" x="530.6" y="497" font-size="11">5,456 / 61,970</text>
-<text class="t2" x="180" y="518" font-size="12" text-anchor="end">Telugu</text>
-<rect class="res" x="190" y="507" width="182.1" height="8" rx="2"><title>Telugu: 33,719 words (research database)</title></rect>
-<rect class="open" x="190" y="516" width="133.0" height="6" rx="2"><title>Telugu: 24,625 words (open seed)</title></rect>
-<text class="t2" x="378.1" y="519" font-size="11">24,625 / 33,719</text>
-<text class="t2" x="180" y="540" font-size="12" text-anchor="end">Tamil</text>
-<rect class="res" x="190" y="529" width="156.4" height="8" rx="2"><title>Tamil: 28,961 words (research database)</title></rect>
-<rect class="open" x="190" y="538" width="83.7" height="6" rx="2"><title>Tamil: 15,505 words (open seed)</title></rect>
-<text class="t2" x="352.4" y="541" font-size="11">15,505 / 28,961</text>
-<text class="t1" x="20" y="568" font-size="13" font-weight="600">Sino-Tibetan</text>
-<text class="t2" x="180" y="592" font-size="12" text-anchor="end">Bodo</text>
-<rect class="res" x="190" y="581" width="2.4" height="8" rx="2"><title>Bodo: 442 words (research database)</title></rect>
-<rect class="open" x="190" y="590" width="2.0" height="6" rx="2"><title>Bodo: 331 words (open seed)</title></rect>
-<text class="t2" x="198.4" y="593" font-size="11">331 / 442</text>
-<text class="t1" x="20" y="620" font-size="13" font-weight="600">Historical and reference</text>
-<text class="t2" x="180" y="644" font-size="12" text-anchor="end">Sanskrit</text>
-<rect class="res" x="190" y="633" width="572.4" height="8" rx="2"><title>Sanskrit: 441,480 words (research database)</title></rect>
-<rect class="open" x="190" y="642" width="572.4" height="6" rx="2"><title>Sanskrit: 201,119 words (open seed)</title></rect>
-<path class="bg" d="M736.0 631 l6 0 l-4 19 l-6 0 z"/>
-<text class="t2" x="768.4" y="645" font-size="11">201,119 / 441,480</text>
-<text class="t2" x="180" y="666" font-size="12" text-anchor="end">Pali</text>
-<rect class="res" x="190" y="655" width="498.5" height="8" rx="2"><title>Pali: 92,307 words (research database)</title></rect>
-<rect class="open" x="190" y="664" width="50.8" height="6" rx="2"><title>Pali: 9,406 words (open seed)</title></rect>
-<text class="t2" x="694.5" y="667" font-size="11">9,406 / 92,307</text>
-<text class="t2" x="180" y="688" font-size="12" text-anchor="end">Prakrit</text>
-<rect class="res" x="190" y="677" width="322.0" height="8" rx="2"><title>Prakrit: 59,625 words (research database)</title></rect>
-<rect class="open" x="190" y="686" width="27.5" height="6" rx="2"><title>Prakrit: 5,096 words (open seed)</title></rect>
-<text class="t2" x="518.0" y="689" font-size="11">5,096 / 59,625</text>
-<text class="t2" x="180" y="710" font-size="12" text-anchor="end">Old Indo-Aryan (CDIAL)</text>
-<rect class="res" x="190" y="699" width="135.8" height="8" rx="2"><title>Old Indo-Aryan (CDIAL): 25,154 words (research database)</title></rect>
-<rect class="open" x="190" y="708" width="0.0" height="6" rx="2"><title>Old Indo-Aryan (CDIAL): 0 words (open seed)</title></rect>
-<text class="t2" x="331.8" y="711" font-size="11">0 / 25,154</text>
-<text class="t2" x="180" y="732" font-size="12" text-anchor="end">Ashokan Prakrit</text>
-<rect class="res" x="190" y="721" width="9.9" height="8" rx="2"><title>Ashokan Prakrit: 1,827 words (research database)</title></rect>
-<rect class="open" x="190" y="730" width="2.8" height="6" rx="2"><title>Ashokan Prakrit: 527 words (open seed)</title></rect>
-<text class="t2" x="205.9" y="733" font-size="11">527 / 1,827</text>
-<text class="t2" x="180" y="754" font-size="12" text-anchor="end">Apabhramsha</text>
-<rect class="res" x="190" y="743" width="5.1" height="8" rx="2"><title>Apabhramsha: 941 words (research database)</title></rect>
-<rect class="open" x="190" y="752" width="2.0" height="6" rx="2"><title>Apabhramsha: 309 words (open seed)</title></rect>
-<text class="t2" x="201.1" y="755" font-size="11">309 / 941</text>
-<text class="t2" x="20" y="782" font-size="11">Bars cut at the break: Sanskrit</text>
+<rect class="bg" width="900" height="1705" rx="10"/>
+<text class="t1" x="20" y="32" font-size="17" font-weight="600">Words per language, research database</text>
+<rect class="open" x="20" y="50" width="12" height="12" rx="2"/><text class="t2" x="38" y="60" font-size="13">Open-licensed sources</text>
+<rect class="res" x="190" y="50" width="12" height="12" rx="2"/><text class="t2" x="208" y="60" font-size="13">Research-use sources (cited, not redistributed)</text>
+<text class="t2" x="20" y="80" font-size="11">Each section has its own scale. Labels: words · words with at least one documented link. 2026-10-30.</text>
+<text class="t1" x="20" y="118" font-size="13" font-weight="600">Steppe corridor: Slavic, Baltic, Iranian, Turkic, Mongolic, Uralic and their ancestors</text>
+<text class="t2" x="190" y="150" font-size="12" text-anchor="end">Finnish</text>
+<rect class="open" x="200" y="140" width="510.0" height="11" rx="2"><title>Finnish: 305,992 words from open sources</title></rect>
+<rect class="res" x="710.0" y="140" width="1.5" height="11" rx="2"><title>Finnish: 3 words from research-use sources</title></rect>
+<text class="t2" x="716.0" y="150" font-size="11">305,995 · 167,612 linked</text>
+<text class="t2" x="190" y="171" font-size="12" text-anchor="end">Russian</text>
+<rect class="open" x="200" y="161" width="323.2" height="11" rx="2"><title>Russian: 193,943 words from open sources</title></rect>
+<rect class="res" x="523.2" y="161" width="1.5" height="11" rx="2"><title>Russian: 9 words from research-use sources</title></rect>
+<text class="t2" x="529.3" y="171" font-size="11">193,952 · 72,214 linked</text>
+<text class="t2" x="190" y="192" font-size="12" text-anchor="end">Ukrainian</text>
+<rect class="open" x="200" y="182" width="98.0" height="11" rx="2"><title>Ukrainian: 58,820 words from open sources</title></rect>
+<text class="t2" x="304.0" y="192" font-size="11">58,820 · 25,094 linked</text>
+<text class="t2" x="190" y="213" font-size="12" text-anchor="end">Persian (Western Farsi)</text>
+<rect class="open" x="200" y="203" width="70.0" height="11" rx="2"><title>Persian (Western Farsi): 42,026 words from open sources</title></rect>
+<rect class="res" x="270.0" y="203" width="1.5" height="11" rx="2"><title>Persian (Western Farsi): 690 words from research-use sources</title></rect>
+<text class="t2" x="277.2" y="213" font-size="11">42,716 · 18,718 linked</text>
+<text class="t2" x="190" y="234" font-size="12" text-anchor="end">Turkish</text>
+<rect class="open" x="200" y="224" width="69.9" height="11" rx="2"><title>Turkish: 41,951 words from open sources</title></rect>
+<rect class="res" x="269.9" y="224" width="1.5" height="11" rx="2"><title>Turkish: 227 words from research-use sources</title></rect>
+<text class="t2" x="276.3" y="234" font-size="11">42,178 · 27,522 linked</text>
+<text class="t2" x="190" y="255" font-size="12" text-anchor="end">Hungarian</text>
+<rect class="open" x="200" y="245" width="69.5" height="11" rx="2"><title>Hungarian: 41,678 words from open sources</title></rect>
+<rect class="res" x="269.5" y="245" width="1.5" height="11" rx="2"><title>Hungarian: 1 words from research-use sources</title></rect>
+<text class="t2" x="275.5" y="255" font-size="11">41,679 · 37,378 linked</text>
+<text class="t2" x="190" y="276" font-size="12" text-anchor="end">Lithuanian</text>
+<rect class="open" x="200" y="266" width="39.4" height="11" rx="2"><title>Lithuanian: 23,668 words from open sources</title></rect>
+<rect class="res" x="239.4" y="266" width="1.5" height="11" rx="2"><title>Lithuanian: 52 words from research-use sources</title></rect>
+<text class="t2" x="245.5" y="276" font-size="11">23,720 · 10,298 linked</text>
+<text class="t2" x="190" y="297" font-size="12" text-anchor="end">Belarusian</text>
+<rect class="open" x="200" y="287" width="36.6" height="11" rx="2"><title>Belarusian: 21,946 words from open sources</title></rect>
+<text class="t2" x="242.6" y="297" font-size="11">21,946 · 18,745 linked</text>
+<text class="t2" x="190" y="318" font-size="12" text-anchor="end">Kazakh</text>
+<rect class="open" x="200" y="308" width="25.9" height="11" rx="2"><title>Kazakh: 15,529 words from open sources</title></rect>
+<text class="t2" x="231.9" y="318" font-size="11">15,529 · 13,257 linked</text>
+<text class="t2" x="190" y="339" font-size="12" text-anchor="end">Proto-Indo-European</text>
+<rect class="open" x="200" y="329" width="20.0" height="11" rx="2"><title>Proto-Indo-European: 11,988 words from open sources</title></rect>
+<text class="t2" x="226.0" y="339" font-size="11">11,988 · 11,984 linked</text>
+<text class="t2" x="190" y="360" font-size="12" text-anchor="end">Latvian</text>
+<rect class="open" x="200" y="350" width="18.5" height="11" rx="2"><title>Latvian: 11,114 words from open sources</title></rect>
+<rect class="res" x="218.5" y="350" width="1.5" height="11" rx="2"><title>Latvian: 11 words from research-use sources</title></rect>
+<text class="t2" x="224.5" y="360" font-size="11">11,125 · 8,679 linked</text>
+<text class="t2" x="190" y="381" font-size="12" text-anchor="end">Proto-Slavic</text>
+<rect class="open" x="200" y="371" width="13.1" height="11" rx="2"><title>Proto-Slavic: 7,835 words from open sources</title></rect>
+<text class="t2" x="219.1" y="381" font-size="11">7,835 · 7,781 linked</text>
+<text class="t2" x="190" y="402" font-size="12" text-anchor="end">Old Church Slavonic</text>
+<rect class="open" x="200" y="392" width="12.7" height="11" rx="2"><title>Old Church Slavonic: 7,625 words from open sources</title></rect>
+<text class="t2" x="218.7" y="402" font-size="11">7,625 · 6,590 linked</text>
+<text class="t2" x="190" y="423" font-size="12" text-anchor="end">Kirghiz</text>
+<rect class="open" x="200" y="413" width="11.6" height="11" rx="2"><title>Kirghiz: 6,938 words from open sources</title></rect>
+<rect class="res" x="211.6" y="413" width="1.5" height="11" rx="2"><title>Kirghiz: 192 words from research-use sources</title></rect>
+<text class="t2" x="217.9" y="423" font-size="11">7,130 · 5,844 linked</text>
+<text class="t2" x="190" y="444" font-size="12" text-anchor="end">Halh Mongolian</text>
+<rect class="open" x="200" y="434" width="8.9" height="11" rx="2"><title>Halh Mongolian: 5,348 words from open sources</title></rect>
+<text class="t2" x="214.9" y="444" font-size="11">5,348 · 3,216 linked</text>
+<text class="t2" x="190" y="465" font-size="12" text-anchor="end">Old Russian</text>
+<rect class="open" x="200" y="455" width="8.8" height="11" rx="2"><title>Old Russian: 5,291 words from open sources</title></rect>
+<text class="t2" x="214.8" y="465" font-size="11">5,291 · 5,157 linked</text>
+<text class="t2" x="190" y="486" font-size="12" text-anchor="end">Bashkir</text>
+<rect class="open" x="200" y="476" width="8.4" height="11" rx="2"><title>Bashkir: 5,019 words from open sources</title></rect>
+<text class="t2" x="214.4" y="486" font-size="11">5,019 · 3,720 linked</text>
+<text class="t2" x="190" y="507" font-size="12" text-anchor="end">Tatar</text>
+<rect class="open" x="200" y="497" width="7.6" height="11" rx="2"><title>Tatar: 4,563 words from open sources</title></rect>
+<text class="t2" x="213.6" y="507" font-size="11">4,563 · 2,946 linked</text>
+<text class="t2" x="190" y="528" font-size="12" text-anchor="end">Udmurt</text>
+<rect class="open" x="200" y="518" width="7.1" height="11" rx="2"><title>Udmurt: 4,258 words from open sources</title></rect>
+<text class="t2" x="213.1" y="528" font-size="11">4,258 · 1,363 linked</text>
+<text class="t2" x="190" y="549" font-size="12" text-anchor="end">Erzya</text>
+<rect class="open" x="200" y="539" width="6.9" height="11" rx="2"><title>Erzya: 4,138 words from open sources</title></rect>
+<text class="t2" x="212.9" y="549" font-size="11">4,138 · 1,265 linked</text>
+<text class="t2" x="190" y="570" font-size="12" text-anchor="end">Komi-Zyrian</text>
+<rect class="open" x="200" y="560" width="6.8" height="11" rx="2"><title>Komi-Zyrian: 4,106 words from open sources</title></rect>
+<text class="t2" x="212.8" y="570" font-size="11">4,106 · 917 linked</text>
+<text class="t2" x="190" y="591" font-size="12" text-anchor="end">Eastern Mari</text>
+<rect class="open" x="200" y="581" width="6.4" height="11" rx="2"><title>Eastern Mari: 3,854 words from open sources</title></rect>
+<text class="t2" x="212.4" y="591" font-size="11">3,854 · 955 linked</text>
+<text class="t2" x="190" y="612" font-size="12" text-anchor="end">Chuvash</text>
+<rect class="open" x="200" y="602" width="5.9" height="11" rx="2"><title>Chuvash: 3,558 words from open sources</title></rect>
+<text class="t2" x="211.9" y="612" font-size="11">3,558 · 1,818 linked</text>
+<text class="t2" x="190" y="633" font-size="12" text-anchor="end">Avestan</text>
+<rect class="open" x="200" y="623" width="5.4" height="11" rx="2"><title>Avestan: 3,257 words from open sources</title></rect>
+<rect class="res" x="205.4" y="623" width="1.5" height="11" rx="2"><title>Avestan: 222 words from research-use sources</title></rect>
+<text class="t2" x="211.8" y="633" font-size="11">3,479 · 2,028 linked</text>
+<text class="t2" x="190" y="654" font-size="12" text-anchor="end">Proto-Indo-Iranian</text>
+<rect class="open" x="200" y="644" width="5.4" height="11" rx="2"><title>Proto-Indo-Iranian: 3,239 words from open sources</title></rect>
+<text class="t2" x="211.4" y="654" font-size="11">3,239 · 3,238 linked</text>
+<text class="t2" x="190" y="675" font-size="12" text-anchor="end">Proto-Turkic</text>
+<rect class="open" x="200" y="665" width="5.0" height="11" rx="2"><title>Proto-Turkic: 2,983 words from open sources</title></rect>
+<text class="t2" x="211.0" y="675" font-size="11">2,983 · 2,975 linked</text>
+<text class="t2" x="190" y="696" font-size="12" text-anchor="end">Proto-Balto-Slavic</text>
+<rect class="open" x="200" y="686" width="3.7" height="11" rx="2"><title>Proto-Balto-Slavic: 2,202 words from open sources</title></rect>
+<text class="t2" x="209.7" y="696" font-size="11">2,202 · 2,202 linked</text>
+<text class="t2" x="190" y="717" font-size="12" text-anchor="end">Proto-Iranian</text>
+<rect class="open" x="200" y="707" width="3.5" height="11" rx="2"><title>Proto-Iranian: 2,114 words from open sources</title></rect>
+<text class="t2" x="209.5" y="717" font-size="11">2,114 · 2,114 linked</text>
+<text class="t2" x="190" y="738" font-size="12" text-anchor="end">Old Persian</text>
+<rect class="open" x="200" y="728" width="2.1" height="11" rx="2"><title>Old Persian: 1,242 words from open sources</title></rect>
+<rect class="res" x="202.1" y="728" width="1.5" height="11" rx="2"><title>Old Persian: 79 words from research-use sources</title></rect>
+<text class="t2" x="208.2" y="738" font-size="11">1,321 · 1,062 linked</text>
+<text class="t2" x="190" y="759" font-size="12" text-anchor="end">Ossetian</text>
+<rect class="open" x="200" y="749" width="2.1" height="11" rx="2"><title>Ossetian: 1,251 words from open sources</title></rect>
+<text class="t2" x="208.1" y="759" font-size="11">1,251 · 4 linked</text>
+<text class="t2" x="190" y="780" font-size="12" text-anchor="end">Sogdian</text>
+<rect class="open" x="200" y="770" width="1.9" height="11" rx="2"><title>Sogdian: 1,166 words from open sources</title></rect>
+<rect class="res" x="201.9" y="770" width="1.5" height="11" rx="2"><title>Sogdian: 12 words from research-use sources</title></rect>
+<text class="t2" x="208.0" y="780" font-size="11">1,178 · 1,071 linked</text>
+<text class="t2" x="190" y="801" font-size="12" text-anchor="end">Proto-Uralic</text>
+<rect class="open" x="200" y="791" width="1.5" height="11" rx="2"><title>Proto-Uralic: 923 words from open sources</title></rect>
+<text class="t2" x="208.0" y="801" font-size="11">923 · 921 linked</text>
+<text class="t1" x="20" y="830" font-size="13" font-weight="600">South Asia: the 25 configured languages</text>
+<text class="t2" x="190" y="862" font-size="12" text-anchor="end">Sanskrit</text>
+<rect class="open" x="200" y="852" width="234.0" height="11" rx="2"><title>Sanskrit: 203,730 words from open sources</title></rect>
+<rect class="res" x="434.0" y="852" width="276.0" height="11" rx="2"><title>Sanskrit: 240,361 words from research-use sources</title></rect>
+<text class="t2" x="716.0" y="862" font-size="11">444,091 · 185,837 linked</text>
+<text class="t2" x="190" y="883" font-size="12" text-anchor="end">Pali</text>
+<rect class="open" x="200" y="873" width="12.1" height="11" rx="2"><title>Pali: 10,493 words from open sources</title></rect>
+<rect class="res" x="212.1" y="873" width="95.2" height="11" rx="2"><title>Pali: 82,901 words from research-use sources</title></rect>
+<text class="t2" x="313.3" y="883" font-size="11">93,394 · 66,514 linked</text>
+<text class="t2" x="190" y="904" font-size="12" text-anchor="end">Malayalam</text>
+<rect class="open" x="200" y="894" width="93.4" height="11" rx="2"><title>Malayalam: 81,363 words from open sources</title></rect>
+<rect class="res" x="293.4" y="894" width="10.4" height="11" rx="2"><title>Malayalam: 9,055 words from research-use sources</title></rect>
+<text class="t2" x="309.8" y="904" font-size="11">90,418 · 16,796 linked</text>
+<text class="t2" x="190" y="925" font-size="12" text-anchor="end">Hindi-Urdu</text>
+<rect class="open" x="200" y="915" width="56.9" height="11" rx="2"><title>Hindi-Urdu: 49,589 words from open sources</title></rect>
+<rect class="res" x="256.9" y="915" width="21.2" height="11" rx="2"><title>Hindi-Urdu: 18,475 words from research-use sources</title></rect>
+<text class="t2" x="284.2" y="925" font-size="11">68,064 · 40,670 linked</text>
+<text class="t2" x="190" y="946" font-size="12" text-anchor="end">Marathi</text>
+<rect class="open" x="200" y="936" width="9.4" height="11" rx="2"><title>Marathi: 8,161 words from open sources</title></rect>
+<rect class="res" x="209.4" y="936" width="68.4" height="11" rx="2"><title>Marathi: 59,541 words from research-use sources</title></rect>
+<text class="t2" x="283.7" y="946" font-size="11">67,702 · 15,407 linked</text>
+<text class="t2" x="190" y="967" font-size="12" text-anchor="end">Kannada</text>
+<rect class="open" x="200" y="957" width="6.9" height="11" rx="2"><title>Kannada: 5,965 words from open sources</title></rect>
+<rect class="res" x="206.9" y="957" width="64.9" height="11" rx="2"><title>Kannada: 56,514 words from research-use sources</title></rect>
+<text class="t2" x="277.8" y="967" font-size="11">62,479 · 44,840 linked</text>
+<text class="t2" x="190" y="988" font-size="12" text-anchor="end">Prakrit</text>
+<rect class="open" x="200" y="978" width="7.8" height="11" rx="2"><title>Prakrit: 6,817 words from open sources</title></rect>
+<rect class="res" x="207.8" y="978" width="62.6" height="11" rx="2"><title>Prakrit: 54,529 words from research-use sources</title></rect>
+<text class="t2" x="276.5" y="988" font-size="11">61,346 · 47,660 linked</text>
+<text class="t2" x="190" y="1009" font-size="12" text-anchor="end">Telugu</text>
+<rect class="open" x="200" y="999" width="28.7" height="11" rx="2"><title>Telugu: 25,003 words from open sources</title></rect>
+<rect class="res" x="228.7" y="999" width="10.4" height="11" rx="2"><title>Telugu: 9,094 words from research-use sources</title></rect>
+<text class="t2" x="245.2" y="1009" font-size="11">34,097 · 18,712 linked</text>
+<text class="t2" x="190" y="1030" font-size="12" text-anchor="end">Bengali</text>
+<rect class="open" x="200" y="1020" width="30.0" height="11" rx="2"><title>Bengali: 26,098 words from open sources</title></rect>
+<rect class="res" x="230.0" y="1020" width="8.2" height="11" rx="2"><title>Bengali: 7,151 words from research-use sources</title></rect>
+<text class="t2" x="244.2" y="1030" font-size="11">33,249 · 17,066 linked</text>
+<text class="t2" x="190" y="1051" font-size="12" text-anchor="end">Tamil</text>
+<rect class="open" x="200" y="1041" width="19.1" height="11" rx="2"><title>Tamil: 16,593 words from open sources</title></rect>
+<rect class="res" x="219.1" y="1041" width="15.5" height="11" rx="2"><title>Tamil: 13,456 words from research-use sources</title></rect>
+<text class="t2" x="240.5" y="1051" font-size="11">30,049 · 22,349 linked</text>
+<text class="t2" x="190" y="1072" font-size="12" text-anchor="end">Punjabi</text>
+<rect class="open" x="200" y="1062" width="21.4" height="11" rx="2"><title>Punjabi: 18,605 words from open sources</title></rect>
+<rect class="res" x="221.4" y="1062" width="10.4" height="11" rx="2"><title>Punjabi: 9,048 words from research-use sources</title></rect>
+<text class="t2" x="237.8" y="1072" font-size="11">27,653 · 20,114 linked</text>
+<text class="t2" x="190" y="1093" font-size="12" text-anchor="end">Old Indo-Aryan (CDIAL)</text>
+<rect class="open" x="200" y="1083" width="0.0" height="11" rx="2"><title>Old Indo-Aryan (CDIAL): 0 words from open sources</title></rect>
+<rect class="res" x="200.0" y="1083" width="28.9" height="11" rx="2"><title>Old Indo-Aryan (CDIAL): 25,154 words from research-use sources</title></rect>
+<text class="t2" x="234.9" y="1093" font-size="11">25,154 · 24,491 linked</text>
+<text class="t2" x="190" y="1114" font-size="12" text-anchor="end">Gujarati</text>
+<rect class="open" x="200" y="1104" width="12.1" height="11" rx="2"><title>Gujarati: 10,563 words from open sources</title></rect>
+<rect class="res" x="212.1" y="1104" width="9.9" height="11" rx="2"><title>Gujarati: 8,598 words from research-use sources</title></rect>
+<text class="t2" x="228.0" y="1114" font-size="11">19,161 · 14,824 linked</text>
+<text class="t2" x="190" y="1135" font-size="12" text-anchor="end">Nepali</text>
+<rect class="open" x="200" y="1125" width="6.1" height="11" rx="2"><title>Nepali: 5,285 words from open sources</title></rect>
+<rect class="res" x="206.1" y="1125" width="9.8" height="11" rx="2"><title>Nepali: 8,505 words from research-use sources</title></rect>
+<text class="t2" x="221.8" y="1135" font-size="11">13,790 · 8,097 linked</text>
+<text class="t2" x="190" y="1156" font-size="12" text-anchor="end">Odia</text>
+<rect class="open" x="200" y="1146" width="5.2" height="11" rx="2"><title>Odia: 4,515 words from open sources</title></rect>
+<rect class="res" x="205.2" y="1146" width="8.8" height="11" rx="2"><title>Odia: 7,625 words from research-use sources</title></rect>
+<text class="t2" x="219.9" y="1156" font-size="11">12,140 · 9,610 linked</text>
+<text class="t2" x="190" y="1177" font-size="12" text-anchor="end">Assamese</text>
+<rect class="open" x="200" y="1167" width="6.1" height="11" rx="2"><title>Assamese: 5,349 words from open sources</title></rect>
+<rect class="res" x="206.1" y="1167" width="4.3" height="11" rx="2"><title>Assamese: 3,721 words from research-use sources</title></rect>
+<text class="t2" x="216.4" y="1177" font-size="11">9,070 · 7,612 linked</text>
+<text class="t2" x="190" y="1198" font-size="12" text-anchor="end">Maithili</text>
+<rect class="open" x="200" y="1188" width="2.0" height="11" rx="2"><title>Maithili: 1,762 words from open sources</title></rect>
+<rect class="res" x="202.0" y="1188" width="4.9" height="11" rx="2"><title>Maithili: 4,261 words from research-use sources</title></rect>
+<text class="t2" x="212.9" y="1198" font-size="11">6,023 · 3,583 linked</text>
+<text class="t2" x="190" y="1219" font-size="12" text-anchor="end">Konkani</text>
+<rect class="open" x="200" y="1209" width="2.6" height="11" rx="2"><title>Konkani: 2,278 words from open sources</title></rect>
+<rect class="res" x="202.6" y="1209" width="2.9" height="11" rx="2"><title>Konkani: 2,556 words from research-use sources</title></rect>
+<text class="t2" x="211.6" y="1219" font-size="11">4,834 · 2,571 linked</text>
+<text class="t2" x="190" y="1240" font-size="12" text-anchor="end">Marwari</text>
+<rect class="open" x="200" y="1230" width="1.5" height="11" rx="2"><title>Marwari: 224 words from open sources</title></rect>
+<rect class="res" x="200.3" y="1230" width="4.0" height="11" rx="2"><title>Marwari: 3,472 words from research-use sources</title></rect>
+<text class="t2" x="210.2" y="1240" font-size="11">3,696 · 2,000 linked</text>
+<text class="t2" x="190" y="1261" font-size="12" text-anchor="end">Awadhi</text>
+<rect class="open" x="200" y="1251" width="1.5" height="11" rx="2"><title>Awadhi: 559 words from open sources</title></rect>
+<rect class="res" x="200.6" y="1251" width="2.8" height="11" rx="2"><title>Awadhi: 2,475 words from research-use sources</title></rect>
+<text class="t2" x="209.5" y="1261" font-size="11">3,034 · 1,123 linked</text>
+<text class="t2" x="190" y="1282" font-size="12" text-anchor="end">Bhojpuri</text>
+<rect class="open" x="200" y="1272" width="1.5" height="11" rx="2"><title>Bhojpuri: 908 words from open sources</title></rect>
+<rect class="res" x="201.0" y="1272" width="2.3" height="11" rx="2"><title>Bhojpuri: 1,997 words from research-use sources</title></rect>
+<text class="t2" x="209.3" y="1282" font-size="11">2,905 · 1,435 linked</text>
+<text class="t2" x="190" y="1303" font-size="12" text-anchor="end">Ashokan Prakrit</text>
+<rect class="open" x="200" y="1293" width="1.5" height="11" rx="2"><title>Ashokan Prakrit: 660 words from open sources</title></rect>
+<rect class="res" x="200.8" y="1293" width="1.5" height="11" rx="2"><title>Ashokan Prakrit: 1,300 words from research-use sources</title></rect>
+<text class="t2" x="208.3" y="1303" font-size="11">1,960 · 1,803 linked</text>
+<text class="t2" x="190" y="1324" font-size="12" text-anchor="end">Dogri</text>
+<rect class="open" x="200" y="1314" width="1.5" height="11" rx="2"><title>Dogri: 387 words from open sources</title></rect>
+<rect class="res" x="200.4" y="1314" width="1.5" height="11" rx="2"><title>Dogri: 1,121 words from research-use sources</title></rect>
+<text class="t2" x="208.0" y="1324" font-size="11">1,508 · 612 linked</text>
+<text class="t2" x="190" y="1345" font-size="12" text-anchor="end">Apabhramsha</text>
+<rect class="open" x="200" y="1335" width="1.5" height="11" rx="2"><title>Apabhramsha: 351 words from open sources</title></rect>
+<rect class="res" x="200.4" y="1335" width="1.5" height="11" rx="2"><title>Apabhramsha: 632 words from research-use sources</title></rect>
+<text class="t2" x="208.0" y="1345" font-size="11">983 · 715 linked</text>
+<text class="t2" x="190" y="1366" font-size="12" text-anchor="end">Bodo</text>
+<rect class="open" x="200" y="1356" width="1.5" height="11" rx="2"><title>Bodo: 359 words from open sources</title></rect>
+<rect class="res" x="200.4" y="1356" width="1.5" height="11" rx="2"><title>Bodo: 111 words from research-use sources</title></rect>
+<text class="t2" x="208.0" y="1366" font-size="11">470 · 178 linked</text>
+<text class="t1" x="20" y="1395" font-size="13" font-weight="600">Largest elsewhere</text>
+<text class="t2" x="190" y="1427" font-size="12" text-anchor="end">English</text>
+<rect class="open" x="200" y="1417" width="509.7" height="11" rx="2"><title>English: 631,092 words from open sources</title></rect>
+<rect class="res" x="709.7" y="1417" width="1.5" height="11" rx="2"><title>English: 361 words from research-use sources</title></rect>
+<text class="t2" x="716.0" y="1427" font-size="11">631,453 · 411,057 linked</text>
+<text class="t2" x="190" y="1448" font-size="12" text-anchor="end">Spanish</text>
+<rect class="open" x="200" y="1438" width="93.7" height="11" rx="2"><title>Spanish: 116,039 words from open sources</title></rect>
+<text class="t2" x="299.7" y="1448" font-size="11">116,039 · 18,579 linked</text>
+<text class="t2" x="190" y="1469" font-size="12" text-anchor="end">Latin</text>
+<rect class="open" x="200" y="1459" width="92.0" height="11" rx="2"><title>Latin: 113,929 words from open sources</title></rect>
+<rect class="res" x="292.0" y="1459" width="1.5" height="11" rx="2"><title>Latin: 37 words from research-use sources</title></rect>
+<text class="t2" x="298.0" y="1469" font-size="11">113,966 · 45,614 linked</text>
+<text class="t2" x="190" y="1490" font-size="12" text-anchor="end">Japanese</text>
+<rect class="open" x="200" y="1480" width="91.0" height="11" rx="2"><title>Japanese: 112,656 words from open sources</title></rect>
+<text class="t2" x="297.0" y="1490" font-size="11">112,656 · 14,630 linked</text>
+<text class="t2" x="190" y="1511" font-size="12" text-anchor="end">Dutch</text>
+<rect class="open" x="200" y="1501" width="86.6" height="11" rx="2"><title>Dutch: 107,254 words from open sources</title></rect>
+<text class="t2" x="292.6" y="1511" font-size="11">107,254 · 56,668 linked</text>
+<text class="t2" x="190" y="1532" font-size="12" text-anchor="end">Mandarin Chinese</text>
+<rect class="open" x="200" y="1522" width="76.7" height="11" rx="2"><title>Mandarin Chinese: 94,950 words from open sources</title></rect>
+<rect class="res" x="276.7" y="1522" width="1.5" height="11" rx="2"><title>Mandarin Chinese: 123 words from research-use sources</title></rect>
+<text class="t2" x="282.8" y="1532" font-size="11">95,073 · 8,934 linked</text>
+<text class="t2" x="190" y="1553" font-size="12" text-anchor="end">Estonian</text>
+<rect class="open" x="200" y="1543" width="75.4" height="11" rx="2"><title>Estonian: 93,389 words from open sources</title></rect>
+<text class="t2" x="281.4" y="1553" font-size="11">93,389 · 13,230 linked</text>
+<text class="t2" x="190" y="1574" font-size="12" text-anchor="end">French</text>
+<rect class="open" x="200" y="1564" width="73.9" height="11" rx="2"><title>French: 91,533 words from open sources</title></rect>
+<rect class="res" x="273.9" y="1564" width="1.5" height="11" rx="2"><title>French: 2 words from research-use sources</title></rect>
+<text class="t2" x="279.9" y="1574" font-size="11">91,535 · 29,417 linked</text>
+<text class="t2" x="190" y="1595" font-size="12" text-anchor="end">Thai</text>
+<rect class="open" x="200" y="1585" width="73.0" height="11" rx="2"><title>Thai: 90,357 words from open sources</title></rect>
+<text class="t2" x="279.0" y="1595" font-size="11">90,357 · 2,416 linked</text>
+<text class="t2" x="190" y="1616" font-size="12" text-anchor="end">German</text>
+<rect class="open" x="200" y="1606" width="70.8" height="11" rx="2"><title>German: 87,631 words from open sources</title></rect>
+<text class="t2" x="276.8" y="1616" font-size="11">87,631 · 83,161 linked</text>
+<text class="t2" x="190" y="1637" font-size="12" text-anchor="end">Italian</text>
+<rect class="open" x="200" y="1627" width="69.2" height="11" rx="2"><title>Italian: 85,710 words from open sources</title></rect>
+<rect class="res" x="269.2" y="1627" width="1.5" height="11" rx="2"><title>Italian: 2 words from research-use sources</title></rect>
+<text class="t2" x="275.2" y="1637" font-size="11">85,712 · 21,256 linked</text>
+<text class="t2" x="190" y="1658" font-size="12" text-anchor="end">Catalan</text>
+<rect class="open" x="200" y="1648" width="65.9" height="11" rx="2"><title>Catalan: 81,547 words from open sources</title></rect>
+<text class="t2" x="271.9" y="1658" font-size="11">81,547 · 10,303 linked</text>
+<text class="t2" x="20" y="1689" font-size="11">Generated by scripts/coverage_chart.py from read-only queries; the committed open seed is smaller (see the table in the README).</text>
 </svg>

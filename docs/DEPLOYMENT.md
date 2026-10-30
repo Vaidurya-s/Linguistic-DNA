@@ -68,7 +68,7 @@ The research version adds the research-use sources (Jambu, and through it Turner
    make migrate research-db
    ```
    `research-db` imports the open datasets, then the research-use ones, then runs `validate --research`. That check fails on any BLOCKED data and on any research-use record without a cited source.
-2. **Size the host.** With every research source imported the database is about 2.1 GB (1.81M words, 997k links), against about 680 MB for the open seed. That is beyond the 500 MB free tiers of Neon and Supabase. Use a paid tier, or a small VM running PostgreSQL 16 with `pg_trgm`.
+2. **Size the host.** With every research source imported the database is about 10 GB (8.5M words, 4.6M links; `make full-db` makes it several times larger), against about 680 MB for the open seed. That is beyond the 500 MB free tiers of Neon and Supabase. Use a paid tier, or a small VM running PostgreSQL 16 with `pg_trgm`.
 3. **Copy it to the host.**
    ```bash
    make research-dump

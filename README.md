@@ -2,9 +2,9 @@
 
 # Linguistic DNA
 
-**An evidence-first graph of how words in India's languages are related.**
+**An evidence-first graph of how words are related: built around India's languages, now reaching 3,489 searchable languages from the Eurasian steppe to the Pacific.**
 
-Type a word in any of 9 Brahmic scripts or in romanisation, and follow its documented links:
+Type a word in any of 9 Brahmic scripts, in romanisation, or in Cyrillic, Latin, Greek and other scripts, and follow its documented links:
 what it was inherited from, borrowed from, built from, or is cognate with, with the source for every claim.
 
 [![CI](https://github.com/Vaidurya-s/Linguistic-DNA/actions/workflows/ci.yml/badge.svg)](https://github.com/Vaidurya-s/Linguistic-DNA/actions/workflows/ci.yml)
@@ -14,7 +14,9 @@ what it was inherited from, borrowed from, built from, or is cognate with, with 
 ![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Cytoscape.js](https://img.shields.io/badge/graph-Cytoscape.js-F7DF1E)
-![Languages](https://img.shields.io/badge/languages-19%20modern%20%2B%206%20historical-8A2BE2)
+![Languages](https://img.shields.io/badge/searchable%20languages-3%2C489-8A2BE2)
+![Words](https://img.shields.io/badge/words-8.5M-2a78d6)
+![Links](https://img.shields.io/badge/cited%20links-4.6M-eb6834)
 
 [What it does](#what-it-does) ·
 [At a glance](#at-a-glance) ·
@@ -40,25 +42,35 @@ what it was inherited from, borrowed from, built from, or is cognate with, with 
 
 **Resemblance is never drawn as relationship.** Words that merely look alike are listed separately as *candidates*, with a score that is explicitly not a measure of relatedness. Reconstructed forms keep their asterisk and are never shown as attested.
 
+**From India to the steppe, and beyond.** Every Glottolog language has a record, and any language with at least 200 words becomes searchable. Slavic, Baltic, Iranian, Turkic, Mongolic and Uralic languages, and their reconstructed ancestors, connect to Sanskrit and the languages of India through Wiktionary etymologies, expert cognate sets (IE-CoR, NorthEuraLex) and, on your own machine, the StarLing etymological databases (Pokorny, Vasmer, Altaic). Russian alone has 193,952 words and 72,214 of them have documented links.
+
 **Built for research, careful about redistribution.** The richest sources on Indo-Aryan and Dravidian word history (Turner's CDIAL, Burrow & Emeneau's DEDR) are still in copyright. They are used for research with a citation on every record, but never committed here or put in the downloadable open data. An *Open data only* switch shows what remains without them.
 
 ## At a glance
 
 > [!NOTE]
-> Headline numbers, as of **2026-10-30**. They change as sources are added; refresh them from the databases (`SELECT count(*) FROM lexeme`, `relationship`, `evidence`, `transliteration_alias`) or from `data/public_seed/manifest.json`.
+> Headline numbers, as of **2026-10-30**. They change as sources are added: `make db-size` prints the research database's words and links per dataset, and `data/public_seed/manifest.json` describes the seed.
 
-| | Open public seed<br/><sub>`data/public_seed`, committed</sub> | Research database<br/><sub>open + research-use sources, built locally</sub> |
+| | Open public seed<br/><sub>`data/public_seed`, committed</sub> | Research database<br/><sub>`make research-db`, built locally</sub> |
 |---|---:|---:|
-| Words | **521,448** | **1,812,733** |
-| Documented, cited relationships | **221,594** | **996,776** |
-| Evidence rows (citations with locators) | 221,594 | 1,060,069 |
+| Words | **521,448** | **8,480,391** |
+| &nbsp;&nbsp;from open-licensed / research-use sources | 521,448 / 0 | 7,101,577 / 1,378,814 |
+| Documented, cited relationships | **221,594** | **4,560,323** |
+| &nbsp;&nbsp;from open-licensed / research-use sources | 221,594 / 0 | 3,746,248 / 814,075 |
+| Evidence rows (citations with locators) | 221,594 | 4,623,616 |
+| Datasets with words or profiles | 12 | 147 |
+| Sources cited on individual records | 12 | 541 |
+| Concepts linking meanings (Concepticon, wordnet ILI) | 1,393 | 121,692 |
+| Language profile values (WALS, PHOIBLE) | — | 151,380 |
 | Transliteration spelling pairs | 947,189 | 947,189 |
-| Concepts linking meanings across wordlists | 1,393 | 4,033 |
-| Sources cited on individual records | 12 | 538 |
-| Size | ≈ 55 MB compressed, ≈ 680 MB loaded | ≈ 2.1 GB |
-| Searchable languages | 25 | 25 |
+| Language records / searchable languages | 728 / 25 | 9,651 / **3,489** |
+| Size | ≈ 55 MB compressed, ≈ 680 MB loaded | ≈ 9.8 GB |
 
-**25 searchable languages** (configured in [`data/config/languages.csv`](data/config/languages.csv)):
+<sub>The committed seed was built before the global imports; `make public-seed` rebuilds it from the open-licensed part of the research database. The research column does not yet include the StarLing databases, which are downloaded and imported on your own machine. `make full-db` (Wiktionary and Wikidata in every language) adds an estimated 5–8 million words and 8–12 million links; see [`REQUIREMENTS.md`](REQUIREMENTS.md).</sub>
+
+**3,489 searchable languages.** A language becomes searchable when it has at least 200 words; `refresh-languages` gives every Glottolog language (8,594 languages in 4,853 families) one record, whichever sources it comes from. The explorer's language box filters them by name or family.
+
+**25 configured languages** get the most care: native-script search, romanisation rules and transliteration aliases (configured in [`data/config/languages.csv`](data/config/languages.csv)):
 
 | Group | Languages |
 |---|---|
@@ -68,10 +80,10 @@ what it was inherited from, borrowed from, built from, or is cognate with, with 
 | Historical and reference | Sanskrit, Pali, Prakrit, Apabhramsha, Ashokan Prakrit, Old Indo-Aryan (CDIAL headwords) |
 
 <p align="center">
-  <img src="docs/media/coverage-by-language.svg" width="820" alt="Bar chart of words per language in the open public seed and in the research database, grouped by family. Sanskrit has the most (201,119 open / 441,480 research); Bodo the fewest (331 / 442).">
+  <img src="docs/media/coverage-by-language.svg" width="860" alt="Bar chart of words per language in the research database, split into open-licensed and research-use sources, in three sections. Steppe corridor: Finnish 305,995, Russian 193,952, Ukrainian 58,820, Persian 42,716, Turkish 42,178, Hungarian 41,679, down to Proto-Uralic 923. South Asia: Sanskrit 444,091 (mostly research-use), Pali 93,394, Malayalam 90,418, Hindi-Urdu 68,064, down to Bodo 470. Largest elsewhere: English 631,453, Spanish 116,039, Latin 113,966, Japanese 112,656.">
 </p>
 
-<sub>Generated from read-only queries of both databases on 2026-10-30. Coverage is very uneven, and the app shows it as such: the live per-language table, with how many words have at least one documented link, is on the app's *Data &amp; methodology* page.</sub>
+<sub>Generated by `scripts/coverage_chart.py` from read-only queries of the research database on 2026-10-30; each section has its own scale. Coverage is very uneven, and the app shows it as such: the live per-language table is on the app's *Data &amp; methodology* page.</sub>
 
 ## A word's history, as the sources tell it
 
@@ -120,22 +132,55 @@ flowchart BT
 
 Turner's CDIAL records Sanskrit *nīrá* "water" as a borrowing from the Dravidian word that DEDR reconstructs as *\*kaṇ-ṇīr*. Both claims reach the app through Jambu, cited per record.
 
+### Across the steppe
+
+"Widow" in Russian, Sanskrit, Persian and Latin goes back to one Proto-Indo-European word. Hungarian took its word from Indo-Iranian, one of the contacts between Indo-Iranian and Uralic speakers on the steppe. Every arrow is a stored Wiktionary link with its page cited.
+
+```mermaid
+flowchart BT
+  pie["*h₁widʰéwh₂<br/><sub>Proto-Indo-European · widow</sub>"]
+  psl["*vьdova<br/><sub>Proto-Slavic</sub>"]
+  pii["*HwidʰáwaH<br/><sub>Proto-Indo-Iranian</sub>"]
+  rus["вдова<br/><sub>Russian</sub>"]
+  san["विधवा<br/><sub>Sanskrit</sub>"]
+  fas["بیوه<br/><sub>Persian</sub>"]
+  lat["vidua<br/><sub>Latin</sub>"]
+  hun["özvegy<br/><sub>Hungarian (Uralic)</sub>"]
+  rus -- inherited --> psl
+  psl -- inherited --> pie
+  san -- inherited --> pie
+  fas -- inherited --> pie
+  lat -- inherited --> pie
+  pii -- inherited --> pie
+  hun == "from (Indo-Iranian contact)" ==> pii
+  classDef ie fill:#e8f1fc,stroke:#2a78d6,color:#0b0b0b
+  classDef ural fill:#dcf5e9,stroke:#1baf7a,color:#0b0b0b
+  classDef proto fill:#eef0f3,stroke:#64748b,color:#0b0b0b,stroke-dasharray:4 3
+  class rus,san,fas,lat ie
+  class hun ural
+  class pie,psl,pii proto
+```
+
+The same pattern runs through the basic vocabulary: "hundred" is Hindi सौ, Sanskrit शत, Avestan *sata*, Persian صد, Ossetian сӕдӕ, Lithuanian *šimtas* and Russian сто, all from *\*ḱm̥tóm*.
+
 ## How the links are typed
 
-Each source's own label is kept beside the normalised type, so nothing is silently reinterpreted. Counts are relationships in the research database / open seed (2026-10-30).
+Each source's own label is kept beside the normalised type, so nothing is silently reinterpreted. Counts are relationships in the research database / committed open seed (2026-10-30).
 
-| Edge in the graph | Type | Reads as | Research / open |
+| Edge in the graph | Type | Reads as | Research / open seed |
 |---|---|---|---:|
-| ![](https://img.shields.io/badge/-inherited-2563eb) | `inherited_form` | *A* is a regular descendant of *B* | 404,328 / 29,646 |
-| ![](https://img.shields.io/badge/-component-7c3aed) | `has_component` | compound or phrase *A* contains *B* | 298,754 / 50,231 |
-| ![](https://img.shields.io/badge/-cognate-be123c) | `cognate` | *A* and *B* share an inherited origin (undirected) | 96,220 / 93,860 |
+| ![](https://img.shields.io/badge/-component-7c3aed) | `has_component` | compound or phrase *A* contains *B* | 1,575,938 / 50,231 |
+| ![](https://img.shields.io/badge/-inherited-2563eb) | `inherited_form` | *A* is a regular descendant of *B* | 1,250,550 / 29,646 |
+| ![](https://img.shields.io/badge/-cognate-be123c) | `cognate` | *A* and *B* share an inherited origin (undirected) | 990,029 / 93,860 |
+| ![](https://img.shields.io/badge/-borrowed-ea580c) | `borrowed_from` | *A* was borrowed from *B* | 401,148 / 30,531 |
+| ![](https://img.shields.io/badge/-from-0f766e) | `etymon` | *A* comes from *B*; inherited or borrowed is not stated | 193,160 / 16,881 |
 | ![](https://img.shields.io/badge/-related-0891b2) | `related_form` | the source relates them without saying how | 52,863 / 0 |
 | ![](https://img.shields.io/badge/-derived-059669) | `derived_form` | *A* is derived from *B* (affixation, extension) | 49,091 / 0 |
-| ![](https://img.shields.io/badge/-borrowed-ea580c) | `borrowed_from` | *A* was borrowed from *B* | 41,983 / 30,531 |
 | ![](https://img.shields.io/badge/-variant-64748b) | `variant_of` | *A* is a documented variant of *B* | 36,193 / 0 |
-| ![](https://img.shields.io/badge/-from-0f766e) | `etymon` | *A* comes from *B*; inherited or borrowed is not stated | 16,881 / 16,881 |
-| ![](https://img.shields.io/badge/-calque-c2410c) | `calque_or_loan_translation` | *A* is a loan translation of *B* | 418 / 418 |
+| ![](https://img.shields.io/badge/-calque-c2410c) | `calque_or_loan_translation` | *A* is a loan translation of *B* | 11,333 / 418 |
 | ![](https://img.shields.io/badge/-influence-db2777) | `contact_influence` | *A* was influenced by *B* through contact | 18 / 0 |
+
+Meaning is kept apart from history: words that share a meaning meet through shared concepts (Concepticon and the wordnets' interlingual index, 5.5 million word–concept links), never through drawn edges. Language profiles (WALS features, PHOIBLE sound inventories) are served per language at `GET /api/v1/languages/{id}/profile`.
 | *listed, never drawn* | similarity candidates | similar spelling or sound, **not evidence of relation** | — |
 
 ## Gallery
@@ -152,6 +197,9 @@ Each source's own label is kept beside the normalised type, so nothing is silent
   <tr>
     <td><a href="docs/media/explore-punjabi-paani.png"><img src="docs/media/explore-punjabi-paani.png" alt="Punjabi ਪਾਣੀ restricted to Punjabi, with its Prakrit source and compounds"></a><br/><sub><b>Native-script search, one language.</b> Punjabi ਪਾਣੀ, its Prakrit source and the compounds and sayings built on it.</sub></td>
     <td><a href="docs/media/explore-kannada-hallu.png"><img src="docs/media/explore-kannada-hallu.png" alt="Kannada ಹಲ್ಲು tooth with its Proto-Dravidian etymon and cognates in Telugu, Malayalam, Tamil and Sholaga"></a><br/><sub><b>Kannada script in, Dravidian history out.</b> ಹಲ್ಲು "tooth": inherited from Proto-Dravidian <i>pal</i> (reconstructed), with cognates in Telugu, Malayalam, Tamil and Sholaga (Wiktionary).</sub></td>
+  </tr>
+  <tr>
+    <td colspan="2"><a href="docs/media/explore-russian-vdova.png"><img src="docs/media/explore-russian-vdova.png" alt="Russian вдова widow inherited through Proto-Slavic and Proto-Balto-Slavic from Proto-Indo-European, with cognates in Sanskrit, Italian, Spanish, German, English and French"></a><br/><sub><b>Beyond India: the steppe languages.</b> Russian вдова "widow": inherited through Old Church Slavonic, Proto-Slavic and Proto-Balto-Slavic from Proto-Indo-European, with Sanskrit विधवा and the Romance and Germanic words as cognates (Wiktionary).</sub></td>
   </tr>
   <tr>
     <td><a href="docs/media/home.png"><img src="docs/media/home.png" alt="Landing page"></a><br/><sub><b>Landing page</b> with suggested searches.</sub></td>
@@ -171,8 +219,8 @@ Every dataset is a row in a machine-readable licence audit, [`data/manifests/dat
 
 | Decision | Datasets | Where it can appear |
 |---|---|---|
-| **APPROVED** / **APPROVED WITH CONDITIONS** | Glottolog, Concepticon, LSI, ASJP, Wikidata Lexemes, Wiktionary (wiktextract), IE-CoR, IELex, DravLex, NorthEuraLex, Hale's Nepal wordlists, Digital Corpus of Sanskrit lexicon, Dakshina, Aksharantar (approved components) | Everywhere, including the committed open seed, with attribution in [`data/public_seed/ATTRIBUTION.md`](data/public_seed/ATTRIBUTION.md) |
-| **RESEARCH USE** | Jambu (and through it Turner's CDIAL, Burrow & Emeneau's DEDR and about 570 other works), Monier-Williams 1899 (Cologne), Digital Pāḷi Dictionary, Peiros' Sino-Tibetan wordlists, the StarLing etymological databases (Pokorny, Vasmer, Indo-European, Altaic, Dravidian, North Caucasian, Sino-Tibetan and more) | The research database and a research deployment, with a citation on every record. **Never** in this repository or the open seed |
+| **APPROVED** / **APPROVED WITH CONDITIONS** | Glottolog, Concepticon, LSI, ASJP, Wikidata Lexemes, Wiktionary (wiktextract), IE-CoR, IELex, DravLex, NorthEuraLex, Hale's Nepal wordlists, about 125 more Lexibank CLDF wordlists (among them ABVD, the Austronesian Comparative Dictionary, SEABOR and WOLD's loanwords), the Open Multilingual Wordnet (32 wordnets), WALS and PHOIBLE (language profiles), Digital Corpus of Sanskrit lexicon, Dakshina, Aksharantar (approved components) | Everywhere, including the committed open seed, with attribution in [`data/public_seed/ATTRIBUTION.md`](data/public_seed/ATTRIBUTION.md) |
+| **RESEARCH USE** | Jambu (and through it Turner's CDIAL, Burrow & Emeneau's DEDR and about 570 other works), Monier-Williams 1899 (Cologne), Digital Pāḷi Dictionary, Peiros' Sino-Tibetan wordlists and six other non-commercial Lexibank wordlists, the StarLing etymological databases (Pokorny, Vasmer, Indo-European, Altaic, Dravidian, North Caucasian, Sino-Tibetan and more) | The research database and a research deployment, with a citation on every record. **Never** in this repository or the open seed |
 | **BLOCKED** | everything unverified | Nowhere. `validate --research` fails on it |
 
 In the app:
@@ -252,7 +300,8 @@ All under `/api/v1`; interactive docs at `http://localhost:8000/docs`.
 | `GET /search?q=…&language_id=…` | whole-word matches (with how each was found), stems and affixes, compounds, and spelling candidates |
 | `GET /graph/{lexeme_id}` | the neighbourhood of a word: typed edges, capped for readability |
 | `GET /lexemes/{id}`, `GET /relationships/{id}` | a word or a link with its source, citation and evidence |
-| `GET /languages` | configured languages with word and linked-word counts |
+| `GET /languages` | searchable languages with family, word and linked-word counts (open-only counts too) |
+| `GET /languages/{id}/profile` | WALS features and PHOIBLE sound inventory of a language |
 | `GET /citations` | every dataset's required citation and every cited work, with counts |
 | `GET /health` | liveness |
 
@@ -268,6 +317,8 @@ flowchart LR
     o1["Glottolog · Concepticon"]
     o2["Wikidata Lexemes · Wiktionary"]
     o3["IE-CoR · IELex · DravLex<br/>NorthEuraLex · Hale · LSI · ASJP"]
+    o6["~125 more Lexibank wordlists<br/>(ABVD, ACD, SEABOR, WOLD)"]
+    o7["Open Multilingual Wordnet<br/>WALS · PHOIBLE"]
     o4["DCS Sanskrit lexicon"]
     o5["Dakshina · Aksharantar<br/>(spelling pairs)"]
   end
@@ -276,7 +327,7 @@ flowchart LR
     r1["Jambu<br/>(CDIAL, DEDR, ~570 works)"]
     r2["Monier-Williams 1899"]
     r3["Digital Pali Dictionary"]
-    r4["Peiros Sino-Tibetan"]
+    r4["Peiros Sino-Tibetan<br/>+ 6 NC Lexibank sets"]
     r5["StarLing / Tower of Babel<br/>(Pokorny, Vasmer, Altaic …)"]
   end
   OPEN --> F["fetch_data.py<br/>pinned commits + sha256"]
@@ -323,6 +374,10 @@ docs/        specification, architecture, licence audit, pipeline, deployment, w
 - [x] **Phase 2, scripts and graph.** Native-script and romanised search in 9 scripts; graph clutter control; eight more Devanagari languages (17 → 25).
 - [x] **Phase 3, presentation.** Landing and methodology pages, write-up, Docker image and deployment docs.
 - [x] **Research expansion.** Jambu in full, Wiktionary etymologies, expert cognate sets, Sanskrit and Pāli dictionaries, with per-record citations and the *Open data only* switch.
+- [x] **Global expansion.** Every Glottolog language as one record; 130 Lexibank wordlists, the Open Multilingual Wordnet, WALS and PHOIBLE profiles, WOLD and ACD borrowings; the steppe corridor (Russian and its neighbours and ancestors) in Wiktionary and Wikidata; 3,489 searchable languages.
+- [x] **Everything on your own machine.** `make full-db` (Wiktionary and Wikidata in every language, with descendant lists) and the StarLing etymological databases; Linux setup in [`REQUIREMENTS.md`](REQUIREMENTS.md).
+- [ ] **Translation and profile panels** in the app for the meaning links and language profiles already in the database.
+- [ ] **Rebuild the open seed** from the global open data, published as release assets (it outgrows a git repository).
 - [ ] **Hosted demo** of the open seed and of the research version ([`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)).
 - [ ] **More scripts and languages:** Urdu, Kashmiri and Sindhi (Perso-Arabic), Santali (Ol Chiki), Manipuri (Meitei Mayek); then Tulu, Kodava, Kurukh, Khasi, Mizo.
 - [ ] **Linguist review** of the benchmark, and a separately drawn *candidate* layer for computed similarity.
@@ -344,14 +399,14 @@ and the database through which they reach this project:
 To cite this software, name the repository and the commit you used:
 
 ```text
-Linguistic DNA: an evidence-first graph of word relationships in the languages of India.
+Linguistic DNA: an evidence-first graph of word relationships, from the languages of India to the Eurasian steppe and beyond.
 https://github.com/Vaidurya-s/Linguistic-DNA, commit <hash>.
 ```
 
-**Licensing.** The open seed carries the terms of its sources (CC0, CC BY 4.0, CC BY-SA 4.0 for Dakshina- and Wiktionary-derived rows), listed in [`data/public_seed/ATTRIBUTION.md`](data/public_seed/ATTRIBUTION.md). The repository does not yet include a licence file for its code.
+**Licensing.** The open seed carries the terms of its sources (CC0, CC BY 4.0, CC BY-SA 4.0 for Dakshina- and Wiktionary-derived rows, and each wordnet's own licence), listed in [`data/public_seed/ATTRIBUTION.md`](data/public_seed/ATTRIBUTION.md). The repository does not yet include a licence file for its code.
 
 ## Acknowledgements
 
-This project stands on the work of others: the compilers of CDIAL and DEDR; the Jambu team, who made decades of South Asian historical linguistics machine-readable; Glottolog, Concepticon and the Lexibank / CLDF community (LSI, ASJP, IE-CoR, IELex, DravLex, NorthEuraLex, Hale's Nepal, Peiros); Wikidata and Wiktionary contributors, and wiktextract / kaikki.org; the Digital Corpus of Sanskrit, the Cologne Digital Sanskrit Dictionaries and the Digital Pāḷi Dictionary; Sergei and George Starostin and the Tower of Babel (StarLing) project; and Google Research's Dakshina and AI4Bharat's Aksharantar for transliteration data.
+This project stands on the work of others: the compilers of CDIAL and DEDR; the Jambu team, who made decades of South Asian historical linguistics machine-readable; Glottolog, Concepticon and the Lexibank / CLDF community (LSI, ASJP, IE-CoR, IELex, DravLex, NorthEuraLex, Hale's Nepal, Peiros, ABVD, ACD, WOLD and the authors of the other 120 wordlists); the Open Multilingual Wordnet and the wordnets it gathers; WALS and PHOIBLE; Wikidata and Wiktionary contributors, and wiktextract / kaikki.org; the Digital Corpus of Sanskrit, the Cologne Digital Sanskrit Dictionaries and the Digital Pāḷi Dictionary; Sergei and George Starostin and the Tower of Babel (StarLing) project; and Google Research's Dakshina and AI4Bharat's Aksharantar for transliteration data.
 
 <div align="center"><sub>Surface resemblance is not proof of common ancestry. Every documented relationship here traces to a source.</sub></div>

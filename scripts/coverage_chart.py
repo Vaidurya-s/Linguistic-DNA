@@ -1,80 +1,99 @@
-"""Render docs/media/coverage-by-language.svg: words per configured language, open seed vs
-research database (read-only queries through psql).
+"""Render docs/media/coverage-by-language.svg: words per language in the research database,
+split into open-licensed and research-use sources (read-only queries through psql).
 
-    python3 scripts/coverage_chart.py data/config/languages.csv docs/media/coverage-by-language.svg lsg_public
+Three sections, each on its own scale: the steppe corridor (Slavic, Baltic, Iranian, Turkic,
+Mongolic, Uralic and their proto-languages), the configured South Asian languages
+(data/config/languages.csv), and the largest languages elsewhere.
+
+    python3 scripts/coverage_chart.py data/config/languages.csv docs/media/coverage-by-language.svg [db]
 """
-import csv, subprocess, sys, html
+import csv, html, subprocess, sys, datetime
 
-def q(db, sql):
-    out = subprocess.run(["psql", "-h", "localhost", "-U", "postgres", "-d", db, "-At", "-F", "\t", "-c", sql],
+DB = sys.argv[3] if len(sys.argv) > 3 else "lsg"
+
+
+def q(sql):
+    out = subprocess.run(["psql", "-h", "localhost", "-U", "postgres", "-d", DB, "-At", "-F", "\t", "-c", sql],
                          check=True, capture_output=True, text=True).stdout
     return [l.split("\t") for l in out.strip().splitlines() if l]
 
-PUBDB = sys.argv[3] if len(sys.argv) > 3 else "lsg_public"
-SQL = "select l.language_id, count(*) from lexeme l join language g on g.id = l.language_id where g.is_enabled group by 1"
-langs = list(csv.DictReader(open(sys.argv[1])))
-pub = {k: int(v) for k, v in q(PUBDB, SQL)}
-res = {k: int(v) for k, v in q("lsg", SQL)}
-groups = [("Indo-Aryan", lambda l: l["role"] == "modern" and l["group"] == "Indo-Aryan"),
-          ("Dravidian", lambda l: l["role"] == "modern" and l["group"] == "Dravidian"),
-          ("Sino-Tibetan", lambda l: l["role"] == "modern" and l["group"] == "Sino-Tibetan"),
-          ("Historical and reference", lambda l: l["role"] != "modern")]
-short = {"Old Indo-Aryan (CDIAL headwords)": "Old Indo-Aryan (CDIAL)"}
-rows = []
-for g, f in groups:
-    ls = sorted([l for l in langs if f(l)], key=lambda l: -res.get(l["id"], 0))
-    rows.append(("group", g, None, None))
-    for l in ls:
-        rows.append(("lang", short.get(l["name"], l["name"]), pub.get(l["id"], 0), res.get(l["id"], 0)))
 
-W, LBL, PADR = 880, 190, 150
-ROW, GH, TOP = 22, 30, 92
+COUNTS = {r[0]: (r[1], int(r[2]), int(r[3]), int(r[4])) for r in q("""
+    with c as (select l.language_id,
+                      count(*) filter (where a.decision <> 'RESEARCH USE') o,
+                      count(*) filter (where a.decision = 'RESEARCH USE') r
+               from lexeme l join dataset_audit a on a.id = l.dataset group by 1)
+    select c.language_id, g.name, c.o, c.r, coalesce(s.linked_count, 0)
+    from c join language g on g.id = c.language_id
+    left join language_stats s on s.language_id = c.language_id""")}
+
+STEPPE = ["gl-russ1263", "gl-ukra1253", "gl-bela1254", "gl-oldr1238", "wkt-cu", "wkt-sla-pro",
+          "wkt-ine-bsl-pro", "gl-lith1251", "gl-latv1249", "wkt-ine-pro", "wkt-iir-pro", "wkt-ira-pro",
+          "gl-west2369", "gl-aves1237", "gl-oldp1254", "gl-osse1243", "gl-sogd1245",
+          "wkt-trk-pro", "gl-nucl1301", "gl-kaza1248", "gl-kirg1245", "gl-tata1255", "gl-bash1264",
+          "gl-chuv1255", "gl-halh1238", "wkt-urj-pro", "gl-finn1318", "gl-hung1274", "gl-udmu1245",
+          "gl-komi1268", "gl-erzy1239", "gl-east2328"]
+configured = [r["id"] for r in csv.DictReader(open(sys.argv[1], encoding="utf-8"))]
+taken = set(STEPPE) | set(configured)
+elsewhere = [k for k, _ in sorted(COUNTS.items(), key=lambda kv: -(kv[1][1] + kv[1][2]))
+             if k not in taken][:12]
+short = {"Old Indo-Aryan (CDIAL headwords)": "Old Indo-Aryan (CDIAL)",
+         "Old Persian (ca. 600-400 B.C.)": "Old Persian", "Western Farsi": "Persian (Western Farsi)"}
+
+
+def section(title, ids, sort=True):
+    langs = [(i, *COUNTS[i]) for i in ids if i in COUNTS]
+    if sort:
+        langs.sort(key=lambda x: -(x[2] + x[3]))
+    return title, langs
+
+
+SECTIONS = [section("Steppe corridor: Slavic, Baltic, Iranian, Turkic, Mongolic, Uralic and their ancestors", STEPPE),
+            section("South Asia: the 25 configured languages", configured),
+            section("Largest elsewhere", elsewhere)]
+
+W, LBL, PADR = 900, 200, 190
+ROW, GH, TOP = 21, 40, 96
 plot = W - LBL - PADR
-vals = sorted((max(r[2], r[3]) for r in rows if r[0] == "lang"), reverse=True)
-mx = vals[1] if vals[0] > 2 * vals[1] else vals[0]  # an outlier bar is drawn broken
-step = next(st for st in (1000, 2000, 2500, 5000, 10000, 20000, 25000, 50000, 100000, 200000, 250000) if mx / st <= 5)
-nt = -(-mx // step)
-mx = nt * step
-H = TOP + sum(ROW if r[0] == "lang" else GH for r in rows) + 34
-o = []
-o.append(f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" role="img" aria-labelledby="t d">')
-o.append('<title id="t">Words per language: open public seed vs research database</title>')
-o.append('<desc id="d">Horizontal bars per configured language, grouped by family. ' + html.escape("; ".join(f"{r[1]}: open {r[2]}, research {r[3]}" for r in rows if r[0] == "lang")) + '</desc>')
-o.append('''<style>
+H = TOP + sum(GH + ROW * len(ls) for _, ls in SECTIONS) + 40
+o = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" '
+     'font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif" role="img" aria-labelledby="t d">',
+     '<title id="t">Words per language in the research database, open-licensed and research-use sources</title>',
+     '<desc id="d">' + html.escape("; ".join(
+         f"{short.get(n, n)}: {o_ + r:,} words ({r:,} research-use), {ln:,} with links"
+         for _, ls in SECTIONS for _, n, o_, r, ln in ls)) + '</desc>',
+     '''<style>
 .bg{fill:#fcfcfb}.t1{fill:#0b0b0b}.t2{fill:#52514e}.grid{stroke:#e4e3df}.open{fill:#2a78d6}.res{fill:#eb6834}
 @media (prefers-color-scheme: dark){.bg{fill:#1a1a19}.t1{fill:#f0efec}.t2{fill:#c3c2b7}.grid{stroke:#3a3936}.open{fill:#3987e5}.res{fill:#d95926}}
-</style>''')
-o.append(f'<rect class="bg" width="{W}" height="{H}" rx="10"/>')
-o.append(f'<text class="t1" x="20" y="32" font-size="17" font-weight="600">Words per language</text>')
-o.append(f'<rect class="open" x="20" y="50" width="12" height="12" rx="2"/><text class="t2" x="38" y="60" font-size="13">Open public seed</text>')
-o.append(f'<rect class="res" x="170" y="50" width="12" height="12" rx="2"/><text class="t2" x="188" y="60" font-size="13">Research database (open + research-use sources)</text>')
-o.append(f'<text class="t2" x="{W-20}" y="60" font-size="12" text-anchor="end">labels: open / research</text>')
+</style>''',
+     f'<rect class="bg" width="{W}" height="{H}" rx="10"/>',
+     '<text class="t1" x="20" y="32" font-size="17" font-weight="600">Words per language, research database</text>',
+     '<rect class="open" x="20" y="50" width="12" height="12" rx="2"/>'
+     '<text class="t2" x="38" y="60" font-size="13">Open-licensed sources</text>',
+     '<rect class="res" x="190" y="50" width="12" height="12" rx="2"/>'
+     '<text class="t2" x="208" y="60" font-size="13">Research-use sources (cited, not redistributed)</text>',
+     f'<text class="t2" x="20" y="80" font-size="11">Each section has its own scale. Labels: words · words with at least one documented link. '
+     f'{datetime.date.today().isoformat()}.</text>']
 y = TOP
-# grid
-body_top = TOP
-for i in range(0, nt + 1):
-    v = step * i
-    x = LBL + plot * i / nt
-    o.append(f'<line class="grid" x1="{x:.1f}" x2="{x:.1f}" y1="{body_top-8}" y2="{H-30}" stroke-width="1"/>')
-    o.append(f'<text class="t2" x="{x:.1f}" y="{H-14}" font-size="11" text-anchor="middle">{int(v):,}</text>')
-for kind, name, p, r in rows:
-    if kind == "group":
-        o.append(f'<text class="t1" x="20" y="{y+20}" font-size="13" font-weight="600">{html.escape(name)}</text>')
-        y += GH
-        continue
-    o.append(f'<text class="t2" x="{LBL-10}" y="{y+14}" font-size="12" text-anchor="end">{html.escape(name)}</text>')
-    brk = max(r, p) > mx
-    wr = max(plot * min(r, mx * 1.06) / mx, 2 if r else 0); wp = max(plot * min(p, mx * 1.06) / mx, 2 if p else 0)
-    o.append(f'<rect class="res" x="{LBL}" y="{y+3}" width="{wr:.1f}" height="8" rx="2"><title>{html.escape(name)}: {r:,} words (research database)</title></rect>')
-    o.append(f'<rect class="open" x="{LBL}" y="{y+12}" width="{wp:.1f}" height="6" rx="2"><title>{html.escape(name)}: {p:,} words (open seed)</title></rect>')
-    if brk:
-        bx = LBL + plot * 1.0 + 6
-        o.append(f'<path class="bg" d="M{bx:.1f} {y+1} l6 0 l-4 19 l-6 0 z"/>')
-    o.append(f'<text class="t2" x="{LBL+max(wr,wp)+6:.1f}" y="{y+15}" font-size="11">{p:,} / {r:,}</text>')
-    y += ROW
-broken = [r[1] for r in rows if r[0] == "lang" and max(r[2], r[3]) > mx]
-if broken:
-    o.append(f'<text class="t2" x="20" y="{H-14}" font-size="11">Bars cut at the break: {", ".join(broken)}</text>')
+for title, langs in SECTIONS:
+    o.append(f'<text class="t1" x="20" y="{y + 22}" font-size="13" font-weight="600">{html.escape(title)}</text>')
+    y += GH
+    mx = max(a + b for _, _, a, b, _ in langs)
+    for _, name, op, rs, linked in langs:
+        name = short.get(name, name)
+        wo = plot * op / mx
+        wr = plot * rs / mx
+        o.append(f'<text class="t2" x="{LBL - 10}" y="{y + 14}" font-size="12" text-anchor="end">{html.escape(name)}</text>')
+        o.append(f'<rect class="open" x="{LBL}" y="{y + 4}" width="{max(wo, 1.5 if op else 0):.1f}" height="11" rx="2">'
+                 f'<title>{html.escape(name)}: {op:,} words from open sources</title></rect>')
+        if rs:
+            o.append(f'<rect class="res" x="{LBL + wo:.1f}" y="{y + 4}" width="{max(wr, 1.5):.1f}" height="11" rx="2">'
+                     f'<title>{html.escape(name)}: {rs:,} words from research-use sources</title></rect>')
+        o.append(f'<text class="t2" x="{LBL + max(wo + wr, 2) + 6:.1f}" y="{y + 14}" font-size="11">'
+                 f'{op + rs:,} · {linked:,} linked</text>')
+        y += ROW
+o.append(f'<text class="t2" x="20" y="{H - 16}" font-size="11">Generated by scripts/coverage_chart.py from read-only queries; '
+         'the committed open seed is smaller (see the table in the README).</text>')
 o.append('</svg>')
-open(sys.argv[2], "w").write("\n".join(o) + "\n")
-print("ok", H, mx)
+open(sys.argv[2], "w", encoding="utf-8").write("\n".join(o) + "\n")
+print("ok", H, sum(len(ls) for _, ls in SECTIONS))
