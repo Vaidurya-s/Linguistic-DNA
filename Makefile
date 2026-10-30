@@ -70,9 +70,9 @@ import-cognates:
 	cd backend && .venv/bin/python -m app.cli import-wordlist --cldf ../data/raw/dunnielex/cldf \
 		--dataset dunnielex --version "v1.1 (f6f9150)" --all-languages
 	cd backend && .venv/bin/python -m app.cli import-wordlist --cldf ../data/raw/northeuralex/cldf \
-		--dataset northeuralex --version "v4.1 (e9a8119)"
+		--dataset northeuralex --version "v4.1 (e9a8119)" --all-languages
 	cd backend && .venv/bin/python -m app.cli import-wordlist --cldf ../data/raw/halenepal/cldf \
-		--dataset halenepal --version "v4.0 (ec54471)"
+		--dataset halenepal --version "v4.0 (ec54471)" --all-languages
 
 import-dcs:
 	cd backend && .venv/bin/python -m app.cli import-dcs --dictionary ../data/raw/dcs/dictionary.csv \
@@ -120,11 +120,12 @@ import-concepticon:
 
 import-lsi:
 	cd backend && .venv/bin/python -m app.cli import-wordlist --cldf ../data/raw/lsi/cldf \
-		--dataset lsi --version "v1.1 (133bcfc)"
+		--dataset lsi --version "v1.1 (133bcfc)" --all-languages
 
 import-asjp:
 	cd backend && .venv/bin/python -m app.cli import-wordlist --cldf ../data/raw/asjp/cldf \
-		--dataset asjp --version "v21.1 (cf4bf0d)" --transcription ASJPcode
+		--dataset asjp --version "v21.1 (cf4bf0d)" --transcription ASJPcode \
+		--all-languages
 
 import-aliases:
 	cd backend && .venv/bin/python -m app.cli import-dakshina \

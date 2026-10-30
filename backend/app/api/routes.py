@@ -8,6 +8,7 @@ from app.schemas.api import (
     CitationsResponse,
     GraphResponse,
     LanguageOut,
+    LanguageProfile,
     LexemeDetail,
     RelationshipDetail,
     SearchResponse,
@@ -22,6 +23,15 @@ MAX_QUERY = 64
 @router.get("/languages", response_model=list[LanguageOut])
 def languages(conn: Conn):
     return retrieval.list_languages(conn)
+
+
+@router.get("/languages/{language_id}/profile", response_model=LanguageProfile)
+def language_profile(conn: Conn, language_id: str):
+    """Typological and phonological facts (WALS, PHOIBLE) about one language, cited."""
+    found = retrieval.get_language_profile(conn, language_id)
+    if not found:
+        raise HTTPException(404, "Language not found")
+    return found
 
 
 @router.get("/search", response_model=SearchResponse)

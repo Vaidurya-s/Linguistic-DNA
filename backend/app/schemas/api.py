@@ -83,6 +83,22 @@ class CitedWork(BaseModel):
     record_count: int
 
 
+class ProfileValue(BaseModel):
+    dataset: str
+    feature_id: str
+    feature_name: str
+    value: str
+    citation: str | None
+
+
+class LanguageProfile(BaseModel):
+    language_id: str
+    name: str
+    family_name: str | None
+    glottocode: str | None
+    values: list[ProfileValue]
+
+
 class CitationsResponse(BaseModel):
     datasets: list[CitedDataset]
     works: list[CitedWork]

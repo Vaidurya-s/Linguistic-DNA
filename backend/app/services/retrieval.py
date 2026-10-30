@@ -525,5 +525,28 @@ def _source(conn: Connection, source_id: str | None, dataset: str | None = None)
     return dict(row) if row else None
 
 
+def get_language_profile(conn: Connection, language_id: str) -> dict | None:
+    row = (
+        conn.execute(
+            text("""
+        SELECT g.id AS language_id, g.name, f.name AS family_name, g.glottocode
+        FROM language g LEFT JOIN language_family f ON f.id = g.family_id WHERE g.id = :id"""),
+            {"id": language_id},
+        )
+        .mappings()
+        .first()
+    )
+    if not row:
+        return None
+    out = dict(row)
+    out["values"] = _rows(
+        conn,
+        """SELECT dataset, feature_id, feature_name, value, citation FROM language_profile
+           WHERE language_id = :id ORDER BY dataset, feature_name, value""",
+        {"id": language_id},
+    )
+    return out
+
+
 def _rows(conn: Connection, sql: str, params: dict) -> list[dict]:
     return [dict(r) for r in conn.execute(text(sql), params).mappings()]

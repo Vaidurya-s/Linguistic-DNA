@@ -16,6 +16,7 @@ from pathlib import Path
 
 from app.config import REPO_ROOT
 from app.importers.cdsl import import_cdsl_mw
+from app.importers.cldf_structure import import_cldf_structure
 from app.importers.cldf_wordlist import import_cldf_wordlist
 from app.importers.common import connect
 from app.importers.concepticon import import_concepticon
@@ -64,6 +65,9 @@ def main(argv: list[str] | None = None) -> int:
     dp.add_argument("--db", type=Path, required=True, help="dpd.db unpacked from the release")
     dp.add_argument("--archive", type=Path, help="the release dpd.db.tar.xz, for its checksum")
     dp.add_argument("--version", default="unknown")
+    st = sub.add_parser("import-structure", help="CLDF StructureDataset -> language profiles")
+    st.add_argument("--cldf", type=Path, required=True)
+    st.add_argument("--dataset", required=True, help="dataset_id from dataset_audit.csv")
     dc = sub.add_parser("import-dcs")
     dc.add_argument("--dictionary", type=Path, required=True)
     dc.add_argument("--version", default="unknown")
@@ -136,6 +140,9 @@ def main(argv: list[str] | None = None) -> int:
         elif args.cmd == "import-dpd":
             load_manifest(conn)
             result = import_dpd(conn, args.db, args.archive, args.version)
+        elif args.cmd == "import-structure":
+            load_manifest(conn)
+            result = import_cldf_structure(conn, args.cldf, args.dataset)
         elif args.cmd == "import-dcs":
             load_manifest(conn)
             result = import_dcs(conn, args.dictionary, args.version)
