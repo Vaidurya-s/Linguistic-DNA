@@ -153,6 +153,73 @@ Alongside the existing Wikidata, LSI and ASJP imports, the research database hol
 - **IndoWordNet:** no working bulk download. The Hindi licence is GPL/FDL; licences for the other languages are not stated.
 - **CogNet v2 (CC BY-NC-SA):** its cognates are computed automatically and include loans. It can return later as a *candidate* layer once the graph draws candidates distinctly.
 
+## 4b. The global source list (50 sources, 2026-10-30)
+
+Each source below was checked against its own licence, terms and robots.txt. Rows marked *not imported* are listed in the audit with their reason, so the decision can be revisited if access or terms change. Verified versions and citations are in `dataset_audit.csv`, `downloads.json` and `lexibank.tsv`.
+
+**Global and cross-linguistic**
+
+| # | Source | Outcome |
+|---|---|---|
+| 1 | PanLex | **Not imported.** No official snapshot is reachable. PanLex's licence is CC BY-NC-SA 4.0, while third-party mirrors say CC0. Revisit if PanLex confirms terms. |
+| 2, 3 | Wiktionary dumps, kaikki.org | **Imported** (Indian languages and their ancestors). A global import is sized at 3.0M entries with etymology across 2,939 languages. It runs in capped form within the disk budget. |
+| 4 | Open Multilingual Wordnet 2.0 | **Imported.** 32 wordnets, every one licensed for redistribution. Senses are linked through interlingual (ILI) concepts. |
+| 5 | Global WordNet Association | A directory, not a dataset. Its open wordnets are reached through OMW. |
+| 6 | Concepticon | **Imported** (v3.4.0). |
+| 7, 8 | Lexibank, CLDF datasets | **Imported.** 130 datasets plus the earlier ones: 124 CC BY, and 6 non-commercial treated as RESEARCH USE. All languages, cognate sets and borrowings are included. |
+| 9 | Glottolog | **Imported** in full: 8,594 languages and 4,853 families. Every source's languages map to one record per glottocode. |
+| 10 | WALS | **Imported** as language profiles: 73k values for 2,433 languages. |
+| 11 | PHOIBLE | **Imported** as language profiles: 79k segment entries for 2,048 languages. |
+| 12 | ASJP | **Imported**, all 11,115 doculects. |
+| 13 | CLICS⁴ | Audited (CC BY 4.0). Its forms duplicate Lexibank. Colexifications are planned as a concept layer. |
+| 14, 15 | WOLD / Loanword Typology | **Imported** through Lexibank: 21,624 directed borrowings. |
+
+**European and Indo-European**
+
+| # | Source | Outcome |
+|---|---|---|
+| 16 | IELex | **Imported.** |
+| 17 | IE-CoR | **Imported.** |
+| 18 | NorthEuraLex | **Imported**, all 107 languages. |
+| 19 | Indo-European Etymological Dictionaries Online (Brill) | **Not imported.** Subscription product with no bulk access. |
+| 20 | Comparative Linguistic Databank (Goethe University) | **Not imported.** Status and access are unknown. |
+| 21 | ALEW (Old Lithuanian etymological dictionary) | **Not imported** for now. v1.1 is CC BY-NC-SA 3.0 DE, but its repository's robots.txt disallows automated agents; a person can download it. |
+| 22 | SLIEKKAS | **Not imported.** No public bulk download, and its CLARIN mirror disallows automated agents. |
+| 23 | CorDon | Audited. Bulk download exists, CC BY-NC 3.0 DE, which would make it RESEARCH USE. It is a corpus of one author (about 24k words). |
+| 24, 49 | TITUS (old and 2.0) | **Not imported.** Scholarly non-commercial use only, partly restricted to members, no bulk download. |
+| 25 | VATEC | **Not imported.** All rights reserved. |
+| 26 | Rustaveli Digital Corpus | **Not imported.** Not found as a separate resource. |
+| 27 | ECLING | **Not imported.** Credentials required. |
+| 28 | Universal Dependencies 2.18 | Audited. Licences vary per treebank (61 non-commercial). Lemmas from open treebanks are planned. |
+| 29, 30 | Scaife, Perseus | Audited (CC BY-SA 4.0). The LSJ and Lewis & Short lexica are planned. |
+| 31 | Logeion | **Not imported.** An aggregator with no bulk download; its parts have mixed rights, including no-derivatives. |
+| 32 | Estonian WordNet | **Not imported.** Download requires contacting the maintainer, and listings conflict between CC BY-SA and BY-NC. |
+| 33 | FinnWordNet | **Imported** through OMW (CC BY 3.0). |
+| 34 | plWordNet | The OMW subset is **imported**. Version 4.5 is an open SQL dump that needs conversion; version 5.0 requires a request. |
+| 35 | Tilde MODEL | Audited (CC BY). Parallel text only; no word-level relationships are derived. |
+
+**Southeast Asian and Austronesian**
+
+| # | Source | Outcome |
+|---|---|---|
+| 36, 37 | SEAlang Library, Mon-Khmer project | **Not imported.** The host is unreachable and no bulk download was found. |
+| 38 | STEDT | **Not imported.** No public release; the author releases data on request. Sino-Tibetan cognates come through Lexibank (sagartst, Peiros). |
+| 39 | ABVD | **Imported**: 1,982 languages, cognate sets drawn as stars. |
+| 40 | Austronesian Comparative Dictionary | **Imported** through Lexibank: cognate sets and borrowings. |
+| 41 | SEABOR | **Imported** through Lexibank (cognates). |
+| 42 | PARADISEC | **Not imported.** Metadata only, and its user licence forbids redistribution. |
+| 43 | Tibetan and Himalayan Library / Digital Himalaya | **Not imported.** Non-commercial, no derivatives, online only. |
+| 44 | Leipzig Corpora Collection | Audited. Downloads exist, but their licence page is behind a bot challenge, so the licence is unverified. |
+| 45 | OPUS | Audited. Its dictionaries come from automatic word alignment, i.e. computed, so they are not imported as relationships. Its API disallows automated agents. |
+
+**Multilingual and historical**
+
+| # | Source | Outcome |
+|---|---|---|
+| 46 | Tatoeba | Audited (CC BY 2.0 FR). Sentence pairs give no word-level relationships without computed alignment. |
+| 47, 48 | NLLB-Seed, FLORES-200 | Audited (CC BY-SA 4.0). Evaluation sets whose terms forbid crawler-reachable re-hosting; not imported. |
+| 50 | Historica Corpus | **Not identified.** The name matches several corpora; a link would settle it. |
+
 ## 5. Shortlist datasets not yet audited
 
 The other 22 shortlisted resources have rows with decision BLOCKED and reason "unverified": Lexibank (as a collection), Open English WordNet, Unicode CLDR, IndicLID, Samanantar, IndicCorp v2, Naamapadam, BPCC-Mined, BPCC-H-Wiki, BPCC-H-Daily, IN22-Gen, IN22-Conv, FLORES-200, NLLB-Seed, Tatoeba, Wiktionary, Wikipedia, Open Multilingual Wordnet, Universal Dependencies, Common Voice, FLEURS, and CLDF datasets on Zenodo.
