@@ -122,7 +122,7 @@ make migrate
 make load-public-seed
 ```
 
-**4b. The full research database.** This takes 1.5–3 hours and needs about 30 GB. Everything is downloaded from its own upstream, pinned by commit or checksum: about 8 GB, and finished downloads are skipped on a re-run.
+**4b. The full research database.** This takes 1.5–3 hours and needs about 30 GB. Everything is downloaded from its own upstream, pinned by commit or checksum: about 8 GB, and finished downloads are skipped on a re-run. That includes the StarLing etymological databases (about 15 MB from starlingdb.org). Their first download prints each file's SHA-256 so it can be pinned in `data/manifests/downloads.json`; nothing else from StarLing is needed.
 
 ```bash
 make fetch-data fetch-dev-data

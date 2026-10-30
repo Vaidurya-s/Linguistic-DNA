@@ -27,6 +27,7 @@ from app.importers.glottolog import import_glottolog
 from app.importers.jambu import JambuImporter
 from app.importers.manifest import load_manifest, prune_orphan_sources
 from app.importers.omw import import_omw
+from app.importers.starling import import_starling, name_languages_from_glottolog
 from app.importers.transliteration import import_aksharantar, import_dakshina
 from app.importers.wikidata_lexemes import fetch_language_names, import_wikidata_lexemes
 from app.importers.wiktionary import import_wiktionary, wiktionary_code_map
@@ -69,6 +70,16 @@ def main(argv: list[str] | None = None) -> int:
     dp.add_argument("--db", type=Path, required=True, help="dpd.db unpacked from the release")
     dp.add_argument("--archive", type=Path, help="the release dpd.db.tar.xz, for its checksum")
     dp.add_argument("--version", default="unknown")
+    st = sub.add_parser("import-starling", help="StarLing etymological databases (research use)")
+    st.add_argument("--dir", type=Path, required=True, help="folder of the *.exe archives")
+    st.add_argument("--version", default="unknown")
+    st.add_argument("--glottolog", type=Path, help="glottolog-cldf/cldf: resolve other field names")
+    st.add_argument(
+        "--report",
+        type=Path,
+        default=REPO_ROOT / "reports" / "starling_unmapped.csv",
+        help="where to list field names and abbreviations that no language was found for",
+    )
     lb = sub.add_parser("import-lexibank", help="every dataset in data/manifests/lexibank.tsv")
     lb.add_argument("--list", type=Path, default=REPO_ROOT / "data/manifests/lexibank.tsv")
     lb.add_argument("--raw", type=Path, default=REPO_ROOT / "data/raw/lexibank")
@@ -172,6 +183,17 @@ def main(argv: list[str] | None = None) -> int:
         elif args.cmd == "import-dpd":
             load_manifest(conn)
             result = import_dpd(conn, args.db, args.archive, args.version)
+        elif args.cmd == "import-starling":
+            load_manifest(conn)
+            archives = sorted(p for p in args.dir.iterdir() if p.suffix.lower() in (".exe", ".zip"))
+            names = (
+                name_languages_from_glottolog(conn, Glottolog(args.glottolog))
+                if args.glottolog
+                else {}
+            )
+            result = import_starling(
+                conn, archives, args.version, wiktionary_code_map(), names, args.report
+            )
         elif args.cmd == "import-lexibank":
             load_manifest(conn)
             conn.commit()
@@ -304,6 +326,7 @@ def main(argv: list[str] | None = None) -> int:
             load_manifest(conn)
             result = import_glottolog(conn, args.cldf)
         elif args.cmd == "refresh-languages":
+            load_manifest(conn)  # sources such as glottolog, even on an empty database
             result = {}
             if args.glottolog:
                 glottolog = Glottolog(args.glottolog)

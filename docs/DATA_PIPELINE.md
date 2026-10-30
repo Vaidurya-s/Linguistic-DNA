@@ -94,6 +94,22 @@ make import-jambu validate
   - with `FULL=1` (`make full-db`), every language in the dump, about 5.4 million entries in 5,000 languages.
 - Rows are staged in temporary tables and merged in SQL, so memory stays flat.
 
+**StarLing (The Tower of Babel; research use).**
+- **Format.** The downloads (`data/raw/starling/*.exe`) are self-extracting ZIP archives, read directly with Python's `zipfile`.
+  - Each database is a dBase III `.dbf`. Its text fields are 6-byte pointers (offset, length) into a `.var` file.
+  - The `.inf` file names the fields and the databases that number fields link to.
+- **Encoding.** Text is in StarLing's own encoding: ASCII, CP866 Cyrillic, diacritics and combining accents in the upper range, `0x1D` escapes, Greek and OCS byte pairs, and Big5 for Chinese. It is decoded with A. Brouwer's tables (`app/importers/starling_charset.py`).
+- **What becomes what** (`data/config/starling.csv`):
+  - An etymology record becomes a reconstructed word in its database's proto-language. Wiktionary codes are used where they exist (`ine-pro`, `gem-pro`, `trk-pro` …), so the same proto-language holds both sources' forms.
+  - Each reflex field gives one word per `;`-separated segment, linked to the proto-form as `etymon`.
+  - A number field that links a subordinate database to its main one (Germanic to Indo-European, Turkic to Altaic) gives an `etymon` link between the two proto-forms. Links within the Altaic databases note that the family is contested.
+  - Vasmer's entries become Russian words, with the stress mark kept in `native_form`, linked to the PIE root that cites them.
+  - Pokorny's dictionary supplies page references only.
+  - No dictionary prose is stored.
+- **Languages.** A field name ("Old Greek", "Gothic") or the abbreviation that opens a segment in a mixed field ("Oss." in "Other Iranian") resolves to a language through `data/config/starling_languages.csv`; Glottolog's language names are the fallback.
+  - Anything unresolved is skipped and listed in `reports/starling_unmapped.csv`, with counts and any encoding misses.
+  - To include more, add the name or abbreviation to that file and run `make import-starling refresh-languages`.
+
 **Concepts.** Jambu's concept IDs are Concepticon IDs (all 3,321 match ID and gloss), so all datasets share one concept space.
 
 **Transliteration search (Phase 2).** A query in any of the nine supported scripts is romanised by our own rule-based converter (`backend/app/services/transliterate.py`), following ISO 15919. It tries the readings the script leaves open: whether inherent vowels are pronounced, and whether anusvara is a nasal consonant or a nasalised vowel. The resulting loose keys are matched only within languages that use that script. A romanised query such as "paani" is looked up in the transliteration aliases (Dakshina, plus the approved Aksharantar components) to get native spellings, which then take the same path. Every such match has `match_type = transliteration` and a `via` explanation. Records stored only in a native script (most Wikidata lemmas) are keyed by their romanisation, using per-language vowel rules (Sanskrit keeps inherent vowels, Hindi drops some), so romanised queries reach them. After changing these rules, run `python -m app.cli rekey-search`.

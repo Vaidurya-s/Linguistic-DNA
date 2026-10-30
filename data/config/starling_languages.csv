@@ -1,0 +1,429 @@
+name_or_abbreviation,wiktionary_code
+Other Iranian,*
+Slavic,*
+Baltic,*
+Other Italic,*
+Celtic,*
+Tokharian,*
+Iranian,*
+Indo-Aryan,*
+Romance,*
+Other Germanic,*
+Hittite,hit
+Hitt.,hit
+Hitt,hit
+Luwian,xlu
+Luw.,xlu
+Cuneiform Luwian,xlu
+Hieroglyphic Luwian,hlu
+Lycian,xlc
+Lyc.,xlc
+Palaic,plq
+Pal.,plq
+Lydian,xld
+Lyd.,xld
+Old Indian,sa
+Skt.,sa
+Ved.,sa
+Sanskrit,sa
+Vedic,sa
+OInd.,sa
+др.-инд.,sa
+Avestan,ae
+Av.,ae
+Avest.,ae
+авест.,ae
+Old Persian,peo
+OPers.,peo
+Middle Persian,pal
+MPers.,pal
+Pahl.,pal
+Persian,fa
+Pers.,fa
+NPers.,fa
+Ossetic,os
+Osset.,os
+Oss.,os
+Sogdian,sog
+Sogd.,sog
+Khotanese,kho
+Khot.,kho
+Pashto,ps
+Pasht.,ps
+Baluchi,bal
+Bal.,bal
+Kurdish,ku
+Kurd.,ku
+Bactrian,xbc
+Bactr.,xbc
+Khowar,khw
+Khow.,khw
+Pali,pi
+Prakrit,pra
+Pkt.,pra
+Prakr.,pra
+Armenian,xcl
+Arm.,xcl
+Old Armenian,xcl
+OArm.,xcl
+Old Greek,grc
+Greek,grc
+Gk.,grc
+Gr.,grc
+греч.,grc
+Mycenaean,gmy
+Myc.,gmy
+Latin,la
+Lat.,la
+лат.,la
+Oscan,osc
+Osc.,osc
+Umbrian,xum
+Umbr.,xum
+Albanian,sq
+Alb.,sq
+Tokharian B,txb
+Toch. B,txb
+TB,txb
+Tokharian A,xto
+Toch. A,xto
+TA,xto
+Old Irish,sga
+OIr.,sga
+Middle Irish,mga
+MIr.,mga
+Irish,ga
+Ir.,ga
+Welsh,cy
+W.,cy
+Middle Welsh,wlm
+MW,wlm
+Cornish,kw
+Corn.,kw
+Breton,br
+Bret.,br
+Gaulish,xtg
+Gaul.,xtg
+Germanic,gem-pro
+Proto-Germanic,gem-pro
+PGmc.,gem-pro
+Gmc.,gem-pro
+Gothic,got
+Goth.,got
+гот.,got
+Old Norse,non
+ON,non
+ONorse,non
+Old English,ang
+OE,ang
+AS,ang
+English,en
+Engl.,en
+E.,en
+Old Frisian,ofs
+OFris.,ofs
+Old Saxon,osx
+OS,osx
+OSax.,osx
+Old High German,goh
+OHG,goh
+д.-в.-н.,goh
+Middle High German,gmh
+MHG,gmh
+German,de
+Germ.,de
+NHG,de
+Middle Dutch,dum
+MDu.,dum
+Dutch,nl
+Du.,nl
+Middle Low German,gml
+MLG,gml
+Icelandic,is
+Icel.,is
+Norwegian,no
+Norw.,no
+Swedish,sv
+Sw.,sv
+Danish,da
+Dan.,da
+Faroese,fo
+Far.,fo
+Lithuanian,lt
+Lith.,lt
+лит.,lt
+Latvian,lv
+Latv.,lv
+Lett.,lv
+латыш.,lv
+Old Prussian,prg
+OPr.,prg
+OPruss.,prg
+др.-прусск.,prg
+Old Church Slavonic,cu
+OCS,cu
+OCSl.,cu
+ст.-слав.,cu
+Russian,ru
+Russ.,ru
+Rus.,ru
+русск.,ru
+Old Russian,orv
+ORuss.,orv
+др.-русск.,orv
+Ukrainian,uk
+Ukr.,uk
+укр.,uk
+Belarusian,be
+Bel.,be
+блр.,be
+Polish,pl
+Pol.,pl
+польск.,pl
+Czech,cs
+Cz.,cs
+чеш.,cs
+Slovak,sk
+Slk.,sk
+слвц.,sk
+Bulgarian,bg
+Bulg.,bg
+болг.,bg
+Serbo-Croatian,sh
+SCr.,sh
+сербохорв.,sh
+Slovene,sl
+Sln.,sl
+словен.,sl
+Upper Sorbian,hsb
+USorb.,hsb
+в.-луж.,hsb
+Lower Sorbian,dsb
+LSorb.,dsb
+н.-луж.,dsb
+Polabian,pox
+Polab.,pox
+полаб.,pox
+Proto-Turkic,trk-pro
+PT,trk-pro
+Old Turkic,otk
+OTurk.,otk
+Karakhanid,xqa
+Karakh.,xqa
+Turkish,tr
+Tur.,tr
+Tatar,tt
+Tat.,tt
+Uzbek,uz
+Uzb.,uz
+Uighur,ug
+Uygh.,ug
+Sary-Uighur,ybe
+Azerbaijani,az
+Azerbaidzhan,az
+Az.,az
+Turkmen,tk
+Tkm.,tk
+Khakassian,kjh
+Khak.,kjh
+Shor,cjs
+Oyrat,alt
+Altai,alt
+Khalaj,klj
+Halaj,klj
+Chuvash,cv
+Chuv.,cv
+Yakut,sah
+Yak.,sah
+Dolgan,dlg
+Tuva,tyv
+Tuvin.,tyv
+Tofalar,kim
+Kirghiz,ky
+Kyrgyz,ky
+Kirg.,ky
+Kazakh,kk
+Kaz.,kk
+Noghai,nog
+Nogai,nog
+Bashkir,ba
+Bashk.,ba
+Balkar,krc
+Karachay-Balkar,krc
+Gagauz,gag
+Karaim,kdr
+Kumyk,kum
+Salar,slr
+Proto-Mongolian,xgn-pro
+Proto-Mongolic,xgn-pro
+Written Mongolian,cmg
+WMong.,cmg
+Middle Mongolian,xng
+MMong.,xng
+Khalkha,khk
+Buriat,bua
+Buryat,bua
+Kalmuck,xal
+Kalmyk,xal
+Dagur,dta
+Daur,dta
+Shary-Yoghur,yuy
+Monguor,mjg
+Baoan,peh
+Dongxiang,sce
+Moghol,mhj
+Proto-Tungus-Manchu,tuw-pro
+Proto-Tungusic,tuw-pro
+Evenki,evn
+Even,eve
+Lamut,eve
+Negidal,neg
+Manchu,mnc
+Written Manchu,mnc
+Jurchen,juc
+Ulcha,ulc
+Orok,oaa
+Nanai,gld
+Oroch,oac
+Udighe,ude
+Udihe,ude
+Old Korean,oko
+Middle Korean,okm
+MKor.,okm
+Korean,ko
+Modern Korean,ko
+Kor.,ko
+Proto-Japanese,jpx-pro
+Proto-Japonic,jpx-pro
+Old Japanese,ojp
+OJ,ojp
+Japanese,ja
+Modern Japanese,ja
+Tokyo,ja
+Kyoto,ja
+Shuri,ryu
+Okinawan,ryu
+Proto-Dravidian,dra-pro
+Old Tamil,oty
+Tamil,ta
+Ta.,ta
+Malayalam,ml
+Ma.,ml
+Kannada,kn
+Ka.,kn
+Kodagu,kfa
+Kod.,kfa
+Tulu,tcy
+Tu.,tcy
+Telugu,te
+Te.,te
+Kolami,kfb
+Kol.,kfb
+Parji,pci
+Pa.,pci
+Gadba,gau
+Ga.,gau
+Gondi,gon
+Go.,gon
+Konda,kfc
+Konḍa,kfc
+Kui,kxu
+Kuwi,kxv
+Pengo,peg
+Manda,mha
+Kurux,kru
+Kur.,kru
+Malto,mjt
+Malt.,mjt
+Brahui,brh
+Br.,brh
+Toda,tcx
+To.,tcx
+Kota,kfe
+Ko.,kfe
+Irula,iru
+Ir,iru
+Avar,av
+Chechen,ce
+Ingush,inh
+Batsbi,bbl
+Tsova-Tush,bbl
+Lak,lbe
+Dargwa,dar
+Dargwa (Akusha),dar
+Lezghian,lez
+Lezgian,lez
+Tabasaran,tab
+Agul,agx
+Rutul,rut
+Tsakhur,tkr
+Kryz,kry
+Budukh,bdk
+Udi,udi
+Archi,aqc
+Khinalug,kjj
+Abkhaz,ab
+Abaza,abq
+Adyghe,ady
+Kabardian,kbd
+Ubykh,uby
+Andi,ani
+Akhvakh,akv
+Karata,kpt
+Botlikh,bph
+Godoberi,gdo
+Bagvalal,kva
+Tindi,tin
+Chamalal,cji
+Tsez,ddo
+Dido,ddo
+Hunzib,huz
+Bezhta,kap
+Hinukh,gin
+Khwarshi,khv
+Proto-Kartvelian,ccs-pro
+Georgian,ka
+Geo.,ka
+Old Georgian,oge
+OGeo.,oge
+Megrel,xmf
+Mingrelian,xmf
+Megr.,xmf
+Laz,lzz
+Svan,sva
+Proto-Sino-Tibetan,sit-pro
+Old Chinese,och
+OC,och
+Middle Chinese,ltc
+MC,ltc
+Chinese,zh
+Modern Chinese,zh
+Tibetan,xct
+Written Tibetan,xct
+Classical Tibetan,xct
+Tib.,xct
+Burmese,my
+Written Burmese,my
+Burm.,my
+Jingpo,kac
+Kachin,kac
+Lushai,lus
+Mizo,lus
+Lepcha,lep
+Kulung,kle
+Limbu,lif
+Yamphu,ybi
+Dumi,dus
+Chukchee,ckt
+Chukchi,ckt
+Koryak,kpy
+Alutor,alr
+Kerek,krk
+Itelmen,itl
+Kamchadal,itl
+Ket,ket
+Yugh,yuu
+Kott,zko
+Arin,xrn
+Pumpokol,xpm
+Assan,xss

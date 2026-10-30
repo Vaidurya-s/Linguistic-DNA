@@ -105,6 +105,7 @@ The project now serves academic research. A source with no open licence, or one 
 | CDIAL, through Jambu | Turner, Ralph Lilley. 1962–1966. *A comparative dictionary of the Indo-Aryan languages*. London: Oxford University Press | In copyright |
 | DEDR, through Jambu | Burrow, Thomas and Murray Barnson Emeneau. 1984. *A Dravidian Etymological Dictionary*. 2nd edn. Oxford: Clarendon Press | In copyright |
 | Wiktionary (wiktextract) | Wiktionary contributors, via wiktextract (Ylonen 2022) and kaikki.org | Provisional, until the extract's licence terms are verified |
+| StarLing etymological databases | Starostin, Sergei A., George S. Starostin et al. *The Tower of Babel: An Etymological Database Project*. https://starlingdb.org/, plus each database's own compilers and source book (§ 4c) | No licence stated; compiled from in-copyright dictionaries |
 
 Jambu cites the work behind each form and edge: CDIAL, DEDR and about 570 more, listed in its `sources.bib`. That citation is kept on every lexeme (`source_id`) and on every relationship's evidence, with the page or entry locator. `GET /api/v1/citations` lists all of them with record counts.
 
@@ -219,6 +220,27 @@ Each source below was checked against its own licence, terms and robots.txt. Row
 | 46 | Tatoeba | Audited (CC BY 2.0 FR). Sentence pairs give no word-level relationships without computed alignment. |
 | 47, 48 | NLLB-Seed, FLORES-200 | Audited (CC BY-SA 4.0). Evaluation sets whose terms forbid crawler-reachable re-hosting; not imported. |
 | 50 | Historica Corpus | **Not identified.** The name matches several corpora; a link would settle it. |
+
+## 4c. StarLing (The Tower of Babel)
+
+**Decision: RESEARCH USE.** These are the downloadable StarLing databases of Sergei Starostin's *Tower of Babel* project, archives dated 18 November 2005.
+
+**Evidence.**
+- Neither the download page nor the archives' `.inf` files state a licence.
+- The databases are compiled from dictionaries that are still in copyright: Walde–Pokorny and Pokorny's *IEW* (1959), Vasmer's *Russisches etymologisches Wörterbuch* in Trubachev's Russian edition (1964–1973), Starostin, Dybo & Mudrak's *Etymological Dictionary of the Altaic Languages* (Brill, 2003), Burrow & Emeneau's *DED*, Nikolayev & Starostin's *North Caucasian Etymological Dictionary* (1994), Starostin & Peiros' Sino-Tibetan dictionary, and Mudrak's Chukchee-Kamchatkan dictionary (2000).
+
+**Access.**
+- `starlingdb.org/robots.txt` disallows AI crawlers (`anthropic-ai`, `GPTBot`, `CCBot`, `Google-Extended`).
+- So the archives are never fetched by an automated agent working on this repository. They are downloaded only by the user's own `make fetch-dev-data`, as a person would from the site's Download page.
+- Their checksums are recorded on that first download: the manifest entries are `unpinned`.
+- The online-only databases (Uralic, Nostratic, Afroasiatic, Eskimo, long-range) have no download and are not scraped.
+
+**What is stored.**
+- Proto-forms, reflex forms, glosses of up to 120 characters, links between etymologies, and page references (Walde–Pokorny, Pokorny *IEW* pages, Vasmer volume and page).
+- No dictionary prose: no Vasmer or Trubachev articles, no Pokorny material, no comments.
+- Every record and link cites its own database and compilers, for example "StarLing, Indo-European etymology (S. L. Nikolayev, on the basis of Walde and Pokorny …), no. 1", with page locators.
+
+**Caveat.** The Altaic databases present Turkic, Mongolic, Tungusic, Korean and Japanese as one family. That is a contested hypothesis, so links between those databases carry a note saying so.
 
 ## 5. Shortlist datasets not yet audited
 

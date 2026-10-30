@@ -121,6 +121,12 @@ const RESEARCH_SOURCES = [
     credit: 'Peiros (2004), Lexibank edition (CC BY-NC)',
     url: 'https://github.com/lexibank/peirosst',
   },
+  {
+    name: 'StarLing: The Tower of Babel',
+    use: 'Etymological databases: Indo-European (after Walde–Pokorny, with Pokorny’s page references), Vasmer’s Russian dictionary, Germanic, Baltic, Altaic (Turkic, Mongolic, Tungusic, Korean, Japanese; a contested family), Dravidian, North Caucasian, Sino-Tibetan, Chukchee-Kamchatkan, Kartvelian and Yeniseian. Forms, short glosses and page references only',
+    credit: 'Sergei A. Starostin, George S. Starostin et al.; each record also cites its own database and compilers',
+    url: 'https://starlingdb.org/',
+  },
 ]
 
 const SECTIONS: [string, string[]][] = [

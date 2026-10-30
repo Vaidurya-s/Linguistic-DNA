@@ -1,0 +1,46 @@
+db,archive,kind,code,parent,contested,title,compilers
+piet,IE,etymology,ine-pro,,,Indo-European etymology,"S. L. Nikolayev, on the basis of Walde and Pokorny; Hittite and Tocharian by S. L. Nikolayev and S. A. Starostin"
+germet,IE,etymology,gem-pro,piet,,Germanic etymology,S. L. Nikolayev
+baltet,IE,etymology,,piet,,Baltic etymology,S. L. Nikolayev
+vasmer,IE,vasmer,ru,,,Vasmer's etymological dictionary of Russian,"M. Vasmer, Russisches etymologisches Wörterbuch (1950-1958), Russian edition by O. N. Trubachev (1964-1973); database version by S. A. Starostin"
+pokorny,IE,pokorny,,,,Pokorny's Indogermanisches etymologisches Wörterbuch,"J. Pokorny (1959); scanned by G. S. Starostin, corrected by A. Lubotsky"
+altet,ALTAIC,etymology,,,yes,Altaic etymology,"S. A. Starostin, A. V. Dybo and O. A. Mudrak, Etymological Dictionary of the Altaic Languages (Brill, 2003)"
+turcet,ALTAIC,etymology,trk-pro,altet,yes,Turkic etymology,"S. A. Starostin, A. V. Dybo and O. A. Mudrak (EDAL, 2003)"
+monget,ALTAIC,etymology,xgn-pro,altet,yes,Mongolic etymology,"S. A. Starostin, A. V. Dybo and O. A. Mudrak (EDAL, 2003)"
+tunget,ALTAIC,etymology,tuw-pro,altet,yes,Tungus-Manchu etymology,"S. A. Starostin, A. V. Dybo and O. A. Mudrak (EDAL, 2003)"
+koret,ALTAIC,etymology,,altet,yes,Korean etymology,"S. A. Starostin, A. V. Dybo and O. A. Mudrak (EDAL, 2003)"
+japet,ALTAIC,etymology,jpx-pro,altet,yes,Japanese etymology,"S. A. Starostin, A. V. Dybo and O. A. Mudrak (EDAL, 2003)"
+dravet,DRAV,etymology,dra-pro,,,Dravidian etymology,"G. S. Starostin, on the basis of Burrow and Emeneau's Dravidian Etymological Dictionary"
+braet,DRAV,etymology,,dravet,,Dravidian sub-branch etymology (braet),"G. S. Starostin, on the basis of Burrow and Emeneau's Dravidian Etymological Dictionary"
+gndet,DRAV,etymology,,dravet,,Dravidian sub-branch etymology (gndet),"G. S. Starostin, on the basis of Burrow and Emeneau's Dravidian Etymological Dictionary"
+gonet,DRAV,etymology,,dravet,,Dravidian sub-branch etymology (gonet),"G. S. Starostin, on the basis of Burrow and Emeneau's Dravidian Etymological Dictionary"
+kogaet,DRAV,etymology,,dravet,,Dravidian sub-branch etymology (kogaet),"G. S. Starostin, on the basis of Burrow and Emeneau's Dravidian Etymological Dictionary"
+konet,DRAV,etymology,,dravet,,Dravidian sub-branch etymology (konet),"G. S. Starostin, on the basis of Burrow and Emeneau's Dravidian Etymological Dictionary"
+ktet,DRAV,etymology,,dravet,,Dravidian sub-branch etymology (ktet),"G. S. Starostin, on the basis of Burrow and Emeneau's Dravidian Etymological Dictionary"
+kuiet,DRAV,etymology,,dravet,,Dravidian sub-branch etymology (kuiet),"G. S. Starostin, on the basis of Burrow and Emeneau's Dravidian Etymological Dictionary"
+ndret,DRAV,etymology,,dravet,,Dravidian sub-branch etymology (ndret),"G. S. Starostin, on the basis of Burrow and Emeneau's Dravidian Etymological Dictionary"
+pemet,DRAV,etymology,,dravet,,Dravidian sub-branch etymology (pemet),"G. S. Starostin, on the basis of Burrow and Emeneau's Dravidian Etymological Dictionary"
+sdret,DRAV,etymology,,dravet,,Dravidian sub-branch etymology (sdret),"G. S. Starostin, on the basis of Burrow and Emeneau's Dravidian Etymological Dictionary"
+telet,DRAV,etymology,,dravet,,Dravidian sub-branch etymology (telet),"G. S. Starostin, on the basis of Burrow and Emeneau's Dravidian Etymological Dictionary"
+caucet,CAUC,etymology,,,,North Caucasian etymology,"S. L. Nikolayev and S. A. Starostin, A North Caucasian Etymological Dictionary (1994)"
+nakhet,CAUC,etymology,,caucet,,Nakh etymology,"S. L. Nikolayev and S. A. Starostin, A North Caucasian Etymological Dictionary (1994)"
+aandet,CAUC,etymology,,caucet,,Avar-Andi etymology,"S. L. Nikolayev and S. A. Starostin, A North Caucasian Etymological Dictionary (1994)"
+cezet,CAUC,etymology,,caucet,,Tsezian etymology,"S. L. Nikolayev and S. A. Starostin, A North Caucasian Etymological Dictionary (1994)"
+darget,CAUC,etymology,,caucet,,Dargwa etymology,"S. L. Nikolayev and S. A. Starostin, A North Caucasian Etymological Dictionary (1994)"
+laket,CAUC,etymology,,caucet,,Lak etymology,"S. L. Nikolayev and S. A. Starostin, A North Caucasian Etymological Dictionary (1994)"
+lezget,CAUC,etymology,,caucet,,Lezghian etymology,"S. L. Nikolayev and S. A. Starostin, A North Caucasian Etymological Dictionary (1994)"
+khinet,CAUC,etymology,,caucet,,Khinalug etymology,"S. L. Nikolayev and S. A. Starostin, A North Caucasian Etymological Dictionary (1994)"
+abadet,CAUC,etymology,,caucet,,Abkhaz-Adyghe etymology,"S. L. Nikolayev and S. A. Starostin, A North Caucasian Etymological Dictionary (1994)"
+stibet,SINTIB,etymology,sit-pro,,,Sino-Tibetan etymology,"S. A. Starostin and I. Peiros, Sino-Tibetan Etymological Dictionary; Lepcha data by O. Mazo"
+kiret,SINTIB,etymology,,stibet,,Kiranti etymology,S. A. Starostin
+kulet,SINTIB,dictionary,kle,kiret,,Kulung dictionary,"G. van Driem, R. Rutgers and J. Tolsma (Leiden)"
+limet,SINTIB,dictionary,lif,kiret,,Limbu dictionary,"G. van Driem, R. Rutgers and J. Tolsma (Leiden)"
+yamet,SINTIB,dictionary,ybi,kiret,,Yamphu dictionary,"G. van Driem, R. Rutgers and J. Tolsma (Leiden)"
+dumet,SINTIB,dictionary,dus,kiret,,Dumi dictionary,"G. van Driem, R. Rutgers and J. Tolsma (Leiden)"
+bigchina,SINTIB,skip,,,,Chinese characters (Bigchina),S. A. Starostin
+doc,SINTIB,skip,,,,Old Chinese (doc),S. A. Starostin
+chuket,CHUKCHEE,etymology,,,,Chukchee-Kamchatkan etymology,"O. A. Mudrak, Etymological Dictionary of Chukchee-Kamchatkan Languages (2000)"
+kamet,CHUKCHEE,etymology,,chuket,,Chukchee-Koryak etymology,O. A. Mudrak (2000)
+itelet,CHUKCHEE,etymology,,chuket,,Itelmen etymology,O. A. Mudrak (2000)
+kartet,KART,etymology,ccs-pro,,,Kartvelian etymology,"S. A. Starostin, on the basis of G. Klimov and H. Fähnrich and Z. Sardzhveladze"
+yenet,YENISEY,etymology,,,,Yeniseian etymology,S. A. Starostin

@@ -37,7 +37,7 @@ The database lives in a Docker volume, under `/var/lib/docker` by default, so th
 | xz-utils | any | unpacks the Digital Pāḷi Dictionary release |
 | PostgreSQL client tools (`psql`, `pg_dump`, `pg_restore`) | 16 (optional) | only to inspect the database or make a dump; Docker already contains the server |
 
-**You do not need** CMake, a C/C++ compiler, uv, Conda, Git LFS or a Java runtime. The Python database driver installs as a prebuilt wheel (`psycopg[binary]`), and the one large Git LFS file is downloaded directly by URL with a pinned checksum.
+**You do not need** CMake, a C/C++ compiler, uv, Conda, Git LFS, a Java runtime, the StarLing program or Wine. The StarLing databases are self-extracting ZIP archives that the importer reads directly. The Python database driver installs as a prebuilt wheel (`psycopg[binary]`), and the one large Git LFS file is downloaded directly by URL with a pinned checksum.
 
 ## Installing
 

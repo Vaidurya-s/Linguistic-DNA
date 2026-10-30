@@ -172,7 +172,7 @@ Every dataset is a row in a machine-readable licence audit, [`data/manifests/dat
 | Decision | Datasets | Where it can appear |
 |---|---|---|
 | **APPROVED** / **APPROVED WITH CONDITIONS** | Glottolog, Concepticon, LSI, ASJP, Wikidata Lexemes, Wiktionary (wiktextract), IE-CoR, IELex, DravLex, NorthEuraLex, Hale's Nepal wordlists, Digital Corpus of Sanskrit lexicon, Dakshina, Aksharantar (approved components) | Everywhere, including the committed open seed, with attribution in [`data/public_seed/ATTRIBUTION.md`](data/public_seed/ATTRIBUTION.md) |
-| **RESEARCH USE** | Jambu (and through it Turner's CDIAL, Burrow & Emeneau's DEDR and about 570 other works), Monier-Williams 1899 (Cologne), Digital Pāḷi Dictionary, Peiros' Sino-Tibetan wordlists | The research database and a research deployment, with a citation on every record. **Never** in this repository or the open seed |
+| **RESEARCH USE** | Jambu (and through it Turner's CDIAL, Burrow & Emeneau's DEDR and about 570 other works), Monier-Williams 1899 (Cologne), Digital Pāḷi Dictionary, Peiros' Sino-Tibetan wordlists, the StarLing etymological databases (Pokorny, Vasmer, Indo-European, Altaic, Dravidian, North Caucasian, Sino-Tibetan and more) | The research database and a research deployment, with a citation on every record. **Never** in this repository or the open seed |
 | **BLOCKED** | everything unverified | Nowhere. `validate --research` fails on it |
 
 In the app:
@@ -206,6 +206,8 @@ make fetch-data import-open validate
 make fetch-dev-data
 make research-db            # open imports, research imports, Glottolog, re-key, validate --research
 ```
+
+The research imports include the **StarLing etymological databases** (Starostin's *Tower of Babel*), with Pokorny's and Vasmer's dictionaries, Indo-European, Germanic, Baltic, Altaic, Dravidian, North Caucasian, Sino-Tibetan, Chukchee-Kamchatkan, Kartvelian and Yeniseian etymologies. `make fetch-dev-data` downloads their 2005 archives (about 15 MB) from starlingdb.org on your machine; no StarLing software is needed. `make import-starling` re-runs just that import and lists any field names or abbreviations it could not assign to a language in `reports/starling_unmapped.csv` ([details](docs/DATA_PIPELINE.md)).
 
 **Everything, in every language** (about 5,000 languages, with Wiktionary's full etymologies and descendant lists; about 100 GB of free disk recommended, see [`REQUIREMENTS.md`](REQUIREMENTS.md)):
 
@@ -275,6 +277,7 @@ flowchart LR
     r2["Monier-Williams 1899"]
     r3["Digital Pali Dictionary"]
     r4["Peiros Sino-Tibetan"]
+    r5["StarLing / Tower of Babel<br/>(Pokorny, Vasmer, Altaic …)"]
   end
   OPEN --> F["fetch_data.py<br/>pinned commits + sha256"]
   RES --> F
@@ -349,6 +352,6 @@ https://github.com/Vaidurya-s/Linguistic-DNA, commit <hash>.
 
 ## Acknowledgements
 
-This project stands on the work of others: the compilers of CDIAL and DEDR; the Jambu team, who made decades of South Asian historical linguistics machine-readable; Glottolog, Concepticon and the Lexibank / CLDF community (LSI, ASJP, IE-CoR, IELex, DravLex, NorthEuraLex, Hale's Nepal, Peiros); Wikidata and Wiktionary contributors, and wiktextract / kaikki.org; the Digital Corpus of Sanskrit, the Cologne Digital Sanskrit Dictionaries and the Digital Pāḷi Dictionary; and Google Research's Dakshina and AI4Bharat's Aksharantar for transliteration data.
+This project stands on the work of others: the compilers of CDIAL and DEDR; the Jambu team, who made decades of South Asian historical linguistics machine-readable; Glottolog, Concepticon and the Lexibank / CLDF community (LSI, ASJP, IE-CoR, IELex, DravLex, NorthEuraLex, Hale's Nepal, Peiros); Wikidata and Wiktionary contributors, and wiktextract / kaikki.org; the Digital Corpus of Sanskrit, the Cologne Digital Sanskrit Dictionaries and the Digital Pāḷi Dictionary; Sergei and George Starostin and the Tower of Babel (StarLing) project; and Google Research's Dakshina and AI4Bharat's Aksharantar for transliteration data.
 
 <div align="center"><sub>Surface resemblance is not proof of common ancestry. Every documented relationship here traces to a source.</sub></div>

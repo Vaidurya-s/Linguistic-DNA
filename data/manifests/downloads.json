@@ -589,6 +589,86 @@
       "url": "https://github.com/omwn/omw-data/releases/download/v2.0/omw-zsm-2.0.tar.xz",
       "sha256": "a4f48a9f4abfdfdf404a7c9f87ff1de272c3ea2b6e5002356ed26ee141285bf7",
       "dest": "omw/omw-zsm-2.0.tar.xz"
+    },
+    {
+      "id": "starling-ie",
+      "group": "research",
+      "kind": "http",
+      "url": "https://starlingdb.org/download/IE.exe",
+      "sha256": null,
+      "unpinned": true,
+      "dest": "starling/IE.exe",
+      "note": "StarLing databases of 18 Nov 2005 (6.3 MB), a self-extracting ZIP read directly by make import-starling; research use, never redistributed"
+    },
+    {
+      "id": "starling-altaic",
+      "group": "research",
+      "kind": "http",
+      "url": "https://starlingdb.org/download/ALTAIC.exe",
+      "sha256": null,
+      "unpinned": true,
+      "dest": "starling/ALTAIC.exe",
+      "note": "StarLing databases of 18 Nov 2005 (1.9 MB), a self-extracting ZIP read directly by make import-starling; research use, never redistributed"
+    },
+    {
+      "id": "starling-drav",
+      "group": "research",
+      "kind": "http",
+      "url": "https://starlingdb.org/download/DRAV.exe",
+      "sha256": null,
+      "unpinned": true,
+      "dest": "starling/DRAV.exe",
+      "note": "StarLing databases of 18 Nov 2005 (2.1 MB), a self-extracting ZIP read directly by make import-starling; research use, never redistributed"
+    },
+    {
+      "id": "starling-cauc",
+      "group": "research",
+      "kind": "http",
+      "url": "https://starlingdb.org/download/CAUC.exe",
+      "sha256": null,
+      "unpinned": true,
+      "dest": "starling/CAUC.exe",
+      "note": "StarLing databases of 18 Nov 2005 (1.3 MB), a self-extracting ZIP read directly by make import-starling; research use, never redistributed"
+    },
+    {
+      "id": "starling-sintib",
+      "group": "research",
+      "kind": "http",
+      "url": "https://starlingdb.org/download/SINTIB.exe",
+      "sha256": null,
+      "unpinned": true,
+      "dest": "starling/SINTIB.exe",
+      "note": "StarLing databases of 18 Nov 2005 (2.3 MB), a self-extracting ZIP read directly by make import-starling; research use, never redistributed"
+    },
+    {
+      "id": "starling-chukchee",
+      "group": "research",
+      "kind": "http",
+      "url": "https://starlingdb.org/download/CHUKCHEE.exe",
+      "sha256": null,
+      "unpinned": true,
+      "dest": "starling/CHUKCHEE.exe",
+      "note": "StarLing databases of 18 Nov 2005 (0.8 MB), a self-extracting ZIP read directly by make import-starling; research use, never redistributed"
+    },
+    {
+      "id": "starling-kart",
+      "group": "research",
+      "kind": "http",
+      "url": "https://starlingdb.org/download/KART.exe",
+      "sha256": null,
+      "unpinned": true,
+      "dest": "starling/KART.exe",
+      "note": "StarLing databases of 18 Nov 2005 (0.2 MB), a self-extracting ZIP read directly by make import-starling; research use, never redistributed"
+    },
+    {
+      "id": "starling-yenisey",
+      "group": "research",
+      "kind": "http",
+      "url": "https://starlingdb.org/download/YENISEY.exe",
+      "sha256": null,
+      "unpinned": true,
+      "dest": "starling/YENISEY.exe",
+      "note": "StarLing databases of 18 Nov 2005 (0.2 MB), a self-extracting ZIP read directly by make import-starling; research use, never redistributed"
     }
   ]
 }

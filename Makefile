@@ -37,7 +37,7 @@ endif
         import-concepticon import-lsi import-asjp import-wikidata import-aliases validate \
         validate-public validate-research import-research research-db research-dump \
         import-wiktionary import-cognates import-peirosst import-dcs import-dpd import-cdsl-mw \
-        refresh-languages import-lexibank import-profiles import-omw full-db db-size \
+        refresh-languages import-lexibank import-profiles import-omw full-db db-size import-starling \
         coverage benchmark public-seed load-public-seed fixture test lint
 
 setup:
@@ -76,7 +76,15 @@ import-glottolog:
 	cd backend && .venv/bin/python -m app.cli import-glottolog --cldf ../$(GLOTTOLOG_CLDF)
 
 # Research-use datasets, cited per record; never in the public seed.
-import-research: import-jambu import-peirosst import-dpd import-cdsl-mw import-lexibank
+import-research: import-jambu import-peirosst import-dpd import-cdsl-mw import-lexibank \
+                 import-starling
+
+# StarLing / Tower of Babel etymological databases (PIE, Pokorny, Vasmer, Germanic, Baltic,
+# Altaic, Dravidian, North Caucasian, Sino-Tibetan, Chukchee-Kamchatkan, Kartvelian,
+# Yeniseian). Unmapped field names and abbreviations are listed in reports/starling_unmapped.csv.
+import-starling:
+	cd backend && .venv/bin/python -m app.cli import-starling --dir ../data/raw/starling \
+		--version "StarLing archives of 2005-11-18" --glottolog ../$(GLOTTOLOG_CLDF)
 
 # Every Lexibank dataset in data/manifests/lexibank.tsv (CC BY ones are open, NC ones are
 # research use), with all their languages, cognate sets and borrowings.

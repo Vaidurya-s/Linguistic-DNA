@@ -6,7 +6,9 @@
     python scripts/fetch_data.py --group all
 
 Every input is pinned in data/manifests/downloads.json: git repositories by tag and commit,
-files by SHA-256. Existing files that already match are skipped. Uses only the standard
+files by SHA-256. Existing files that already match are skipped. An entry marked "unpinned"
+(no checksum known yet, e.g. a site we may not download from ourselves) is downloaded once and
+its SHA-256 printed so it can be pinned. Uses only the standard
 library, so it works straight after cloning.
 """
 
@@ -36,6 +38,8 @@ def sha256(path: Path) -> str:
 
 def fetch_http(entry: dict, raw: Path) -> str:
     dest = raw / entry["dest"]
+    if entry.get("unpinned") and dest.exists():
+        return f"ok (cached; unpinned, sha256 {sha256(dest)})"
     if dest.exists() and sha256(dest) == entry["sha256"]:
         return "ok (cached)"
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -45,6 +49,9 @@ def fetch_http(entry: dict, raw: Path) -> str:
         while chunk := r.read(1 << 20):
             fh.write(chunk)
     got = sha256(tmp)
+    if entry.get("unpinned"):
+        tmp.replace(dest)
+        return f"downloaded (unpinned; sha256 {got}: add it to data/manifests/downloads.json)"
     if got != entry["sha256"]:
         if entry.get("rolling"):
             # The URL serves the latest snapshot (e.g. kaikki.org rebuilds weekly): keep it,

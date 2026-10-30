@@ -75,7 +75,7 @@ flowchart LR
 
 ## Limitations
 
-- **Open versus research data.** The richest word-history sources, CDIAL and DEDR (through Jambu), Monier-Williams and the Digital Pāḷi Dictionary, have no open or only a non-commercial licence. They are used in the research database, cited on every record, but are not in the downloadable open dataset, which is therefore thinner.
+- **Open versus research data.** The richest word-history sources, CDIAL and DEDR (through Jambu), Monier-Williams, the Digital Pāḷi Dictionary and the StarLing etymological databases (Pokorny, Vasmer, Altaic and other families), have no open or only a non-commercial licence. They are used in the research database, cited on every record, but are not in the downloadable open dataset, which is therefore thinner.
 - **Crowd-sourced data.** Wikidata and Wiktionary claims are shown with their references, and some are doubtful.
 - **Coverage is uneven.** Sanskrit has 441k words; Bodo has 442.
 - **Not yet handled:** Perso-Arabic, Ol Chiki and Meitei Mayek scripts, which is why Urdu spellings, Kashmiri, Sindhi, Santali and Manipuri are not yet searchable natively.
