@@ -19,6 +19,7 @@ const VERBS: Record<string, string> = {
   related_form: 'is related to',
   contact_influence: 'was influenced by',
   cognate: 'is cognate with',
+  calque_or_loan_translation: 'is a calque of',
   semantic_equivalent: 'has the same meaning as',
 }
 

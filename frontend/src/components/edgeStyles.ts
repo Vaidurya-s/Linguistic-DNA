@@ -8,6 +8,8 @@ export const EDGE_STYLES: Record<string, EdgeStyle> = {
   borrowed_from: { color: '#ea580c', line: 'solid', short: 'borrowed' },
   etymon: { color: '#0f766e', line: 'solid', short: 'from' }, // Wikidata: inherited or borrowed, unstated
   has_component: { color: '#7c3aed', line: 'solid', short: 'component' },
+  calque_or_loan_translation: { color: '#c2410c', line: 'dotted', short: 'calque' },
+  cognate: { color: '#be123c', line: 'dotted', short: 'cognate' }, // expert or editor judgment
   variant_of: { color: '#64748b', line: 'dotted', short: 'variant' },
   related_form: { color: '#0891b2', line: 'dotted', short: 'related' },
   contact_influence: { color: '#db2777', line: 'dotted', short: 'influence' },
@@ -22,5 +24,6 @@ export const styleFor = (type: string) => EDGE_STYLES[type] ?? FALLBACK_STYLE
 export const GROUP_COLORS: Record<string, string> = {
   'Indo-Aryan': '#fde68a',
   Dravidian: '#a7f3d0',
+  'Sino-Tibetan': '#bfdbfe',
 }
 export const OTHER_GROUP_COLOR = '#e2e8f0'

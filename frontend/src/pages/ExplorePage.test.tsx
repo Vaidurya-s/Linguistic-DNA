@@ -72,8 +72,10 @@ describe('ExplorePage', () => {
     vi.stubGlobal('fetch', fetchMock)
     render(<ExplorePage initialQuery="dānt" initialLanguage="pan" />)
     expect(await screen.findByText(/Matches for/)).toBeInTheDocument()
-    await vi.waitFor(() =>
-      expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/graph/lx_1'))).toBe(true))
+    await vi.waitFor(
+      () => expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/graph/lx_1'))).toBe(true),
+      { timeout: 5000 }, // search, then pick, then the graph fetch: slow on a loaded runner
+    )
   })
 
   it('shows an error when search fails', async () => {

@@ -89,7 +89,7 @@ export default function HomePage() {
           <div>
             <h2 className="text-2xl font-semibold">What the links mean</h2>
             <ul className="mt-4 space-y-2 text-sm">
-              {(['inherited_form', 'borrowed_from', 'etymon', 'derived_form', 'has_component'] as const).map((t) => (
+              {(['inherited_form', 'borrowed_from', 'etymon', 'derived_form', 'has_component', 'cognate'] as const).map((t) => (
                 <li key={t} className="flex items-center gap-3">
                   <svg width="32" height="8" aria-hidden="true">
                     <line x1="0" y1="4" x2="32" y2="4" stroke={EDGE_STYLES[t].color} strokeWidth="3" />
@@ -124,4 +124,5 @@ const LINK_TEXT: Record<string, string> = {
   etymon: 'comes from this word; the source does not say whether by inheritance or borrowing',
   derived_form: 'formed from another word, for example with a suffix',
   has_component: 'a compound or phrase that contains this word',
+  cognate: 'shares an ancestor with this word, as judged by a cognate database or dictionary',
 }

@@ -6,6 +6,8 @@ const SHOWN = [
   'etymon',
   'derived_form',
   'has_component',
+  'cognate',
+  'calque_or_loan_translation',
   'variant_of',
   'related_form',
 ]
