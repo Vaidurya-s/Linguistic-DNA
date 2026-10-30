@@ -13,9 +13,9 @@ mal,Malayalam,Malayalam,modern,Dravidian,Mlym,mala1464,,Q36236,ml,ml
 san,Sk,Sanskrit,historical,Indo-Aryan,Deva,sans1269,,Q11059,sa,sa
 oia,Indo-Aryan,Old Indo-Aryan (CDIAL headwords),reference,Indo-Aryan,Latn,sans1269,,,,
 pli,Pa,Pali,historical,Indo-Aryan,Latn,pali1273,,Q36727,,pi
-pra,Pk,Prakrit,historical,Indo-Aryan,Latn,maha1305,,Q192170,,
-x-apabhramsha,Ap,Apabhramsha,historical,Indo-Aryan,Latn,maha1305,,Q616419,,
-x-ashokan-prakrit,As,Ashokan Prakrit,historical,Indo-Aryan,Brah,maha1305,,,,
+pra,Pk,Prakrit,historical,Indo-Aryan,Latn,maha1305,,Q192170,,pra
+x-apabhramsha,Ap,Apabhramsha,historical,Indo-Aryan,Latn,maha1305,,Q616419,,inc-apa
+x-ashokan-prakrit,As,Ashokan Prakrit,historical,Indo-Aryan,Brah,maha1305,,,,inc-ash
 nep,N,Nepali,modern,Indo-Aryan,Deva,nepa1254,,Q33823,,ne
 mai,Mth,Maithili,modern,Indo-Aryan,Deva,mait1250,,Q36109,,mai
 doi,dog,Dogri,modern,Indo-Aryan,Deva,dogr1250,,Q32730,,doi

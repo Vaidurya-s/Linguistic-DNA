@@ -5,7 +5,7 @@ from app.pipeline.validate import run_checks
 from app.services.ids import lexeme_id
 
 FIXTURE = Path(__file__).parent / "fixtures" / "wiktionary_mini"
-CODES = {"hi": "hin", "sa": "san", "pa": "pan"}
+CODES = {"hi": "hin", "sa": "san", "pa": "pan", "pra": "pra"}
 
 
 def wid(code: str, term: str) -> str:
@@ -25,9 +25,17 @@ def test_wiktionary_entries_and_typed_etymologies(db):
         db, sorted(FIXTURE.glob("*.jsonl")), "fixture", CODES, reference_codes={"inc-pro"}
     )
     try:
-        # 5 entries (4 configured + the Proto-Indo-Aryan reference entry; not the English
+        # 7 entries (6 configured + the Proto-Indo-Aryan reference entry; not the English
         # one) + 5 terms named only by templates (Proto-Indo-Iranian among them)
-        assert stats["entries"] == 5 and stats["template_terms"] == 5
+        assert stats["entries"] == 7 and stats["template_terms"] == 5
+        # a Sauraseni Prakrit etymon lands on the Prakrit entry, the variety kept in the label;
+        # the Prakrit line's nested English translation comes first and must not hide it
+        aag = db.execute(
+            "SELECT r.type_id, r.original_label, t.language_id FROM relationship r"
+            " JOIN lexeme t ON t.id = r.target_lexeme_id WHERE r.source_lexeme_id = %s",
+            (wid("hi", "आग"),),
+        ).fetchone()
+        assert aag == ("inherited_form", "{{inh}} (pra-sau)", "pra")
         pani = wid("hi", "पानी")
         row = db.execute(
             "SELECT language_id, gloss, transliteration, reconstruction_status::text"

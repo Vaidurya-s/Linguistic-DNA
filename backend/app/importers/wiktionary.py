@@ -90,7 +90,21 @@ EVIDENCE_COLS = ("relationship_id", "source_id", "citation", "locator", "evidenc
 
 
 _LANG_CODE = re.compile(r'"lang_code": ?"([^"]+)"')
-_LANG = re.compile(r'"lang": ?"([^"]+)"')
+_LANG_PAIR = re.compile(r'"lang": ?"([^"]+)", ?"lang_code": ?"([^"]+)"')
+
+# Wiktionary's etymology-only varieties, merged into the language they belong to (the
+# variety stays in the relationship's original label).
+ETYMOLOGY_ONLY = {
+    "pra-sau": "pra",
+    "pra-mah": "pra",
+    "pra-mag": "pra",
+    "pra-pai": "pra",
+    "pra-ard": "pra",
+    "sa-cls": "sa",
+    "sa-ved": "sa",
+    "sa-bra": "sa",
+    "sa-epi": "sa",
+}
 
 
 def iter_jsonl(
@@ -98,20 +112,19 @@ def iter_jsonl(
 ) -> Iterator[dict]:
     """Entries from a wiktextract JSONL file, optionally only those in ``codes``.
 
-    The full dump is about 25 GB, so the language code is read with a regular expression and
-    only matching lines are parsed. ``names`` collects code -> language name from every line,
-    which also names languages that only appear as etymology sources."""
+    The full dump is about 25 GB, so a line is parsed only if one of its language codes is
+    wanted (nested translations and descendants carry codes too, so callers must still check
+    the entry's own code). ``names`` collects code -> language name from adjacent "lang" /
+    "lang_code" pairs on every line, which also names languages only seen as sources."""
     opener = gzip.open if path.suffix == ".gz" else open
     with opener(path, "rt", encoding="utf-8") as fh:
         for line in fh:
             if not line.startswith("{"):
                 continue
-            m = _LANG_CODE.search(line)
-            if names is not None and m and m.group(1) not in names:
-                lang = _LANG.search(line)
-                if lang:
-                    names[m.group(1)] = lang.group(1)
-            if codes is None or (m and m.group(1) in codes):
+            if names is not None:
+                for lang, code in _LANG_PAIR.findall(line):
+                    names.setdefault(code, lang)
+            if codes is None or any(c in codes for c in _LANG_CODE.findall(line)):
                 yield json.loads(line)
 
 
@@ -143,6 +156,7 @@ class Edge:
     word: str  # the page the template is on
     rank: int
     directed: bool = True
+    variety: str = ""  # etymology-only variety merged into the parent code, e.g. pra-sau
 
 
 def template_edges(entry: dict, child_key: str, code: str) -> Iterator[tuple[Edge, Term]]:
@@ -150,11 +164,20 @@ def template_edges(entry: dict, child_key: str, code: str) -> Iterator[tuple[Edg
     for rank, t in enumerate(entry.get("etymology_templates") or [], start=1):
         name, args = t.get("name", ""), t.get("args") or {}
         if name in DIRECTED and args.get("1") == code:
-            src, term = args.get("2", ""), args.get("3", "")
+            raw_src, term = args.get("2", ""), args.get("3", "")
+            src = ETYMOLOGY_ONLY.get(raw_src, raw_src)
             gloss = args.get("t") or args.get("gloss") or args.get("5")
             if src and term and term != "-":
                 yield (
-                    Edge(child_key, term_key(src, term), DIRECTED[name], name, entry["word"], rank),
+                    Edge(
+                        child_key,
+                        term_key(src, term),
+                        DIRECTED[name],
+                        name,
+                        entry["word"],
+                        rank,
+                        variety=raw_src if raw_src != src else "",
+                    ),
                     Term(src, term, gloss or None, args.get("tr") or None),
                 )
         elif name in COMPONENT and args.get("1") == code:
@@ -171,7 +194,8 @@ def template_edges(entry: dict, child_key: str, code: str) -> Iterator[tuple[Edg
                     Term(src, term),
                 )
         elif name in COGNATE:
-            src, term = args.get("1", ""), args.get("2", "")
+            src = ETYMOLOGY_ONLY.get(args.get("1", ""), args.get("1", ""))
+            term = args.get("2", "")
             if src and term and term != "-":
                 yield (
                     Edge(
@@ -357,7 +381,7 @@ def import_wiktionary(
                 RelationshipStatus.documented.value,
                 SOURCE_ID,
                 f"{edge.word}#{edge.template}",
-                f"{{{{{edge.template}}}}}",
+                f"{{{{{edge.template}}}}}" + (f" ({edge.variety})" if edge.variety else ""),
                 edge.rank,
                 None,
                 DATASET,

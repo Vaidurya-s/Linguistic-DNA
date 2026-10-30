@@ -2,3 +2,4 @@
 {"word": "जलमार्ग", "lang": "Hindi", "lang_code": "hi", "pos": "noun", "senses": [{"glosses": ["waterway"]}], "etymology_templates": [{"name": "compound", "args": {"1": "hi", "2": "जल", "3": "मार्ग"}}]}
 {"word": "कंप्यूटर", "lang": "Hindi", "lang_code": "hi", "pos": "noun", "senses": [{"glosses": ["computer"]}], "etymology_templates": [{"name": "bor", "args": {"1": "hi", "2": "en", "3": "computer"}}]}
 {"word": "Delhi", "lang": "English", "lang_code": "en", "pos": "name", "senses": [{"glosses": ["a city"]}]}
+{"word": "आग", "lang": "Hindi", "lang_code": "hi", "pos": "noun", "senses": [{"glosses": ["fire"]}], "translations": [{"lang": "English", "lang_code": "en", "word": "fire"}], "etymology_templates": [{"name": "inh", "args": {"1": "hi", "2": "pra-sau", "3": "अग्गि"}}]}

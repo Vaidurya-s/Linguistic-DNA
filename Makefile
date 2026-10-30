@@ -11,7 +11,7 @@ WIKTIONARY_DIR ?= data/raw/wiktionary
 WIKTIONARY_VERSION ?= "kaikki.org wiktextract of enwiktionary 2026-10-01 (file 2026-10-25)"
 # Ancestor languages whose own Wiktionary entries are imported (as disabled reference
 # languages) so that etymology chains continue; chosen from what our entries cite.
-WIKTIONARY_REFERENCE_CODES ?= REFCODES_TBD
+WIKTIONARY_REFERENCE_CODES ?= inc-pro,iir-pro,ira-pro,ine-pro,dra-pro,dra-sou-pro,inc-mid,omr,inc-ohi,inc-oaw,inc-ogu,inc-mgu,inc-opa,inc-oas,inc-mas,inc-obn,inc-mbn,inc-kam,oty,dra-okn,dra-mkn,dra-ote
 
 .PHONY: setup db-up fetch-data fetch-dev-data migrate import-open import-jambu import-glottolog \
         import-concepticon import-lsi import-asjp import-wikidata import-aliases validate \
