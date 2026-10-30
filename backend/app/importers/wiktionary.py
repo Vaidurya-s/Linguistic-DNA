@@ -123,7 +123,8 @@ def iter_jsonl(
                 continue
             if names is not None:
                 for lang, code in _LANG_PAIR.findall(line):
-                    names.setdefault(code, lang)
+                    if not lang.endswith(" script"):
+                        names.setdefault(code, lang)
             if codes is None or any(c in codes for c in _LANG_CODE.findall(line)):
                 yield json.loads(line)
 
@@ -157,6 +158,20 @@ class Edge:
     rank: int
     directed: bool = True
     variety: str = ""  # etymology-only variety merged into the parent code, e.g. pra-sau
+
+
+_CODE = re.compile(r"[a-z]{2,3}(-[a-z]{2,4}){0,2}")
+
+
+def language_codes(arg: str) -> list[str]:
+    """Wiktionary language codes in a template argument: one code, or a comma-separated
+    list (``{{cog|hi,mr|...}}``). Anything that is not a well-formed code is dropped."""
+    out = []
+    for raw in arg.split(","):
+        code = raw.strip()
+        if _CODE.fullmatch(code):
+            out.append(ETYMOLOGY_ONLY.get(code, code))
+    return out
 
 
 _HTML = re.compile(r"</?[a-zA-Z][^>]*>")
@@ -199,10 +214,12 @@ def template_edges(entry: dict, child_key: str, code: str) -> Iterator[tuple[Edg
     for rank, t in enumerate(entry.get("etymology_templates") or [], start=1):
         name, args = t.get("name", ""), t.get("args") or {}
         if name in DIRECTED and args.get("1") == code:
-            raw_src = args.get("2", "")
+            raw_src = args.get("2", "").strip()
             src = ETYMOLOGY_ONLY.get(raw_src, raw_src)
             gloss = args.get("t") or args.get("gloss") or args.get("5")
-            for term, t_gloss, tr in parse_terms(args.get("3", "")) if src else []:
+            if not _CODE.fullmatch(raw_src):
+                continue
+            for term, t_gloss, tr in parse_terms(args.get("3", "")):
                 yield (
                     Edge(
                         child_key,
@@ -219,7 +236,7 @@ def template_edges(entry: dict, child_key: str, code: str) -> Iterator[tuple[Edg
             parts = [args[k] for k in sorted((k for k in args if k.isdigit()), key=int)][1:]
             for part in parts:
                 src, _, rest = part.rpartition(":") if ":" in part[:12] else ("", "", part)
-                if src and not re.fullmatch(r"[a-z]{2,3}(-[a-z]{2,4})*", src):
+                if src and not _CODE.fullmatch(src):
                     src, rest = "", part  # a colon inside the term, not a language prefix
                 src = ETYMOLOGY_ONLY.get(src, src) or code
                 for term, t_gloss, tr in parse_terms(rest)[:1]:
@@ -235,9 +252,12 @@ def template_edges(entry: dict, child_key: str, code: str) -> Iterator[tuple[Edg
                         Term(src, term, t_gloss, tr),
                     )
         elif name in COGNATE:
-            src = ETYMOLOGY_ONLY.get(args.get("1", ""), args.get("1", ""))
             gloss = args.get("t") or args.get("4")
-            for term, t_gloss, tr in parse_terms(args.get("2", "")) if src else []:
+            for src, (term, t_gloss, tr) in (
+                (c, t)
+                for c in language_codes(args.get("1", ""))
+                for t in parse_terms(args.get("2", ""))
+            ):
                 yield (
                     Edge(
                         child_key,
@@ -300,7 +320,8 @@ def import_wiktionary(
             code, word = e.get("lang_code"), e.get("word")
             if not word or code not in wanted:
                 continue
-            names.setdefault(code, e.get("lang") or code)
+            if e.get("lang"):
+                names[code] = e["lang"]  # an entry's own language name beats nested mentions
             key = term_key(code, word)
             t = terms.get(key)
             if not t or not t.is_entry:
@@ -370,6 +391,8 @@ def import_wiktionary(
             form = t.form.strip()
             if not form:
                 continue
+            if t.code.endswith("-pro") and not form.startswith("*"):
+                form = "*" + form  # reconstruction pages are titled without the asterisk
             lang = language_of(t.code)
             if t.glosses:
                 gloss = "; ".join(dict.fromkeys(t.glosses[:3]))
@@ -405,6 +428,15 @@ def import_wiktionary(
             )
             bump("entries" if t.is_entry else "template_terms")
         copy_rows(cur, "lexeme", LEXEME_COLS, lexemes)
+        # languages left over from earlier imports (e.g. codes now mapped to the config)
+        cur.execute(
+            """DELETE FROM language_alias a WHERE a.language_id LIKE 'wkt-%%'
+               AND NOT EXISTS (SELECT 1 FROM lexeme l WHERE l.language_id = a.language_id)"""
+        )
+        cur.execute(
+            """DELETE FROM language g WHERE g.id LIKE 'wkt-%%'
+               AND NOT EXISTS (SELECT 1 FROM lexeme l WHERE l.language_id = g.id)"""
+        )
 
         rels, evidence = {}, []
         for edge in edges:

@@ -186,6 +186,16 @@ def clean_reference(text: str) -> tuple[str, str | None]:
 _SLUG = re.compile(r"[^a-z0-9]+")
 
 
+def headword_locator(form_id: str) -> str:
+    """Jambu's IDs for dictionary headwords are the entry numbers: '6152' is CDIAL 6152 and
+    'd3690' is DEDR 3690. Other IDs are Jambu's own record IDs."""
+    if form_id.isdigit():
+        return f"CDIAL {form_id}"
+    if re.fullmatch(r"d\d+[a-z]?", form_id):
+        return f"DEDR {form_id[1:]}"
+    return f"Jambu record {form_id}"
+
+
 def auto_language_id(jambu_id: str) -> str:
     return "jb-" + (_SLUG.sub("-", jambu_id.lower()).strip("-") or "x")
 
@@ -445,7 +455,7 @@ class JambuImporter:
                 batch_id,
             )
             for c, sid in zip(cites, source_ids, strict=True):
-                evidence.append((rid, sid, c.key, c.locator or f"Jambu form {parent}", note))
+                evidence.append((rid, sid, c.key, c.locator or headword_locator(parent), note))
             self.stats.add(f"edges:{type_id}")
         return rels, evidence
 

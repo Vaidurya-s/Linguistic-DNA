@@ -166,8 +166,8 @@ def attribution(rows: list[tuple]) -> str:
             lines.append(f"- Attribution: {attr}")
         if share_alike == "yes":
             lines.append(
-                "- **ShareAlike:** material adapted from this dataset (here, its rows in "
-                "`transliteration_alias.csv.gz`) must be shared under the same licence."
+                f"- **ShareAlike:** material adapted from this dataset (here, rows whose "
+                f"`dataset` is `{did}`) must be shared under the same licence."
             )
         lines.append("")
     return "\n".join(lines)

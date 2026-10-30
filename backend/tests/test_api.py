@@ -84,7 +84,8 @@ def test_research_records_carry_their_citation(client):
     detail = client.get(f"/api/v1/lexemes/{body['matches'][0]['id']}").json()
     source = detail["source"]
     assert source["dataset_decision"] == "RESEARCH USE"
-    assert source["dataset_citation"]
+    # the database the record came from is Jambu, whatever work it cites (e.g. CDIAL)
+    assert source["dataset_id"] == "jambu" and "Arora" in source["dataset_citation"]
 
 
 def test_open_only_hides_research_use_data(client):

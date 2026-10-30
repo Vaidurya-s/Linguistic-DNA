@@ -73,6 +73,7 @@ export default function GraphCanvas({ nodes, edges, rootId, selection, onSelect,
             'text-wrap': 'wrap',
             'text-valign': 'center',
             'font-size': 13,
+            'font-family': 'ui-sans-serif, system-ui, sans-serif, "Noto Sans Brahmi", "Noto Sans Kaithi"',
             'background-color': 'data(color)',
             'border-width': 1,
             'border-color': '#334155',
@@ -176,8 +177,12 @@ export default function GraphCanvas({ nodes, edges, rootId, selection, onSelect,
       return
     }
     if (instance.zoom() < 0.6) {
+      // Too large to show whole at a readable size: keep labels legible and centre on the
+      // searched word, so its neighbourhood is in view and the rest is a pan away.
       instance.zoom(0.6)
-      instance.center()
+      const root = rootId ? instance.getElementById(rootId) : null
+      if (root && root.nonempty()) instance.center(root)
+      else instance.center()
     } else if (instance.zoom() > 1.3) {
       instance.zoom(1.3)
       instance.center()

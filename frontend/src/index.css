@@ -3,3 +3,10 @@
 :root {
   color-scheme: light dark;
 }
+
+/* System fonts first; the Noto fonts only supply Brahmi and Kaithi glyphs. */
+body {
+  font-family:
+    ui-sans-serif, system-ui, sans-serif, "Noto Sans Brahmi", "Noto Sans Kaithi",
+    "Apple Color Emoji", "Segoe UI Emoji";
+}

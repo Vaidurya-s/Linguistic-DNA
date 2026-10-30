@@ -104,3 +104,11 @@ def test_form_kind_separates_words_from_stems_affixes_roots_phrases():
     assert form_kind("√añc") is FormKind.root
     assert form_kind("bāl baccā") is FormKind.phrase
     assert form_kind("dantapāli", is_compound=True) is FormKind.compound
+
+
+def test_jambu_headword_locators_name_the_dictionary_entry():
+    from app.importers.jambu import headword_locator
+
+    assert headword_locator("6152") == "CDIAL 6152"
+    assert headword_locator("d3690") == "DEDR 3690"
+    assert headword_locator("f_4xxedqnm7toyk") == "Jambu record f_4xxedqnm7toyk"

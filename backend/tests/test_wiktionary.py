@@ -91,3 +91,41 @@ def test_template_terms_with_modifiers_lists_and_html():
     assert strip_html('feminine of <i class="Arab mention">فُلَان</i> (fulān)') == (
         "feminine of فُلَان (fulān)"
     )
+
+
+def test_language_lists_bad_codes_script_names_and_proto_stars(db, tmp_path):
+    import json
+
+    lines = [
+        {  # a nested mention pairs Konkani with a script label; it must not name the language
+            "word": "जीभ",
+            "lang": "Marathi",
+            "lang_code": "mr",
+            "descendants": [{"lang": "Balbodh script", "lang_code": "kok", "word": "x"}],
+            "senses": [{"glosses": ["tongue"]}],
+            "etymology_templates": [
+                {"name": "cog", "args": {"1": "hi,kok", "2": "जीभ"}},
+                {"name": "inh", "args": {"1": "mr", "2": "*-hō<pos", "3": "x"}},
+                {"name": "inh", "args": {"1": "mr", "2": "dra-pro", "3": "pal"}},
+            ],
+        },
+    ]
+    path = tmp_path / "mr.jsonl"
+    path.write_text("\n".join(json.dumps(x, ensure_ascii=False) for x in lines), encoding="utf-8")
+    try:
+        import_wiktionary(db, [path], "fixture", {"mr": "mar", "hi": "hin"})
+        langs = {
+            r[0]: r[1]
+            for r in db.execute(
+                "SELECT g.id, g.name FROM lexeme l JOIN language g ON g.id = l.language_id"
+                " WHERE l.dataset = 'wiktionary'"
+            )
+        }
+        assert set(langs) == {"mar", "hin", "wkt-kok", "wkt-dra-pro"}  # no "wkt-*-hō<pos"
+        assert langs["wkt-kok"] != "Balbodh script"
+        proto = db.execute(
+            "SELECT form FROM lexeme WHERE dataset = 'wiktionary' AND language_id = 'wkt-dra-pro'"
+        ).fetchone()
+        assert proto == ("*pal",)
+    finally:
+        db.rollback()

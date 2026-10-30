@@ -334,7 +334,7 @@ def get_lexeme(conn: Connection, lexeme_id: str) -> dict | None:
         conn.execute(
             text(f"""
         SELECT {LEXEME_FIELDS}, l.transliteration, l.phonemic, l.source_status,
-               l.source_record_id, l.source_citation, l.source_id
+               l.source_record_id, l.source_citation, l.source_id, l.dataset
         FROM lexeme l JOIN language g ON g.id = l.language_id WHERE l.id = :id
     """),
             {"id": lexeme_id},
@@ -345,7 +345,7 @@ def get_lexeme(conn: Connection, lexeme_id: str) -> dict | None:
     if not row:
         return None
     out = dict(row)
-    out["source"] = _source(conn, out.pop("source_id"))
+    out["source"] = _source(conn, out.pop("source_id"), out.pop("dataset"))
     out["concepts"] = _rows(
         conn,
         """
@@ -389,11 +389,22 @@ def build_graph(
             JOIN relationship_type t ON t.id = r.type_id
             JOIN lexeme s ON s.id = r.source_lexeme_id
             JOIN lexeme tg ON tg.id = r.target_lexeme_id
+            JOIN language sl ON sl.id = s.language_id
+            JOIN language tl ON tl.id = tg.language_id
             WHERE (r.source_lexeme_id = ANY(:ids) OR r.target_lexeme_id = ANY(:ids))
               AND r.status <> 'rejected'
               AND (CAST(:types AS text[]) IS NULL OR r.type_id = ANY(:types))
               AND (CAST(:ds AS text[]) IS NULL OR r.dataset = ANY(:ds))
-            ORDER BY r.type_id, r.id
+            -- When the node cap bites, keep word histories before compounds, and words in
+            -- configured languages before dialects and other reference languages.
+            ORDER BY CASE r.type_id
+                       WHEN 'inherited_form' THEN 0 WHEN 'borrowed_from' THEN 1
+                       WHEN 'etymon' THEN 2 WHEN 'cognate' THEN 3
+                       WHEN 'calque_or_loan_translation' THEN 4 WHEN 'derived_form' THEN 5
+                       WHEN 'related_form' THEN 6 WHEN 'has_component' THEN 8 ELSE 7 END,
+                     (sl.is_enabled AND tl.is_enabled) DESC,
+                     (sl.role = 'modern' OR tl.role = 'modern') DESC,
+                     r.id
         """,
             {"ids": frontier, "types": types, "ds": ds},
         )
@@ -444,7 +455,7 @@ def get_relationship(conn: Connection, rel_id: str) -> dict | None:
         SELECT r.id, r.source_lexeme_id AS source, r.target_lexeme_id AS target,
                r.type_id AS type, t.label, t.description, t.namespace::text, r.status::text,
                r.direction::text, r.source_id, r.original_label,
-               r.source_confidence::text, r.method, r.score, r.notes
+               r.source_confidence::text, r.method, r.score, r.notes, r.dataset
         FROM relationship r JOIN relationship_type t ON t.id = r.type_id WHERE r.id = :id
     """),
             {"id": rel_id},
@@ -455,6 +466,7 @@ def get_relationship(conn: Connection, rel_id: str) -> dict | None:
     if not row:
         return None
     out = dict(row)
+    dataset = out.pop("dataset")
     lex = {
         r["id"]: r
         for r in _rows(
@@ -474,24 +486,28 @@ def get_relationship(conn: Connection, rel_id: str) -> dict | None:
         {"id": rel_id},
     )
     for e in evidence:
-        e["source"] = _source(conn, e.pop("source_id"))
+        e["source"] = _source(conn, e.pop("source_id"), dataset)
     out["evidence"] = evidence
     out["citation"] = evidence[0]["citation"] if evidence else None
     return out
 
 
-def _source(conn: Connection, source_id: str | None) -> dict | None:
+def _source(conn: Connection, source_id: str | None, dataset: str | None = None) -> dict | None:
+    """A cited source, with the audit decision and citation of the dataset the record was
+    imported from (e.g. a CDIAL entry reached through Jambu carries Jambu's citation)."""
     if not source_id:
         return None
     row = (
         conn.execute(
             text("""
         SELECT s.id, s.title, s.reuse_status::text, s.licence_name, s.url,
-               s.dataset_id, d.decision::text AS dataset_decision,
-               d.attribution_text AS dataset_citation
-        FROM source s LEFT JOIN dataset_audit d ON d.id = s.dataset_id WHERE s.id = :id
+               coalesce(CAST(:dataset AS text), s.dataset_id) AS dataset_id,
+               d.decision::text AS dataset_decision, d.attribution_text AS dataset_citation
+        FROM source s
+        LEFT JOIN dataset_audit d ON d.id = coalesce(CAST(:dataset AS text), s.dataset_id)
+        WHERE s.id = :id
     """),
-            {"id": source_id},
+            {"id": source_id, "dataset": dataset},
         )
         .mappings()
         .first()

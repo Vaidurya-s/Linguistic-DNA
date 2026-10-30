@@ -38,10 +38,12 @@ export default function Layout({ path, children }: { path: string; children: Rea
       <div className="flex-1">{children}</div>
       <footer className="border-t border-slate-200 bg-slate-50">
         <div className="mx-auto max-w-7xl px-4 py-5 text-xs leading-relaxed text-slate-600">
-          Data: Glottolog, Concepticon, the Linguistic Survey of India and ASJP (CC BY 4.0);
-          Wikidata Lexemes (CC0); Dakshina (CC BY-SA 4.0) and Aksharantar (CC BY / CC0) for
-          transliteration. For research use, with citation: Jambu (Arora et al. 2023), Turner&apos;s
-          CDIAL and Burrow &amp; Emeneau&apos;s DEDR. Full credits, licences and how to cite are on the{' '}
+          Open data: Glottolog, Concepticon, LSI, ASJP, IE-CoR, IELex, DravLex, NorthEuraLex and the
+          Digital Corpus of Sanskrit (CC BY 4.0); Wiktionary and Dakshina (CC BY-SA 4.0); Wikidata
+          Lexemes (CC0); Aksharantar (CC BY / CC0). For research use, with citation: Jambu (Arora et
+          al. 2023) with Turner&apos;s CDIAL and Burrow &amp; Emeneau&apos;s DEDR, Monier-Williams
+          (Cologne), the Digital Pāḷi Dictionary and Peiros&apos; Sino-Tibetan wordlists. Full
+          credits, licences and how to cite are on the{' '}
           <a className="underline" href={href('/methodology')}>
             Data &amp; methodology
           </a>{' '}
