@@ -5,10 +5,12 @@ JAMBU_CLDF ?= data/raw/jambu/cldf
 JAMBU_FORMS ?= data/raw/jambu-lfs/forms.csv
 GLOTTOLOG_CLDF ?= data/raw/glottolog-cldf/cldf
 WIKIDATA_DUMP ?= data/raw/wikidata/wikidata-20261028-lexemes.json.bz2
+# libpq URL of the research database, for pg_dump (the app itself reads DATABASE_URL).
+RESEARCH_PG_URL ?= postgresql://postgres@localhost:5432/lsg
 
 .PHONY: setup db-up fetch-data fetch-dev-data migrate import-open import-jambu import-glottolog \
         import-concepticon import-lsi import-asjp import-wikidata import-aliases validate \
-        validate-public \
+        validate-public validate-research import-research research-db research-dump \
         coverage benchmark public-seed load-public-seed fixture test lint
 
 setup:
@@ -20,7 +22,8 @@ setup:
 fetch-data:
 	python3 scripts/fetch_data.py --group public
 
-# Adds Jambu (development only; never redistributed).
+# Adds the research-use sources (Jambu with CDIAL, DEDR and the works it cites), fetched
+# from their own upstream; never redistributed by this repository.
 fetch-dev-data:
 	python3 scripts/fetch_data.py --group all
 
@@ -36,6 +39,26 @@ import-jambu:
 
 import-glottolog:
 	cd backend && .venv/bin/python -m app.cli import-glottolog --cldf ../$(GLOTTOLOG_CLDF)
+
+# Research-use datasets, cited per record; never in the public seed.
+import-research: import-jambu
+
+# The full research database: open data, then research-use data, then checks.
+research-db: import-open import-research
+	$(MAKE) import-glottolog  # classify the languages the research imports created
+	cd backend && .venv/bin/python -m app.cli rekey-search
+	cd backend && .venv/bin/python -m app.cli validate --research
+
+validate-research:
+	cd backend && .venv/bin/python -m app.cli validate --research
+
+# A pg_dump of the research database for loading a hosted instance (see docs/DEPLOYMENT.md).
+# data/research_dump/ is gitignored: research-use data is never committed.
+research-dump:
+	mkdir -p data/research_dump
+	pg_dump --no-owner --no-acl --format=custom --file=data/research_dump/lsg-research.dump \
+		"$(RESEARCH_PG_URL)"
+	@ls -lh data/research_dump/lsg-research.dump
 
 # Every dataset the audit approves, in dependency order.
 import-open: import-concepticon import-lsi import-asjp import-wikidata import-aliases \

@@ -4,7 +4,7 @@ The public demo is two pieces:
 - **API:** a container built from `backend/Dockerfile`, which contains only the audit-approved public seed;
 - **Site:** a static bundle (`frontend/dist`) that calls the API.
 
-Both fit on free tiers. Restricted data (Jambu, CDIAL, DEDR) is never part of the image or the seed.
+Both fit on free tiers. Research-use data (Jambu, CDIAL, DEDR) is never part of the image or the seed; section 5 covers hosting the research version.
 
 ## 1. Database
 
@@ -57,3 +57,23 @@ The app uses hash URLs (`#/explore?q=…`), so no rewrite rules are needed.
 
 - `make validate-public` passes against the deployed database: a fresh seed load passes it by construction.
 - `data/public_seed/ATTRIBUTION.md` and the site's *Data & methodology* page credit every dataset. Dakshina-derived spelling pairs are CC BY-SA 4.0.
+
+## 5. The research version
+
+The research version adds the research-use sources (Jambu, and through it Turner's CDIAL, Burrow & Emeneau's DEDR and the other works Jambu cites). These have no open licence: they are used for academic research with a citation on every record, and this repository never contains or redistributes them. The hosted research database is therefore built on your machine from the sources' own upstream and copied to the host. It is never baked into the image.
+
+1. **Build it locally.**
+   ```bash
+   make fetch-dev-data
+   make migrate research-db
+   ```
+   `research-db` imports the open datasets, then the research-use ones, then runs `validate --research`. That check fails on any BLOCKED data and on any research-use record without a cited source.
+2. **Size the host.** With Jambu in full the database is about 1.7 GB, against about 350 MB for the open seed. That is beyond the 500 MB free tiers of Neon and Supabase. Use a paid tier, or a small VM running PostgreSQL 16 with `pg_trgm`.
+3. **Copy it to the host.**
+   ```bash
+   make research-dump
+   pg_restore --no-owner --no-acl --clean --if-exists -d "$HOSTED_DATABASE_URL" data/research_dump/lsg-research.dump
+   ```
+   `data/research_dump/` is gitignored.
+4. **Run the API** from the same Docker image, with `DATABASE_URL` pointing at that database. On start, `ensure-seed` sees a non-empty `lexeme` table and leaves the data alone.
+5. **Check citations.** Research-use records show a "Research use, not redistributed" note with the database citation. `GET /api/v1/citations` and the *How to cite* section on the methodology page list every dataset and every cited work. Ticking *Open data only* in Explore hides research-use data.
