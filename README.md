@@ -263,6 +263,8 @@ The research imports include the **StarLing etymological databases** (Starostin'
 make full-db                # all downloads, every import in every language, checks, size report
 ```
 
+Using Claude Code on that machine? [`docs/LOCAL_SETUP_WITH_CLAUDE.md`](docs/LOCAL_SETUP_WITH_CLAUDE.md) is a step-by-step runbook with a prompt to paste, and [`CLAUDE.md`](CLAUDE.md) holds the project's rules for it.
+
 **Run the app** with `make serve-api` and `make serve-web` (a production build on :5173), or in development mode (the API reads `DATABASE_URL`, default `postgresql+psycopg://postgres@localhost:5432/lsg`):
 
 ```bash

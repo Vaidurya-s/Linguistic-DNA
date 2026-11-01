@@ -1,6 +1,6 @@
 # Linguistic DNA documentation
 
-An interactive, evidence-backed graph of how words in India's languages are related. Users enter a word in a supported native script or in romanisation and explore documented historical relationships (inheritance, borrowing, derivation, composition, cognacy) in a navigable graph, with the source of every link. Resemblance in spelling or sound is listed separately, as candidates, and never drawn as a relationship.
+An interactive, evidence-backed graph of how words are related, built around India's languages and now covering 3,489 searchable languages from the Eurasian steppe to the Pacific. Users enter a word in a supported native script or in romanisation and explore documented historical relationships (inheritance, borrowing, derivation, composition, cognacy) in a navigable graph, with the source of every link. Resemblance in spelling or sound is listed separately, as candidates, and never drawn as a relationship.
 
 Back to the [project README](../README.md).
 
@@ -20,7 +20,7 @@ Back to the [project README](../README.md).
 
 1. [`DATA_PIPELINE.md`](DATA_PIPELINE.md): fetching pinned inputs, the import commands, validation, and building the open seed.
 2. [`TECHNICAL_ARCHITECTURE.md`](TECHNICAL_ARCHITECTURE.md): stack, database model and APIs.
-3. [`DEPLOYMENT.md`](DEPLOYMENT.md): Docker API plus static site, and hosting the research version.
+3. [`DEPLOYMENT.md`](DEPLOYMENT.md): Docker API plus static site, hosting the research version, and running it on your own Linux machine (§ 6). [`LOCAL_SETUP_WITH_CLAUDE.md`](LOCAL_SETUP_WITH_CLAUDE.md) is the same full build as a runbook for Claude Code.
 4. [`DATASET_LICENCE_AUDIT.md`](DATASET_LICENCE_AUDIT.md) §4 and §6: what may be published, and how the validator enforces it.
 5. [`PROJECT_SPECIFICATION.md`](PROJECT_SPECIFICATION.md) and [`DEVELOPMENT_ROADMAP.md`](DEVELOPMENT_ROADMAP.md): the original requirements and plan.
 
@@ -33,7 +33,8 @@ Back to the [project README](../README.md).
 | [`DATASET_AND_LICENSING_PLAN.md`](DATASET_AND_LICENSING_PLAN.md) | The original plan: sources to investigate, provenance model, licence checks |
 | [`DATASET_AUDIT.md`](DATASET_AUDIT.md) | Audit of Jambu (`moli-mandala/data`): coverage, schema fit, licence status |
 | [`DATA_PIPELINE.md`](DATA_PIPELINE.md) | Rebuilding the databases from pinned upstream inputs; the public seed |
-| [`DEPLOYMENT.md`](DEPLOYMENT.md) | Deploying the open demo and the research version |
+| [`DEPLOYMENT.md`](DEPLOYMENT.md) | Deploying the open demo and the research version; running it on your own Linux machine |
+| [`LOCAL_SETUP_WITH_CLAUDE.md`](LOCAL_SETUP_WITH_CLAUDE.md) | Runbook for Claude Code to build the full database (every language, every dataset) on your machine, with a prompt to paste |
 | [`TECHNICAL_ARCHITECTURE.md`](TECHNICAL_ARCHITECTURE.md) | Frontend and backend architecture, APIs, database model, security |
 | [`LINGUISTIC_ENGINE.md`](LINGUISTIC_ENGINE.md) | Query pipeline, relationship types, similarity metrics, graph construction |
 | [`EVALUATION_AND_TESTING.md`](EVALUATION_AND_TESTING.md) | Benchmark design, metrics and test plan |
