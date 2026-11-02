@@ -123,7 +123,7 @@ make import-jambu validate
   - **Etymology:** a term in the same language is `has_component` when the etymology joins terms with "+", otherwise `derived_form`. A High Valyrian term on a Low Valyrian page is `inherited_form` (`borrowed_from` when the text says borrowed).
   - **Descendants:** each descendant is `inherited_form` from the word.
   - Every link cites the page and its revision (`oldid`).
-- **Kept apart.** The languages are `conlang-<code>` records in the family "Valyrian languages (constructed, fictional)". `refresh-languages` never merges them, and no link connects them to a natural language. A language is searchable from 200 words.
+- **Kept apart.** The languages are `conlang-<code>` records in the family "Valyrian languages (constructed, fictional)". `refresh-languages` never merges them, and no link connects them to a natural language: the importer accepts only the Valyrian language codes, and a page's mention of a word in any other language (Latin, English, another invented language) is skipped and counted as `skipped:<code>` in the import statistics. A language is searchable from 200 words.
 
 **Concepts.** Jambu's concept IDs are Concepticon IDs (all 3,321 match ID and gloss), so all datasets share one concept space.
 

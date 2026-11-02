@@ -13,6 +13,12 @@ merged with or linked to natural languages, and every record says so in its cita
   ``inherited_form``, or ``borrowed_from`` when the text says borrowed) and the Descendants list
   (each descendant ``inherited_form`` from the word).
 
+Only terms of the Valyrian languages in NAMES are imported. A page may mention a word of any
+other language (a real one such as Latin, or another invented one); such a mention, section or
+descendant is skipped and counted in the import statistics as ``skipped:<code>``, never filed
+under a Valyrian language and never linked. A compound whose other components are skipped keeps
+only its Valyrian components.
+
 Every relationship cites the wiki page and, when the saved page records it, its revision.
 """
 
@@ -146,10 +152,10 @@ def parse_page(page: str) -> list[dict]:
     for lang_name, body in sections(page):
         code = CODE_OF.get(lang_name)
         hw = _HEADWORD.search(body)
-        if not code and hw:
+        if not code and hw and hw.group(1) in NAMES:
             code = hw.group(1)
         if not code or not hw:
-            continue
+            continue  # a section in another language (Latin, English, ...) is not imported
         entry = {
             "code": code,
             "headword": text(hw.group(2)),
@@ -277,7 +283,10 @@ def import_valyrian(conn: psycopg.Connection, raw: Path, version: str) -> dict:
                 combined = "+" in etext
                 borrowed = "borrow" in etext.lower()
                 for m_code, m_page, m_form, m_gloss in mentions:
-                    if not m_form or m_code == "en":
+                    if not m_form:
+                        continue
+                    if m_code not in NAMES:
+                        bump(f"skipped:{m_code}")
                         continue
                     other = add(m_code, m_form, m_gloss or None, m_page, False)
                     if m_code != code:
@@ -289,6 +298,9 @@ def import_valyrian(conn: psycopg.Connection, raw: Path, version: str) -> dict:
                 entry["descendants"], start=1
             ):
                 if not d_form or d_code == code:
+                    continue
+                if d_code not in NAMES:
+                    bump(f"skipped:{d_code}")
                     continue
                 desc = add(d_code, d_form, None, d_page, False)
                 link(

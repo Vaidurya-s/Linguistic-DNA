@@ -261,7 +261,7 @@ Each source below was checked against its own licence, terms and robots.txt. Row
 - Terms, definitions of up to 300 characters, and the etymology and descendant links each page records, each citing its page and revision.
 - Not stored: example sentences, inflection tables or other page text.
 
-**Kept apart.** These are fictional, constructed languages. They have their own family, are never merged with natural languages, and are never linked to them.
+**Kept apart.** These are fictional, constructed languages. They have their own family, are never merged with natural languages, and are never linked to them. Words of any other language that a page mentions are skipped, not imported, and counted in the import statistics.
 
 ## 5. Shortlist datasets not yet audited
 

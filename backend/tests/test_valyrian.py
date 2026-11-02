@@ -186,6 +186,71 @@ def test_import(db, tmp_path):
         db.rollback()
 
 
+def test_other_languages_are_never_imported_or_linked(db, tmp_path):
+    """A page may cite a Latin word, or another invented language: it must not become a
+    "Valyrian (la)" language, a word of the Valyrian family, or the end of a link."""
+    from app.importers.manifest import load_manifest
+
+    ety = (
+        "Inspired by "
+        + mention("la", "vallum", "vallum", "wall")
+        + " and "
+        + mention("dth", "Zhor", "zhor", "man")
+        + ", from "
+        + mention("hval", "Hepagon", "hepagon", "to climb")
+        + "."
+    )
+    latin = (
+        heading(2, "Latin", "Latin")
+        + heading(4, "Noun", "Noun")
+        + '<p><strong class="Latn headword" lang="la">murus</strong> (<i>noun</i>)\n</p>'
+        + "<ol><li>wall</li></ol>"
+    )
+    descendants = (
+        '<li><a href="/Latin">Latin</a>: <span class="Latn" lang="la">'
+        '<a href="/castra" title="castra">castra</a></span></li>'
+        '<li><a href="/Astapori_Valyrian_language">Astapori Valyrian</a>: '
+        '<span class="Latn" lang="asta"><a href="/-vo" title="-vo">-vo</a></span></li>'
+    )
+    raw = tmp_path
+    (raw / "pages").mkdir(parents=True)
+    (raw / "High_Valyrian_Dictionary.html").write_text(DICTIONARY, encoding="utf-8")
+    pages = {
+        "Hepvos": page(hval_section("hepvos", "ladder", ety, descendants) + latin),
+        "Murus": page(latin),
+    }
+    for title, text in pages.items():
+        (raw / "pages" / (urllib.parse.quote(title, safe="") + ".html")).write_text(
+            text, encoding="utf-8"
+        )
+    # a Latin or English section is not an entry, whatever its headword's language
+    assert parse_page(pages["Murus"]) == []
+    try:
+        load_manifest(db)
+        stats = import_valyrian(db, raw, "fixture")
+        assert db.execute(
+            "SELECT id FROM language WHERE id LIKE 'conlang-%%' ORDER BY 1"
+        ).fetchall() == [("conlang-asta",), ("conlang-hval",)]
+        assert db.execute(
+            "SELECT count(*) FROM lexeme WHERE dataset = 'valyrian'"
+            " AND form IN ('vallum', 'zhor', 'murus', 'castra')"
+        ).fetchone() == (0,)
+        assert stats["skipped:la"] >= 2 and stats["skipped:dth"] == 1
+        # the Valyrian parts of the same page are still imported and linked
+        hepvos = vid("hval", "hepvos")
+        assert edge(db, hepvos, vid("hval", "hepagon"))[0] == "derived_form"
+        assert edge(db, vid("asta", "-vo"), hepvos)[0] == "inherited_form"
+        assert db.execute(
+            "SELECT count(*) FROM relationship r JOIN lexeme s ON s.id = r.source_lexeme_id"
+            " JOIN lexeme t ON t.id = r.target_lexeme_id WHERE r.dataset = 'valyrian'"
+            " AND (s.language_id NOT IN ('conlang-hval', 'conlang-asta', 'conlang-meer')"
+            " OR t.language_id NOT IN ('conlang-hval', 'conlang-asta', 'conlang-meer'))"
+        ).fetchone() == (0,)
+        assert run_checks(db, research=True)["passed"]
+    finally:
+        db.rollback()
+
+
 def test_fetch_lists_dictionary_terms():
     spec = importlib.util.spec_from_file_location(
         "fetch_valyrian", REPO_ROOT / "scripts" / "fetch_valyrian.py"
