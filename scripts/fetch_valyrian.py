@@ -51,11 +51,27 @@ def lemma_titles(dictionary_html: str) -> list[str]:
 class Fetcher:
     def __init__(self, delay: float):
         self.delay = delay
-        self.robots = urllib.robotparser.RobotFileParser(f"{BASE}/robots.txt")
-        self.robots.read()
+        self.robots = urllib.robotparser.RobotFileParser()
+        # RobotFileParser.read() asks with Python's default user agent, which the wiki's CDN
+        # answers with 403, and the parser then treats the whole site as disallowed. Read the
+        # file with our own identifying user agent, and stop if it cannot be read at all.
+        req = urllib.request.Request(f"{BASE}/robots.txt", headers={"User-Agent": UA})
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                body = r.read().decode("utf-8")
+            # The stdlib parser drops a "User-agent: *" group when a blank line follows that
+            # line (as in this wiki's file) and then allows everything. Blank lines are not
+            # needed to separate groups, so remove them.
+            self.robots.parse([line for line in body.splitlines() if line.strip()])
+        except urllib.error.URLError as exc:
+            raise RuntimeError(
+                f"cannot read {BASE}/robots.txt ({exc}); not fetching anything without it"
+            ) from exc
         self.last = 0.0
 
     def get(self, title: str) -> str | None:
+        if ":" in title or "?" in title or title.lower().startswith("index.php"):
+            raise RuntimeError(f"not an article page: {title!r}")  # never a namespace or script
         url = f"{BASE}/{urllib.parse.quote(title)}"
         if not self.robots.can_fetch(UA, url):
             raise RuntimeError(f"robots.txt disallows {url}")

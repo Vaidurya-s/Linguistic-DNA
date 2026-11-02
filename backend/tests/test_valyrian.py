@@ -193,3 +193,63 @@ def test_fetch_lists_dictionary_terms():
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     assert mod.lemma_titles(DICTIONARY) == ["Hepagon", "Hepvos", "-vos", "Valyria"]
+
+
+def _fetch_module():
+    spec = importlib.util.spec_from_file_location(
+        "fetch_valyrian", REPO_ROOT / "scripts" / "fetch_valyrian.py"
+    )
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+# Shaped like the wiki's file: a blank line and comments after "User-agent: *" (the stdlib
+# parser then drops the group and allows everything), then rules, then bot-specific groups.
+ROBOTS = (
+    "User-agent: *\n\n# 1. Block scripts\nDisallow: /index.php?\nDisallow: /Special:\n"
+    "Disallow: /User:\nAllow: /Category:\nAllow: /\n\nUser-agent: ClaudeBot\nDisallow: /\n"
+)
+
+
+def test_fetch_reads_robots_with_its_own_user_agent(monkeypatch):
+    """robots.txt must be requested with our identifying user agent: with Python's default one
+    the wiki's CDN answers 403, which the stdlib parser reads as 'everything is disallowed'."""
+    import io
+    import urllib.error
+
+    mod = _fetch_module()
+    seen = {}
+
+    def fake_urlopen(req, timeout=None):
+        seen["ua"] = req.get_header("User-agent")
+        seen["url"] = req.full_url
+        return io.BytesIO(ROBOTS.encode())
+
+    monkeypatch.setattr(mod.urllib.request, "urlopen", fake_urlopen)
+    f = mod.Fetcher(delay=3)
+    assert seen["url"].endswith("/robots.txt") and seen["ua"] == mod.UA
+    assert f.robots.can_fetch(mod.UA, f"{mod.BASE}/High_Valyrian_Dictionary")
+    assert not f.robots.can_fetch(mod.UA, f"{mod.BASE}/Special:Search")
+    assert not f.robots.can_fetch(mod.UA, f"{mod.BASE}/User:Someone")
+    assert not f.robots.can_fetch("ClaudeBot", f"{mod.BASE}/Hepagon")
+    # and never a namespace page or script, whatever robots.txt says
+    for bad in ("Special:Search", "index.php?title=x", "Talk:Foo"):
+        try:
+            f.get(bad)
+        except RuntimeError as exc:
+            assert "not an article page" in str(exc)
+        else:
+            raise AssertionError(bad)
+
+    # unreadable robots.txt: stop, do not guess
+    def refuse(req, timeout=None):
+        raise urllib.error.HTTPError(req.full_url, 403, "Forbidden", {}, None)
+
+    monkeypatch.setattr(mod.urllib.request, "urlopen", refuse)
+    try:
+        mod.Fetcher(delay=3)
+    except RuntimeError as exc:
+        assert "robots.txt" in str(exc)
+    else:
+        raise AssertionError("a Fetcher was built without a readable robots.txt")
