@@ -37,7 +37,7 @@ endif
         import-concepticon import-lsi import-asjp import-wikidata import-aliases validate \
         validate-public validate-research import-research research-db research-dump \
         import-wiktionary import-cognates import-peirosst import-dcs import-dpd import-cdsl-mw \
-        refresh-languages import-lexibank import-profiles import-omw full-db db-size import-starling \
+        refresh-languages import-lexibank import-profiles import-omw full-db db-size import-starling fetch-valyrian import-valyrian \
         coverage benchmark public-seed load-public-seed fixture test lint
 
 setup:
@@ -77,7 +77,19 @@ import-glottolog:
 
 # Research-use datasets, cited per record; never in the public seed.
 import-research: import-jambu import-peirosst import-dpd import-cdsl-mw import-lexibank \
-                 import-starling
+                 import-starling import-valyrian
+
+# High Valyrian and its Low Valyrian descendants (David J. Peterson's constructed languages for
+# Game of Thrones), from The Languages of David J. Peterson wiki. Research and reference use: run
+# the download yourself (about 2-3 hours at one page every 3 seconds; it resumes where it
+# stopped); add --no-pages for the dictionary only (words and glosses, a few seconds).
+fetch-valyrian:
+	python3 scripts/fetch_valyrian.py
+
+import-valyrian:
+	@if [ -d data/raw/valyrian ]; then \
+		cd backend && .venv/bin/python -m app.cli import-valyrian --dir ../data/raw/valyrian; \
+	else echo "import-valyrian: data/raw/valyrian not downloaded (make fetch-valyrian); skipped"; fi
 
 # StarLing / Tower of Babel etymological databases (PIE, Pokorny, Vasmer, Germanic, Baltic,
 # Altaic, Dravidian, North Caucasian, Sino-Tibetan, Chukchee-Kamchatkan, Kartvelian,

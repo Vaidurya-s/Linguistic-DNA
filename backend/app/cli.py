@@ -29,6 +29,7 @@ from app.importers.manifest import load_manifest, prune_orphan_sources
 from app.importers.omw import import_omw
 from app.importers.starling import import_starling, name_languages_from_glottolog
 from app.importers.transliteration import import_aksharantar, import_dakshina
+from app.importers.valyrian import import_valyrian
 from app.importers.wikidata_lexemes import fetch_language_names, import_wikidata_lexemes
 from app.importers.wiktionary import import_wiktionary, wiktionary_code_map
 from app.pipeline.benchmark import run_benchmark
@@ -80,6 +81,9 @@ def main(argv: list[str] | None = None) -> int:
         default=REPO_ROOT / "reports" / "starling_unmapped.csv",
         help="where to list field names and abbreviations that no language was found for",
     )
+    va = sub.add_parser("import-valyrian", help="High Valyrian and its descendants (research use)")
+    va.add_argument("--dir", type=Path, default=REPO_ROOT / "data" / "raw" / "valyrian")
+    va.add_argument("--version", default="wiki pages as downloaded")
     lb = sub.add_parser("import-lexibank", help="every dataset in data/manifests/lexibank.tsv")
     lb.add_argument("--list", type=Path, default=REPO_ROOT / "data/manifests/lexibank.tsv")
     lb.add_argument("--raw", type=Path, default=REPO_ROOT / "data/raw/lexibank")
@@ -194,6 +198,9 @@ def main(argv: list[str] | None = None) -> int:
             result = import_starling(
                 conn, archives, args.version, wiktionary_code_map(), names, args.report
             )
+        elif args.cmd == "import-valyrian":
+            load_manifest(conn)
+            result = import_valyrian(conn, args.dir, args.version)
         elif args.cmd == "import-lexibank":
             load_manifest(conn)
             conn.commit()

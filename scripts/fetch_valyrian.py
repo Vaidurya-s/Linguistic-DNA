@@ -1,0 +1,125 @@
+"""Download the Valyrian pages of The Languages of David J. Peterson wiki into data/raw/valyrian/
+(git-ignored), for the local research database only.
+
+    python3 scripts/fetch_valyrian.py                 # dictionary pages and every lemma page
+    python3 scripts/fetch_valyrian.py --no-pages      # dictionary pages only (words and glosses)
+
+The wiki's content belongs to HBO and David J. Peterson and carries no licence for reuse, so this
+is run by the user on their own machine, like downloading the pages in a browser, and the result
+is never committed or redistributed. The script honours robots.txt (only article pages, never
+/index.php or /api.php), waits between requests (--delay, default 3 s), identifies itself, and
+skips pages it already has, so it can be stopped and resumed. Uses only the standard library.
+"""
+
+import argparse
+import html
+import json
+import re
+import sys
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+import urllib.robotparser
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+BASE = "https://wiki.languageinvention.com"
+UA = "LinguisticDNA-fetch/0.1 (https://github.com/Vaidurya-s/Linguistic-DNA; personal research use)"
+DICTIONARIES = {
+    "hval": "High_Valyrian_Dictionary",
+    "asta": "Astapori_Valyrian_Dictionary",
+    "meer": "Meereenese_Valyrian_Dictionary",
+}
+_ROW_LINK = re.compile(r'<td><b><a href="/([^"#?]+)(?:#[^"]*)?" title="[^"]*">')
+
+
+def page_file(dest: Path, title: str) -> Path:
+    return dest / "pages" / (urllib.parse.quote(title, safe="") + ".html")
+
+
+def lemma_titles(dictionary_html: str) -> list[str]:
+    """Page titles of the terms in a dictionary table (first column links)."""
+    out = []
+    for path in _ROW_LINK.findall(dictionary_html):
+        title = urllib.parse.unquote(html.unescape(path))
+        if ":" not in title and title not in out:
+            out.append(title)
+    return out
+
+
+class Fetcher:
+    def __init__(self, delay: float):
+        self.delay = delay
+        self.robots = urllib.robotparser.RobotFileParser(f"{BASE}/robots.txt")
+        self.robots.read()
+        self.last = 0.0
+
+    def get(self, title: str) -> str | None:
+        url = f"{BASE}/{urllib.parse.quote(title)}"
+        if not self.robots.can_fetch(UA, url):
+            raise RuntimeError(f"robots.txt disallows {url}")
+        wait = self.last + self.delay - time.monotonic()
+        if wait > 0:
+            time.sleep(wait)
+        self.last = time.monotonic()
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                return r.read().decode("utf-8")
+        except urllib.error.HTTPError as exc:
+            if exc.code == 404:
+                return None
+            if exc.code == 429:  # asked to slow down: back off and try once more
+                time.sleep(max(60, self.delay * 10))
+                with urllib.request.urlopen(req, timeout=60) as r:
+                    return r.read().decode("utf-8")
+            raise
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--dest", type=Path, default=ROOT / "data" / "raw" / "valyrian")
+    parser.add_argument("--delay", type=float, default=3.0, help="seconds between requests")
+    parser.add_argument("--no-pages", action="store_true", help="only the dictionary pages")
+    args = parser.parse_args()
+    if args.delay < 1:
+        parser.error("--delay must be at least 1 second")
+    args.dest.mkdir(parents=True, exist_ok=True)
+    fetcher = Fetcher(args.delay)
+    manifest_path = args.dest / "manifest.json"
+    manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {"pages": {}}
+    titles: list[str] = []
+    for code, title in DICTIONARIES.items():
+        path = args.dest / f"{title}.html"
+        if not path.exists():
+            text = fetcher.get(title)
+            if text is None:
+                print(f"{title}: no such page (skipped)")
+                continue
+            path.write_text(text, encoding="utf-8")
+            manifest[title] = {"fetched": time.strftime("%Y-%m-%d"), "language": code}
+        found = lemma_titles(path.read_text(encoding="utf-8"))
+        print(f"{title}: {len(found)} terms")
+        titles += [t for t in found if t not in titles]
+    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=1))
+    if args.no_pages:
+        return 0
+    todo = [t for t in titles if not page_file(args.dest, t).exists()]
+    print(f"{len(titles)} pages, {len(todo)} to fetch (about {len(todo) * args.delay / 60:.0f} min)")
+    (args.dest / "pages").mkdir(exist_ok=True)
+    for i, title in enumerate(todo, start=1):
+        text = fetcher.get(title)
+        if text is None:
+            manifest["pages"][title] = "missing"
+            continue
+        page_file(args.dest, title).write_text(text, encoding="utf-8")
+        manifest["pages"][title] = time.strftime("%Y-%m-%d")
+        if i % 50 == 0 or i == len(todo):
+            manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=1))
+            print(f"  {i}/{len(todo)}", flush=True)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

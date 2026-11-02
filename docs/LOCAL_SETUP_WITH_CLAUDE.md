@@ -91,6 +91,14 @@ make fetch-dev-data
 
 It downloads about 8 GB, every file pinned by commit or SHA-256, and skips what is already there, so it can be re-run after an interruption. It includes the StarLing archives from starlingdb.org; that site disallows AI crawlers, which is why the user, not Claude Code, runs this step.
 
+If the user wants High Valyrian, they also run, in their own terminal (about 2–3 hours; it can run alongside the build and resumes if stopped):
+
+```bash
+make fetch-valyrian
+```
+
+When it has finished, run `make import-valyrian` (it is also part of `research-db`, which skips it while nothing is downloaded). Its output gives words per language (`words:hval` should be about 2,800) and relationship counts.
+
 When the user says it has finished:
 - Look at its output (ask the user to paste it if needed). Every line should be `ok`, `downloaded` or `cloned`.
 - A `FAILED` line: re-run the command once (network); if it fails again, report the entry and the error.

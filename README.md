@@ -220,7 +220,7 @@ Every dataset is a row in a machine-readable licence audit, [`data/manifests/dat
 | Decision | Datasets | Where it can appear |
 |---|---|---|
 | **APPROVED** / **APPROVED WITH CONDITIONS** | Glottolog, Concepticon, LSI, ASJP, Wikidata Lexemes, Wiktionary (wiktextract), IE-CoR, IELex, DravLex, NorthEuraLex, Hale's Nepal wordlists, about 125 more Lexibank CLDF wordlists (among them ABVD, the Austronesian Comparative Dictionary, SEABOR and WOLD's loanwords), the Open Multilingual Wordnet (32 wordnets), WALS and PHOIBLE (language profiles), Digital Corpus of Sanskrit lexicon, Dakshina, Aksharantar (approved components) | Everywhere, including the committed open seed, with attribution in [`data/public_seed/ATTRIBUTION.md`](data/public_seed/ATTRIBUTION.md) |
-| **RESEARCH USE** | Jambu (and through it Turner's CDIAL, Burrow & Emeneau's DEDR and about 570 other works), Monier-Williams 1899 (Cologne), Digital Pāḷi Dictionary, Peiros' Sino-Tibetan wordlists and six other non-commercial Lexibank wordlists, the StarLing etymological databases (Pokorny, Vasmer, Indo-European, Altaic, Dravidian, North Caucasian, Sino-Tibetan and more) | The research database and a research deployment, with a citation on every record. **Never** in this repository or the open seed |
+| **RESEARCH USE** | Jambu (and through it Turner's CDIAL, Burrow & Emeneau's DEDR and about 570 other works), Monier-Williams 1899 (Cologne), Digital Pāḷi Dictionary, Peiros' Sino-Tibetan wordlists and six other non-commercial Lexibank wordlists, the StarLing etymological databases (Pokorny, Vasmer, Indo-European, Altaic, Dravidian, North Caucasian, Sino-Tibetan and more), and David J. Peterson's Valyrian languages (constructed) | The research database and a research deployment, with a citation on every record. **Never** in this repository or the open seed |
 | **BLOCKED** | everything unverified | Nowhere. `validate --research` fails on it |
 
 In the app:
@@ -256,6 +256,16 @@ make research-db            # open imports, research imports, Glottolog, re-key,
 ```
 
 The research imports include the **StarLing etymological databases** (Starostin's *Tower of Babel*), with Pokorny's and Vasmer's dictionaries, Indo-European, Germanic, Baltic, Altaic, Dravidian, North Caucasian, Sino-Tibetan, Chukchee-Kamchatkan, Kartvelian and Yeniseian etymologies. `make fetch-dev-data` downloads their 2005 archives (about 15 MB) from starlingdb.org on your machine; no StarLing software is needed. `make import-starling` re-runs just that import and lists any field names or abbreviations it could not assign to a language in `reports/starling_unmapped.csv` ([details](docs/DATA_PIPELINE.md)).
+
+**High Valyrian** (optional). David J. Peterson's constructed language for *Game of Thrones* and *House of the Dragon*, with its Low Valyrian descendants (Astapori and Meereenese Valyrian), from [The Languages of David J. Peterson](https://wiki.languageinvention.com/High_Valyrian_language) wiki: about 2,800 words with definitions, plus the compounds, derivations and descendants each word page records. They are fictional languages, so they get their own family, *Valyrian languages (constructed, fictional)*, and are never linked to natural languages. The wiki's content belongs to HBO and Peterson, so it is research and reference use, downloaded by you:
+
+```bash
+make fetch-valyrian         # robots-compliant, one page every 3 s, resumable; about 2-3 hours
+```
+
+```bash
+make import-valyrian
+```
 
 **Everything, in every language** (about 5,000 languages, with Wiktionary's full etymologies and descendant lists; about 100 GB of free disk recommended, see [`REQUIREMENTS.md`](REQUIREMENTS.md)):
 
@@ -331,6 +341,7 @@ flowchart LR
     r3["Digital Pali Dictionary"]
     r4["Peiros Sino-Tibetan<br/>+ 6 NC Lexibank sets"]
     r5["StarLing / Tower of Babel<br/>(Pokorny, Vasmer, Altaic …)"]
+    r6["High Valyrian (constructed)<br/>D. J. Peterson's wiki"]
   end
   OPEN --> F["fetch_data.py<br/>pinned commits + sha256"]
   RES --> F
@@ -378,6 +389,7 @@ docs/        specification, architecture, licence audit, pipeline, deployment, w
 - [x] **Research expansion.** Jambu in full, Wiktionary etymologies, expert cognate sets, Sanskrit and Pāli dictionaries, with per-record citations and the *Open data only* switch.
 - [x] **Global expansion.** Every Glottolog language as one record; 130 Lexibank wordlists, the Open Multilingual Wordnet, WALS and PHOIBLE profiles, WOLD and ACD borrowings; the steppe corridor (Russian and its neighbours and ancestors) in Wiktionary and Wikidata; 3,745 searchable languages.
 - [x] **Everything on your own machine.** `make full-db` (Wiktionary and Wikidata in every language, with descendant lists) and the StarLing etymological databases; Linux setup in [`REQUIREMENTS.md`](REQUIREMENTS.md).
+- [x] **A constructed language family.** High Valyrian and its Low Valyrian descendants, kept apart from natural languages.
 - [ ] **Translation and profile panels** in the app for the meaning links and language profiles already in the database.
 - [ ] **Rebuild the open seed** from the global open data, published as release assets (it outgrows a git repository).
 - [ ] **Hosted demo** of the open seed and of the research version ([`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)).
@@ -409,6 +421,6 @@ https://github.com/Vaidurya-s/Linguistic-DNA, commit <hash>.
 
 ## Acknowledgements
 
-This project stands on the work of others: the compilers of CDIAL and DEDR; the Jambu team, who made decades of South Asian historical linguistics machine-readable; Glottolog, Concepticon and the Lexibank / CLDF community (LSI, ASJP, IE-CoR, IELex, DravLex, NorthEuraLex, Hale's Nepal, Peiros, ABVD, ACD, WOLD and the authors of the other 120 wordlists); the Open Multilingual Wordnet and the wordnets it gathers; WALS and PHOIBLE; Wikidata and Wiktionary contributors, and wiktextract / kaikki.org; the Digital Corpus of Sanskrit, the Cologne Digital Sanskrit Dictionaries and the Digital Pāḷi Dictionary; Sergei and George Starostin and the Tower of Babel (StarLing) project; and Google Research's Dakshina and AI4Bharat's Aksharantar for transliteration data.
+This project stands on the work of others: the compilers of CDIAL and DEDR; the Jambu team, who made decades of South Asian historical linguistics machine-readable; Glottolog, Concepticon and the Lexibank / CLDF community (LSI, ASJP, IE-CoR, IELex, DravLex, NorthEuraLex, Hale's Nepal, Peiros, ABVD, ACD, WOLD and the authors of the other 120 wordlists); the Open Multilingual Wordnet and the wordnets it gathers; WALS and PHOIBLE; Wikidata and Wiktionary contributors, and wiktextract / kaikki.org; the Digital Corpus of Sanskrit, the Cologne Digital Sanskrit Dictionaries and the Digital Pāḷi Dictionary; Sergei and George Starostin and the Tower of Babel (StarLing) project; David J. Peterson and the contributors to The Languages of David J. Peterson wiki; and Google Research's Dakshina and AI4Bharat's Aksharantar for transliteration data.
 
 <div align="center"><sub>Surface resemblance is not proof of common ancestry. Every documented relationship here traces to a source.</sub></div>

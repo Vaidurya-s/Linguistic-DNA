@@ -244,6 +244,25 @@ Each source below was checked against its own licence, terms and robots.txt. Row
 
 **Caveat.** The Altaic databases present Turkic, Mongolic, Tungusic, Korean and Japanese as one family. That is a contested hypothesis, so links between those databases carry a note saying so.
 
+## 4d. The Valyrian languages (constructed)
+
+**Decision: RESEARCH USE.** High Valyrian and its Low Valyrian descendants, from The Languages of David J. Peterson wiki (https://wiki.languageinvention.com/).
+
+**Evidence.**
+- The languages were created by David J. Peterson for HBO's *Game of Thrones* and *House of the Dragon*, from material in George R. R. Martin's novels.
+- The wiki states no licence for its content, and unofficial copies say the language belongs to HBO.
+- The wiki's robots.txt allows article pages, but not `/index.php`, which also serves the paginated category lists. A commented-out Content-Signal line reads `ai-train=no, user=reference`.
+
+**Access.**
+- The user downloads the pages with `make fetch-valyrian`: robots-compliant, one request every 3 seconds, identified by its user agent, and resumable.
+- Nothing is committed or redistributed. The test fixtures are synthetic pages in the same structure.
+
+**What is stored.**
+- Terms, definitions of up to 300 characters, and the etymology and descendant links each page records, each citing its page and revision.
+- Not stored: example sentences, inflection tables or other page text.
+
+**Kept apart.** These are fictional, constructed languages. They have their own family, are never merged with natural languages, and are never linked to them.
+
 ## 5. Shortlist datasets not yet audited
 
 The other 22 shortlisted resources have rows with decision BLOCKED and reason "unverified": Lexibank (as a collection), Open English WordNet, Unicode CLDR, IndicLID, Samanantar, IndicCorp v2, Naamapadam, BPCC-Mined, BPCC-H-Wiki, BPCC-H-Daily, IN22-Gen, IN22-Conv, FLORES-200, NLLB-Seed, Tatoeba, Wiktionary, Wikipedia, Open Multilingual Wordnet, Universal Dependencies, Common Voice, FLEURS, and CLDF datasets on Zenodo.

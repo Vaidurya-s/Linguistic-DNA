@@ -127,6 +127,12 @@ const RESEARCH_SOURCES = [
     credit: 'Sergei A. Starostin, George S. Starostin et al.; each record also cites its own database and compilers',
     url: 'https://starlingdb.org/',
   },
+  {
+    name: 'The Languages of David J. Peterson: Valyrian',
+    use: 'High Valyrian and its Low Valyrian descendants: constructed, fictional languages made for Game of Thrones, kept in their own family and never linked to natural languages',
+    credit: 'David J. Peterson; the languages belong to HBO. Each record cites its wiki page and revision',
+    url: 'https://wiki.languageinvention.com/High_Valyrian_language',
+  },
 ]
 
 const SECTIONS: [string, string[]][] = [

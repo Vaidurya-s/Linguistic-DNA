@@ -111,6 +111,20 @@ make import-jambu validate
   - Anything unresolved is skipped and listed in `reports/starling_unmapped.csv`, with counts and any encoding misses.
   - To include more, add the name or abbreviation to that file and run `make import-starling refresh-languages`.
 
+**Valyrian languages (constructed, fictional; research use).**
+- **Source.** David J. Peterson's High Valyrian, created for HBO's *Game of Thrones*, and its Low Valyrian descendants (Astapori, Meereenese), from The Languages of David J. Peterson wiki.
+- **Download.** `scripts/fetch_valyrian.py` (`make fetch-valyrian`) is run by the user.
+  - It saves the dictionary pages, then every term's article page, into `data/raw/valyrian/`.
+  - It honours robots.txt: article pages only, never `/index.php` or `/api.php`.
+  - It waits 3 seconds between requests and resumes where it stopped.
+- **Import** (`app/importers/valyrian.py`):
+  - The dictionary table gives each term and its definition. The row anchor gives the lower-case spelling, and the page's headword restores the capitals of proper nouns.
+  - Each language section of a word page gives its headword, up to three definitions, the Etymology and the Descendants.
+  - **Etymology:** a term in the same language is `has_component` when the etymology joins terms with "+", otherwise `derived_form`. A High Valyrian term on a Low Valyrian page is `inherited_form` (`borrowed_from` when the text says borrowed).
+  - **Descendants:** each descendant is `inherited_form` from the word.
+  - Every link cites the page and its revision (`oldid`).
+- **Kept apart.** The languages are `conlang-<code>` records in the family "Valyrian languages (constructed, fictional)". `refresh-languages` never merges them, and no link connects them to a natural language. A language is searchable from 200 words.
+
 **Concepts.** Jambu's concept IDs are Concepticon IDs (all 3,321 match ID and gloss), so all datasets share one concept space.
 
 **Transliteration search (Phase 2).** A query in any of the nine supported scripts is romanised by our own rule-based converter (`backend/app/services/transliterate.py`), following ISO 15919. It tries the readings the script leaves open: whether inherent vowels are pronounced, and whether anusvara is a nasal consonant or a nasalised vowel. The resulting loose keys are matched only within languages that use that script. A romanised query such as "paani" is looked up in the transliteration aliases (Dakshina, plus the approved Aksharantar components) to get native spellings, which then take the same path. Every such match has `match_type = transliteration` and a `via` explanation. Records stored only in a native script (most Wikidata lemmas) are keyed by their romanisation, using per-language vowel rules (Sanskrit keeps inherent vowels, Hindi drops some), so romanised queries reach them. After changing these rules, run `python -m app.cli rekey-search`.
