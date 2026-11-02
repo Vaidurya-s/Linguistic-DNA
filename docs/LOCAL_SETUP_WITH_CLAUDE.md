@@ -73,7 +73,13 @@ make setup
 make migrate
 ```
 
-Check it: `make test` should pass (it uses a separate `lsg_test` database).
+Check it: `make test` should pass (it uses a separate `lsg_test` database). The tests read only the `TEST_DATABASE_URL` environment variable, whose built-in default has no password, so with the Docker database export it first or every database test errors with `fe_sendauth: no password supplied`:
+
+```bash
+export TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/lsg_test
+```
+
+The tests drop and recreate the `public` schema of that database, so never point it at `lsg`.
 
 ## 3. Downloads (the user runs this)
 
@@ -93,7 +99,7 @@ When the user says it has finished:
 
 ## 4. Build everything
 
-Run in the background with a log (about 4–8 hours):
+Run in the background with a log (4–8 hours is a safe estimate; the first run of this runbook took about 50 minutes on a desktop with 28 threads, 61 GB of RAM and an NVMe SSD). Keep the log outside the repository, or in a git-ignored place, so it cannot be committed by accident:
 
 ```bash
 nohup make FULL=1 research-db > build.log 2>&1 &
@@ -139,19 +145,26 @@ docker compose exec db psql -U postgres -d lsg -c "VACUUM ANALYZE lexeme" -c "VA
 `make import-starling` (part of the build) writes `reports/starling_unmapped.csv`: StarLing field names and segment abbreviations it could not assign to a language, with how often each occurs.
 
 1. **Map the frequent entries.** For each one with many occurrences, find the language it names. The StarLing field alias (e.g. "Old Church Slavonic") or abbreviation (e.g. "Lith.") usually says it plainly. Add a row to `data/config/starling_languages.csv` with its Wiktionary language code. Use `*` for a field that mixes several languages.
-   - Do not guess: leave anything unclear for the user, and list it in the report.
-2. **Re-import and check:**
+   - Do not guess: leave anything unclear for the user, and list it in the report. Family-level fields (Tungus-Manchu, Mongolian, Turkic), dialect fields whose language is uncertain, and fields that are not languages at all (Grammar, reference columns) stay unmapped.
+   - The file uses CRLF line endings. Append rows with CRLF (for example in binary mode), or the diff shows every line as changed.
+2. **Re-import and check.** `import-starling` replaces its own dataset and creates a `wkt-<code>` language for each code it uses; the `refresh-languages` that follows merges those into the Glottolog languages (Russian, Latin, Tulu …). Always run both, in this order, and check afterwards that the StarLing words moved:
 
    ```bash
    make import-starling refresh-languages validate-research
    ```
+
+   ```bash
+   docker compose exec db psql -U postgres -d lsg -c "SELECT language_id, count(*) FROM lexeme WHERE dataset = 'starling' GROUP BY 1 ORDER BY 2 DESC LIMIT 10"
+   ```
+
+   Russian should appear as `gl-russ1263` (about 17,000 words), not `wkt-ru`. Afterwards, `cd backend && .venv/bin/python -m app.cli rekey-search` rebuilds the search keys (there is no make target for it); it is cheap and safe to run.
 3. **Pin the checksums.** Write the eight StarLing checksums from step 3 into `data/manifests/downloads.json`: set `"sha256"` and remove `"unpinned"`.
 4. **Commit only the config changes** (`starling_languages.csv`, `downloads.json`) on a new branch. Ask the user before pushing.
 
 ## 7. Update the README figures (optional; ask first)
 
 If the user wants the README to reflect this machine's database:
-- Regenerate the chart with `python3 scripts/coverage_chart.py data/config/languages.csv docs/media/coverage-by-language.svg`.
+- Regenerate the chart with `PGPASSWORD=postgres python3 scripts/coverage_chart.py data/config/languages.csv docs/media/coverage-by-language.svg`. The script calls `psql`, so install the PostgreSQL client first (`sudo apt install -y postgresql-client`); a newer client than the server's version 16 works.
 - Update the numbers in README.md's "At a glance" table and in the chart's alt text from `make db-size` and read-only SQL.
 - Show the user the diff. Commit on a branch, and push only if they say so.
 
@@ -173,7 +186,15 @@ Open <http://localhost:5173/#/explore>. Try these words, and confirm each shows 
 - **English:** water
 - **A StarLing word:** search a Russian word from Vasmer, and check that a link cites "StarLing" and "Vasmer".
 
-To share it temporarily, see `docs/DEPLOYMENT.md` § 6 (Cloudflare quick tunnel). Only do this if the user asks: research-use data must not be published openly.
+To open it from other devices on the same network, build the site once and let the preview listen on all interfaces, leaving the API on localhost (the site forwards `/api` to it):
+
+```bash
+cd frontend && npm run build && npx vite preview --host 0.0.0.0 --port 5173 --strictPort
+```
+
+Other devices then use `http://<this machine's LAN address>:5173`. Keep this to a trusted network: the site serves the research-use data. If a device cannot connect, check the firewall (`sudo ufw status`).
+
+To share it temporarily over the internet, see `docs/DEPLOYMENT.md` § 6 (Cloudflare quick tunnel). Only do this if the user asks: research-use data must not be published openly.
 
 ## 9. Report to the user
 

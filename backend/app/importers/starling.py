@@ -741,6 +741,15 @@ def import_starling(
                 " VALUES (%s, %s, 'other', %s, false, %s) ON CONFLICT (id) DO NOTHING",
                 (lang, lname, is_proto, psycopg.types.json.Jsonb({"starling": True})),
             )
+            if lang.startswith("wkt-"):
+                # refresh-languages resolves a source language to its Glottolog record through
+                # this alias. Without it, a re-import after an earlier refresh (which removes
+                # the merged wkt-* rows and their aliases) strands the words on a bare language.
+                cur.execute(
+                    "INSERT INTO language_alias (language_id, scheme, value)"
+                    " VALUES (%s, 'wiktionary', %s) ON CONFLICT DO NOTHING",
+                    (lang, lang[len("wkt-") :]),
+                )
         copy_rows(cur, "lexeme", LEXEME_COLS, (row + (batch,) for row in lexemes.values()))
         copy_rows(cur, "relationship", REL_COLS, (row + (batch,) for row in rels.values()))
         copy_rows(cur, "evidence", EVIDENCE_COLS, evidence)

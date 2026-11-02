@@ -238,6 +238,12 @@ def test_import(db, tmp_path):
             " AND form = %s",
             ("*чур",),
         ).fetchone() == ("reconstructed",)
+        # a language created here gets the Wiktionary alias refresh-languages resolves it by,
+        # so a re-import after an earlier refresh cannot strand words on a bare wkt-* language
+        assert db.execute(
+            "SELECT scheme, value FROM language_alias WHERE language_id = 'wkt-ru'"
+            " AND scheme = 'wiktionary'"
+        ).fetchone() == ("wiktionary", "ru")
         # Altaic links carry the contested note
         assert link(db, sid("turcet:3"), sid("altet:7"))[1] == CONTESTED_NOTE
         # no prose stored anywhere

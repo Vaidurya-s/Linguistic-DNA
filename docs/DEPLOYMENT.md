@@ -68,7 +68,7 @@ The research version adds the research-use sources (Jambu, and through it Turner
    make migrate research-db
    ```
    `research-db` imports the open datasets, then the research-use ones, then runs `validate --research`. That check fails on any BLOCKED data and on any research-use record without a cited source.
-2. **Size the host.** With every research source imported the database is about 10 GB (8.5M words, 4.6M links; `make full-db` makes it several times larger), against about 680 MB for the open seed. That is beyond the 500 MB free tiers of Neon and Supabase. Use a paid tier, or a small VM running PostgreSQL 16 with `pg_trgm`.
+2. **Size the host.** With every research source imported the database is about 14 GB (13.9M words and 7.1M links, as built by `make full-db`; without `FULL=1` it is smaller), against about 680 MB for the open seed. That is beyond the 500 MB free tiers of Neon and Supabase. Use a paid tier, or a small VM running PostgreSQL 16 with `pg_trgm`.
 3. **Copy it to the host.**
    ```bash
    make research-dump
@@ -122,7 +122,7 @@ make migrate
 make load-public-seed
 ```
 
-**4b. The full research database.** This takes 1.5–3 hours and needs about 30 GB. Everything is downloaded from its own upstream, pinned by commit or checksum: about 8 GB, and finished downloads are skipped on a re-run. That includes the StarLing etymological databases (about 15 MB from starlingdb.org). Their first download prints each file's SHA-256 so it can be pinned in `data/manifests/downloads.json`; nothing else from StarLing is needed.
+**4b. The full research database.** This takes 1.5–3 hours and needs about 30 GB. Everything is downloaded from its own upstream, pinned by commit or checksum: about 8 GB, and finished downloads are skipped on a re-run. That includes the StarLing etymological databases (about 15 MB from starlingdb.org). Their SHA-256 values are pinned in `data/manifests/downloads.json`; nothing else from StarLing is needed.
 
 ```bash
 make fetch-data fetch-dev-data
@@ -134,7 +134,7 @@ Build the database, which ends with `validate --research`:
 make research-db
 ```
 
-**4c. Everything, in every language (recommended with 100 GB free).** This is 4b plus the whole Wiktionary dump and all of Wikidata Lexemes in every language (about 5,000 languages), with Wiktionary's descendant lists. That adds roughly 5–8 million words and 8–12 million cited links, including the English, European and global etymologies that 4b leaves out. It takes about 4–8 hours and needs about 60 GB at its peak; 16 GB of RAM is recommended. One command does the downloads, the imports, the checks and a size report:
+**4c. Everything, in every language (recommended with 100 GB free).** This is 4b plus the whole Wiktionary dump and all of Wikidata Lexemes in every language (about 5,000 languages), with Wiktionary's descendant lists. Measured on 2026-11-02, that took the research database from 8.5 to 13.9 million words and from 4.6 to 7.1 million cited links, including the English, European and global etymologies that 4b leaves out. It took about 50 minutes on a desktop with 28 threads, 61 GB of RAM and an NVMe SSD, and used about 36 GB at the end (24 GB for the Docker volume, 12 GB for `data/raw`); allow 4–8 hours and 60 GB on a slower machine. 16 GB of RAM is recommended. One command does the downloads, the imports, the checks and a size report:
 
 ```bash
 make full-db

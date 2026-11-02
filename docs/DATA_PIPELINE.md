@@ -103,7 +103,8 @@ make import-jambu validate
   - An etymology record becomes a reconstructed word in its database's proto-language. Wiktionary codes are used where they exist (`ine-pro`, `gem-pro`, `trk-pro` …), so the same proto-language holds both sources' forms.
   - Each reflex field gives one word per `;`-separated segment, linked to the proto-form as `etymon`.
   - A number field that links a subordinate database to its main one (Germanic to Indo-European, Turkic to Altaic) gives an `etymon` link between the two proto-forms. Links within the Altaic databases note that the family is contested.
-  - Vasmer's entries become Russian words, with the stress mark kept in `native_form`, linked to the PIE root that cites them.
+  - Vasmer's entries become Russian words, with the stress mark kept in `native_form`, linked to the PIE root that cites them. A headword Vasmer stars (`*чур`) is a hypothetical form and is stored as `reconstructed`, never as attested.
+  - A language the import creates (`wkt-<code>`) gets a `wiktionary` alias, which is how `refresh-languages` merges it into the language's Glottolog record. Run `make refresh-languages` after every StarLing import, or the words stay on a separate, non-searchable `wkt-<code>` language.
   - Pokorny's dictionary supplies page references only.
   - No dictionary prose is stored.
 - **Languages.** A field name ("Old Greek", "Gothic") or the abbreviation that opens a segment in a mixed field ("Oss." in "Other Iranian") resolves to a language through `data/config/starling_languages.csv`; Glottolog's language names are the fallback.
