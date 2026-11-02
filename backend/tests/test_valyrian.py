@@ -318,3 +318,100 @@ def test_fetch_reads_robots_with_its_own_user_agent(monkeypatch):
         assert "robots.txt" in str(exc)
     else:
         raise AssertionError("a Fetcher was built without a readable robots.txt")
+
+
+def _scripted_urlopen(mod, monkeypatch, handler):
+    """Replace the network: robots.txt is answered, every other URL goes to handler(url)."""
+    import io
+
+    log = []
+
+    def fake(req, timeout=None):
+        log.append(req.full_url)
+        if req.full_url.endswith("/robots.txt"):
+            return io.BytesIO(ROBOTS.encode())
+        result = handler(req.full_url)
+        if isinstance(result, BaseException):
+            raise result
+        return io.BytesIO(result.encode())
+
+    monkeypatch.setattr(mod.urllib.request, "urlopen", fake)
+    monkeypatch.setattr(mod.time, "sleep", lambda s: None)
+    return log
+
+
+def _http_error(mod, url, code):
+    import urllib.error
+
+    return urllib.error.HTTPError(url, code, "x", {}, None)
+
+
+def test_fetch_retries_transient_errors_and_skips_persistent_ones(monkeypatch):
+    mod = _fetch_module()
+    calls = {}
+
+    def handler(url):
+        calls[url] = calls.get(url, 0) + 1
+        if url.endswith("/Slow"):  # times out once, then answers
+            return TimeoutError("The read operation timed out") if calls[url] == 1 else "ok"
+        if url.endswith("/Throttled"):  # 429 once
+            return _http_error(mod, url, 429) if calls[url] == 1 else "ok"
+        if url.endswith("/Down"):
+            return _http_error(mod, url, 503)
+        if url.endswith("/Gone"):
+            return _http_error(mod, url, 404)
+        return "ok"
+
+    log = _scripted_urlopen(mod, monkeypatch, handler)
+    f = mod.Fetcher(delay=3)
+    assert f.get("Slow") == "ok" and f.get("Throttled") == "ok"
+    assert f.get("Gone") is None  # a missing page is not an error
+    try:
+        f.get("Down")
+    except mod.FetchError as exc:
+        assert "503" in str(exc)
+    else:
+        raise AssertionError("a page that always fails must raise FetchError")
+    assert calls[f"{mod.BASE}/Down"] == mod.RETRIES
+    assert calls[f"{mod.BASE}/Slow"] == 2 and len(log) == 1 + 2 + 2 + 1 + mod.RETRIES
+
+
+def test_fetch_stops_at_once_when_blocked(monkeypatch):
+    mod = _fetch_module()
+    log = _scripted_urlopen(mod, monkeypatch, lambda url: _http_error(mod, url, 403))
+    f = mod.Fetcher(delay=3)
+    try:
+        f.get("Hepagon")
+    except mod.Blocked:
+        pass
+    else:
+        raise AssertionError("HTTP 403 must raise Blocked")
+    assert len(log) == 2  # robots.txt and one attempt: no retries against a refusal
+
+
+def test_fetch_run_survives_a_failing_page_and_keeps_progress(monkeypatch, tmp_path):
+    import json
+    import sys
+
+    mod = _fetch_module()
+    (tmp_path / "High_Valyrian_Dictionary.html").write_text(DICTIONARY, encoding="utf-8")
+
+    def handler(url):
+        if url.endswith("/Hepvos"):
+            return TimeoutError("The read operation timed out")  # never answers
+        if "Dictionary" in url:
+            return _http_error(mod, url, 404)  # Astapori / Meereenese: no such page
+        return "<html>page</html>"
+
+    _scripted_urlopen(mod, monkeypatch, handler)
+    monkeypatch.setattr(sys, "argv", ["fetch_valyrian.py", "--dest", str(tmp_path), "--delay", "1"])
+    assert mod.main() == 1  # one page could not be fetched: run again
+    pages = {p.name for p in (tmp_path / "pages").iterdir()}
+    assert pages == {"Hepagon.html", "-vos.html", "Valyria.html"}  # no Hepvos, no .tmp files
+    manifest = json.loads((tmp_path / "manifest.json").read_text())
+    assert set(manifest["pages"]) == {"Hepagon", "-vos", "Valyria"}
+    # the next run fetches only what is missing
+    _scripted_urlopen(mod, monkeypatch, lambda url: "<html>again</html>")
+    assert mod.main() == 0
+    assert (tmp_path / "pages" / "Hepvos.html").read_text() == "<html>again</html>"
+    assert (tmp_path / "pages" / "Hepagon.html").read_text() == "<html>page</html>"

@@ -9,10 +9,15 @@ is run by the user on their own machine, like downloading the pages in a browser
 is never committed or redistributed. The script honours robots.txt (only article pages, never
 /index.php or /api.php), waits between requests (--delay, default 3 s), identifies itself, and
 skips pages it already has, so it can be stopped and resumed. Uses only the standard library.
+
+A slow or failed request is retried with a pause (HTTP 429 waits a minute); a page that still
+fails is skipped and listed at the end, and the next run retries it. Five skipped pages in a row
+stop the run, and HTTP 401/403 stops it at once. Progress is saved whatever ends the run.
 """
 
 import argparse
 import html
+import http.client
 import json
 import re
 import sys
@@ -26,6 +31,18 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 BASE = "https://wiki.languageinvention.com"
 UA = "LinguisticDNA-fetch/0.1 (https://github.com/Vaidurya-s/Linguistic-DNA; personal research use)"
+RETRIES = 4  # attempts per page before it is skipped (and retried on the next run)
+GIVE_UP_AFTER = 5  # pages skipped in a row: the site is down or refusing us, so stop
+
+
+class FetchError(Exception):
+    """A page could not be fetched after several attempts; skip it, a later run retries."""
+
+
+class Blocked(Exception):
+    """The site refuses us (HTTP 401/403). Stop at once and do not keep asking."""
+
+
 DICTIONARIES = {
     "hval": "High_Valyrian_Dictionary",
     "asta": "Astapori_Valyrian_Dictionary",
@@ -75,22 +92,40 @@ class Fetcher:
         url = f"{BASE}/{urllib.parse.quote(title)}"
         if not self.robots.can_fetch(UA, url):
             raise RuntimeError(f"robots.txt disallows {url}")
-        wait = self.last + self.delay - time.monotonic()
-        if wait > 0:
-            time.sleep(wait)
-        self.last = time.monotonic()
-        req = urllib.request.Request(url, headers={"User-Agent": UA})
-        try:
-            with urllib.request.urlopen(req, timeout=60) as r:
-                return r.read().decode("utf-8")
-        except urllib.error.HTTPError as exc:
-            if exc.code == 404:
-                return None
-            if exc.code == 429:  # asked to slow down: back off and try once more
-                time.sleep(max(60, self.delay * 10))
+        for attempt in range(1, RETRIES + 1):
+            wait = self.last + self.delay - time.monotonic()
+            if wait > 0:
+                time.sleep(wait)
+            self.last = time.monotonic()
+            req = urllib.request.Request(url, headers={"User-Agent": UA})
+            try:
                 with urllib.request.urlopen(req, timeout=60) as r:
                     return r.read().decode("utf-8")
-            raise
+            except urllib.error.HTTPError as exc:
+                if exc.code == 404:
+                    return None
+                if exc.code in (401, 403):
+                    raise Blocked(f"{url}: HTTP {exc.code}; the site is refusing us") from exc
+                if exc.code == 429:  # asked to slow down
+                    reason, pause = "HTTP 429", max(60, self.delay * 10)
+                elif exc.code >= 500:
+                    reason, pause = f"HTTP {exc.code}", 10 * attempt
+                else:
+                    raise FetchError(f"{url}: HTTP {exc.code}") from exc
+            except (OSError, http.client.HTTPException) as exc:  # timeouts, resets, DNS
+                reason, pause = type(exc).__name__, 10 * attempt
+            if attempt == RETRIES:
+                raise FetchError(f"{url}: {reason} on {RETRIES} attempts")
+            print(f"  {title}: {reason}, retrying in {pause:.0f} s", flush=True)
+            time.sleep(pause)
+        raise AssertionError("unreachable")
+
+
+def write_atomic(path: Path, text: str) -> None:
+    """A page file either exists complete or not at all, so a stop mid-write is harmless."""
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.replace(path)
 
 
 def main() -> int:
@@ -113,7 +148,7 @@ def main() -> int:
             if text is None:
                 print(f"{title}: no such page (skipped)")
                 continue
-            path.write_text(text, encoding="utf-8")
+            write_atomic(path, text)
             manifest[title] = {"fetched": time.strftime("%Y-%m-%d"), "language": code}
         found = lemma_titles(path.read_text(encoding="utf-8"))
         print(f"{title}: {len(found)} terms")
@@ -124,16 +159,37 @@ def main() -> int:
     todo = [t for t in titles if not page_file(args.dest, t).exists()]
     print(f"{len(titles)} pages, {len(todo)} to fetch (about {len(todo) * args.delay / 60:.0f} min)")
     (args.dest / "pages").mkdir(exist_ok=True)
-    for i, title in enumerate(todo, start=1):
-        text = fetcher.get(title)
-        if text is None:
-            manifest["pages"][title] = "missing"
-            continue
-        page_file(args.dest, title).write_text(text, encoding="utf-8")
-        manifest["pages"][title] = time.strftime("%Y-%m-%d")
-        if i % 50 == 0 or i == len(todo):
-            manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=1))
-            print(f"  {i}/{len(todo)}", flush=True)
+    failed: list[str] = []
+    streak = 0
+    try:
+        for i, title in enumerate(todo, start=1):
+            try:
+                text = fetcher.get(title)
+            except FetchError as exc:
+                failed.append(title)
+                streak += 1
+                print(f"  skipped {title}: {exc}", flush=True)
+                if streak >= GIVE_UP_AFTER:
+                    print(f"{streak} pages in a row failed; stopping. Run again later.")
+                    break
+                continue
+            streak = 0
+            if text is None:
+                manifest["pages"][title] = "missing"
+                continue
+            write_atomic(page_file(args.dest, title), text)
+            manifest["pages"][title] = time.strftime("%Y-%m-%d")
+            if i % 50 == 0 or i == len(todo):
+                manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=1))
+                print(f"  {i}/{len(todo)}", flush=True)
+    except Blocked as exc:
+        print(f"stopping: {exc}", file=sys.stderr)
+        return 2
+    finally:  # progress is kept whatever ends the run
+        manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=1))
+    if failed:
+        print(f"{len(failed)} pages could not be fetched; run again to retry them.")
+        return 1
     return 0
 
 
