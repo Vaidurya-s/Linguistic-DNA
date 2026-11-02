@@ -508,7 +508,10 @@ def import_starling(
                 lang,
                 form,
                 gloss,
-                ReconstructionStatus.attested,
+                # Vasmer stars hypothetical forms (*чур); they are not attested words
+                ReconstructionStatus.reconstructed
+                if form.startswith("*")
+                else ReconstructionStatus.attested,
                 "starling-vasmer",
                 f"Vasmer, {pages}" if pages else citation_of(cfg, r["NUMBER"]),
                 native=stressed,
