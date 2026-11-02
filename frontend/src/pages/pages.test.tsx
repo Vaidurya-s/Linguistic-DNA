@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { href } from '../app/router.ts'
 import HomePage from './HomePage.tsx'
@@ -33,6 +33,28 @@ describe('pages', () => {
     const link = screen.getByRole('link', { name: /bidyut/ })
     expect(link.getAttribute('href')).toBe('#/explore?q=bidyut')
     expect(await screen.findByText('5,549')).toBeInTheDocument() // words indexed
+    // every searchable language is counted, and families come from Glottolog
+    expect(screen.getByText('searchable languages').nextSibling).toHaveTextContent('2')
+    expect(screen.getByText('language families').nextSibling).toHaveTextContent('2')
+    expect(screen.getByRole('link', { name: /вдова/ }).getAttribute('href')).toBe(
+      `#/explore?q=${encodeURIComponent('вдова')}`,
+    )
+  })
+
+  it('methodology page shows the top languages first and the rest on request', async () => {
+    const many = Array.from({ length: 60 }, (_, i) => ({
+      id: `l${i}`, name: `Lang${i}`, role: 'other', group: null, family_id: 'f',
+      family_name: 'Austronesian', glottocode: null, primary_script: null,
+      lexeme_count: 1000 - i, linked_count: 0,
+    }))
+    vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve(
+      new Response(JSON.stringify(url.includes('/citations') ? { datasets: [], works: [] } : many)))))
+    render(<MethodologyPage />)
+    expect(await screen.findByText('Lang0')).toBeInTheDocument()
+    expect(screen.queryByText('Lang59')).not.toBeInTheDocument()
+    expect(screen.getAllByText('Austronesian').length).toBe(50) // family, not "historical / reference"
+    fireEvent.click(screen.getByRole('button', { name: 'Show all 60 languages' }))
+    expect(screen.getByText('Lang59')).toBeInTheDocument()
   })
 
   it('methodology page credits every source, lists coverage and how to cite', async () => {

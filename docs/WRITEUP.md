@@ -82,18 +82,18 @@ flowchart LR
 
 ## Numbers
 
-As of 2026-10-30.
+As of 2026-11-02.
 
 | | Open public seed | Research database, South Asia phase | Research database, after the global expansion |
 |---|---:|---:|---:|
-| Words | 521,448 | 1,812,733 | 8,480,391 |
-| Cited relationships, each with evidence | 221,594 | 996,776 | 4,560,323 |
+| Words | 521,448 | 1,812,733 | 13,882,287 |
+| Cited relationships, each with evidence | 221,594 | 996,776 | 7,139,912 |
 | Transliteration spelling pairs | 947,189 | 947,189 | 947,189 |
-| Searchable languages | 25 | 25 | 3,489 |
-| Datasets | 15 (14 sources; Aksharantar counts twice) | 19 (adds Jambu, Monier-Williams, DPD and Peiros) | 147 with words or profiles (adds 130 Lexibank wordlists, 32 wordnets, WALS, PHOIBLE, Wiktionary's English, Germanic and steppe languages) |
-| Size | about 55 MB compressed, 680 MB loaded | about 2.2 GB | about 9.8 GB |
+| Searchable languages | 25 | 25 | 3,745 |
+| Datasets | 15 (14 sources; Aksharantar counts twice) | 19 (adds Jambu, Monier-Williams, DPD and Peiros) | 148 with words or profiles (adds 130 Lexibank wordlists, 32 wordnets, WALS, PHOIBLE, StarLing, and Wiktionary and Wikidata in every language) |
+| Size | about 55 MB compressed, 680 MB loaded | about 2.2 GB | about 14 GB |
 
-The global expansion and the steppe corridor are described in [DATASET_LICENCE_AUDIT.md](DATASET_LICENCE_AUDIT.md) § 4b, and the StarLing databases in § 4c; StarLing is imported on the user's own machine and is not in these counts. `make full-db` adds Wiktionary and Wikidata in every language.
+The global expansion and the steppe corridor are described in [DATASET_LICENCE_AUDIT.md](DATASET_LICENCE_AUDIT.md) § 4b, and the StarLing databases in § 4c. The last column is the output of `make full-db`: Wiktionary and Wikidata in every language, plus the StarLing databases (273,809 words and 235,852 links), which are downloaded and imported on the user's own machine. The earlier snapshot of this table, before `full-db`, had 8,480,391 words and 4,560,323 relationships.
 
 - **Open seed:** passes all 25 public-mode validator checks on a fresh load.
 - **Research database:** passes `validate --research`, so every research-use record cites a source.

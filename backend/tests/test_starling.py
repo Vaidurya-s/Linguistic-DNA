@@ -148,7 +148,13 @@ def build(tmp_path):
                         "WORD": cyr("у") + b"\xb1" + cyr("тро,"),
                         "GENERAL": cyr('"утро, рассвет", укр. долгий текст статьи'),
                         "PAGES": b"4,170",
-                    }
+                    },
+                    {
+                        "NUMBER": 6,
+                        "WORD": cyr("*чур,"),
+                        "GENERAL": cyr('"граница"'),
+                        "PAGES": b"4,370",
+                    },
                 ],
                 {},
                 None,
@@ -226,6 +232,18 @@ def test_import(db, tmp_path):
             (ru,),
         ).fetchone() == ("wkt-ru", "утро", "у́тро", "утро, рассвет (in Russian)", "Vasmer, 4,170")
         assert link(db, ru, pie)[0] == "etymon"
+        # a starred Vasmer headword is a hypothetical form, never an attested word
+        assert db.execute(
+            "SELECT reconstruction_status::text FROM lexeme WHERE language_id = 'wkt-ru'"
+            " AND form = %s",
+            ("*чур",),
+        ).fetchone() == ("reconstructed",)
+        # a language created here gets the Wiktionary alias refresh-languages resolves it by,
+        # so a re-import after an earlier refresh cannot strand words on a bare wkt-* language
+        assert db.execute(
+            "SELECT scheme, value FROM language_alias WHERE language_id = 'wkt-ru'"
+            " AND scheme = 'wiktionary'"
+        ).fetchone() == ("wiktionary", "ru")
         # Altaic links carry the contested note
         assert link(db, sid("turcet:3"), sid("altet:7"))[1] == CONTESTED_NOTE
         # no prose stored anywhere

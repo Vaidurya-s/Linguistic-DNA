@@ -11,6 +11,9 @@ const SHOWCASE = [
   { q: 'bidyut', note: 'Bengali বিদ্যুৎ “electricity”, borrowed from Sanskrit विद्युत्' },
   { q: 'ਪਾਣੀ', lang: 'pan', note: 'Punjabi “water”: its Prakrit source and the compounds built on it' },
   { q: 'ಹಲ್ಲು', note: 'Kannada “tooth”, found from the Kannada script' },
+  { q: 'вдова', note: 'Russian “widow”: inherited through Proto-Slavic, with cognates from Sanskrit to English' },
+  { q: 'water', note: 'English “water”: its Germanic and Indo-European relatives, and the words borrowed from it' },
+  { q: 'сто', note: 'Russian “hundred” and the Proto-Slavic word it comes from' },
 ]
 
 const PRINCIPLES = [
@@ -25,9 +28,10 @@ export default function HomePage() {
   useEffect(() => {
     getLanguages().then(setLanguages).catch(() => setLanguages([]))
   }, [])
-  const modern = languages.filter((l) => l.role === 'modern')
+  // The API lists every searchable language: Glottolog families are counted, not the
+  // Indo-Aryan / Dravidian groups of the configured South Asian languages.
   const words = languages.reduce((n, l) => n + l.lexeme_count, 0)
-  const families = new Set(modern.map((l) => l.group))
+  const families = new Set(languages.map((l) => l.family_name).filter(Boolean))
 
   return (
     <main>
@@ -35,12 +39,13 @@ export default function HomePage() {
         <div className="mx-auto max-w-5xl px-4 py-14 sm:py-20">
           <p className="text-sm font-medium tracking-wide text-amber-800 uppercase">Language Similarity Graph</p>
           <h1 className="mt-3 text-4xl leading-tight font-semibold tracking-tight sm:text-5xl">
-            How are the words of India&apos;s languages related?
+            How are words related, from India&apos;s languages to the steppe and beyond?
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-slate-700">
             Search a word in its own script or in romanisation, then follow the documented links
             between languages: what a word was inherited from, borrowed from, or built from, with
-            the source for every claim.
+            the source for every claim. Built around the languages of India, and reaching
+            Slavic, Iranian, Turkic, Uralic and many more.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <a href={href('/explore')} className="rounded-md bg-blue-700 px-5 py-2.5 font-medium text-white hover:bg-blue-800">
@@ -53,8 +58,8 @@ export default function HomePage() {
           {languages.length > 0 && (
             <dl className="mt-10 grid max-w-xl grid-cols-3 gap-4 text-center">
               {[
-                [modern.length, 'modern languages'],
-                [families.size, 'language families'],
+                [languages.length.toLocaleString(), 'searchable languages'],
+                [families.size.toLocaleString(), 'language families'],
                 [words.toLocaleString(), 'words indexed'],
               ].map(([value, label]) => (
                 <div key={label} className="rounded-lg border border-slate-200 bg-white px-2 py-3">

@@ -1,6 +1,6 @@
 # Linguistic DNA documentation
 
-An interactive, evidence-backed graph of how words are related, built around India's languages and now covering 3,489 searchable languages from the Eurasian steppe to the Pacific. Users enter a word in a supported native script or in romanisation and explore documented historical relationships (inheritance, borrowing, derivation, composition, cognacy) in a navigable graph, with the source of every link. Resemblance in spelling or sound is listed separately, as candidates, and never drawn as a relationship.
+An interactive, evidence-backed graph of how words are related, built around India's languages and now covering 3,745 searchable languages from the Eurasian steppe to the Pacific. Users enter a word in a supported native script or in romanisation and explore documented historical relationships (inheritance, borrowing, derivation, composition, cognacy) in a navigable graph, with the source of every link. Resemblance in spelling or sound is listed separately, as candidates, and never drawn as a relationship.
 
 Back to the [project README](../README.md).
 

@@ -31,7 +31,8 @@ An evidence-first graph of word relationships: FastAPI + PostgreSQL 16 (`pg_trgm
 - Importers replace their own dataset (delete, then insert); IDs are deterministic, so re-imports keep them.
 - Long imports: run them in the background with output to a log file, and check the log, rather than blocking a session. Kill a stuck process by its PID, never with a `pkill -f` pattern that can match your own shell.
 - Disk: the full build needs about 60 GB at its peak. Check `df -h` and `docker system df` before large imports.
-- StarLing: unmatched field names and abbreviations are listed in `reports/starling_unmapped.csv`; extend `data/config/starling_languages.csv` (name or abbreviation -> Wiktionary language code) and re-run `make import-starling refresh-languages`.
+- StarLing: unmatched field names and abbreviations are listed in `reports/starling_unmapped.csv`; extend `data/config/starling_languages.csv` (name or abbreviation -> Wiktionary language code) and re-run `make import-starling refresh-languages`. The file uses CRLF line endings; append rows with CRLF so the diff stays small. Always run `refresh-languages` after `import-starling`: it merges the `wkt-<code>` languages the import creates into the Glottolog ones. Vasmer headwords starred in the source are stored as reconstructed.
+- `make test` needs `TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/lsg_test` exported with the Docker database (the built-in default has no password). The tests wipe that database's `public` schema, so never point them at `lsg`.
 
 ## Style
 

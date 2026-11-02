@@ -159,15 +159,25 @@ const SECTIONS: [string, string[]][] = [
   ],
 ]
 
+// Configured South Asian languages show their group (Indo-Aryan, Dravidian); the rest their
+// Glottolog family. Historical and reference languages without a family keep a plain label.
+function familyLabel(l: Language): string {
+  if (l.role === 'modern' && l.group) return l.group
+  if (l.family_name) return l.family_name
+  return l.role === 'historical' || l.role === 'reference' ? 'historical / reference' : '—'
+}
+
 export default function MethodologyPage() {
   const [languages, setLanguages] = useState<Language[]>([])
   const [citations, setCitations] = useState<CitationsResponse | null>(null)
   const [allWorks, setAllWorks] = useState(false)
+  const [allLanguages, setAllLanguages] = useState(false)
   useEffect(() => {
     getLanguages().then(setLanguages).catch(() => setLanguages([]))
     getCitations().then(setCitations).catch(() => setCitations(null))
   }, [])
   const rows = [...languages].sort((a, b) => b.lexeme_count - a.lexeme_count)
+  const shownRows = allLanguages ? rows : rows.slice(0, 50)
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
@@ -295,10 +305,10 @@ export default function MethodologyPage() {
               <tr><th className="py-2">Language</th><th>Family</th><th className="text-right">Words</th><th className="text-right">With links</th></tr>
             </thead>
             <tbody>
-              {rows.map((l) => (
+              {shownRows.map((l) => (
                 <tr key={l.id} className="border-t border-slate-200">
                   <td className="py-1.5">{l.name}</td>
-                  <td className="text-slate-600">{l.role === 'modern' ? l.group : 'historical / reference'}</td>
+                  <td className="text-slate-600">{familyLabel(l)}</td>
                   <td className="text-right tabular-nums">{l.lexeme_count.toLocaleString()}</td>
                   <td className="text-right tabular-nums">{l.linked_count.toLocaleString()}</td>
                 </tr>
@@ -306,6 +316,11 @@ export default function MethodologyPage() {
             </tbody>
           </table>
           {rows.length === 0 && <p className="mt-2 text-sm text-slate-500">Coverage figures need the API to be running.</p>}
+          {rows.length > 50 && (
+            <button type="button" className="mt-2 text-sm text-blue-700 underline" onClick={() => setAllLanguages((v) => !v)}>
+              {allLanguages ? 'Show fewer' : `Show all ${rows.length.toLocaleString()} languages`}
+            </button>
+          )}
         </div>
       </section>
     </main>

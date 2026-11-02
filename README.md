@@ -2,7 +2,7 @@
 
 # Linguistic DNA
 
-**An evidence-first graph of how words are related: built around India's languages, now reaching 3,489 searchable languages from the Eurasian steppe to the Pacific.**
+**An evidence-first graph of how words are related: built around India's languages, now reaching 3,745 searchable languages from the Eurasian steppe to the Pacific.**
 
 Type a word in any of 9 Brahmic scripts, in romanisation, or in Cyrillic, Latin, Greek and other scripts, and follow its documented links:
 what it was inherited from, borrowed from, built from, or is cognate with, with the source for every claim.
@@ -14,9 +14,9 @@ what it was inherited from, borrowed from, built from, or is cognate with, with 
 ![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Cytoscape.js](https://img.shields.io/badge/graph-Cytoscape.js-F7DF1E)
-![Languages](https://img.shields.io/badge/searchable%20languages-3%2C489-8A2BE2)
-![Words](https://img.shields.io/badge/words-8.5M-2a78d6)
-![Links](https://img.shields.io/badge/cited%20links-4.6M-eb6834)
+![Languages](https://img.shields.io/badge/searchable%20languages-3%2C745-8A2BE2)
+![Words](https://img.shields.io/badge/words-13.9M-2a78d6)
+![Links](https://img.shields.io/badge/cited%20links-7.1M-eb6834)
 
 [What it does](#what-it-does) ·
 [At a glance](#at-a-glance) ·
@@ -42,33 +42,33 @@ what it was inherited from, borrowed from, built from, or is cognate with, with 
 
 **Resemblance is never drawn as relationship.** Words that merely look alike are listed separately as *candidates*, with a score that is explicitly not a measure of relatedness. Reconstructed forms keep their asterisk and are never shown as attested.
 
-**From India to the steppe, and beyond.** Every Glottolog language has a record, and any language with at least 200 words becomes searchable. Slavic, Baltic, Iranian, Turkic, Mongolic and Uralic languages, and their reconstructed ancestors, connect to Sanskrit and the languages of India through Wiktionary etymologies, expert cognate sets (IE-CoR, NorthEuraLex) and, on your own machine, the StarLing etymological databases (Pokorny, Vasmer, Altaic). Russian alone has 193,952 words and 72,214 of them have documented links.
+**From India to the steppe, and beyond.** Every Glottolog language has a record, and any language with at least 200 words becomes searchable. Slavic, Baltic, Iranian, Turkic, Mongolic and Uralic languages, and their reconstructed ancestors, connect to Sanskrit and the languages of India through Wiktionary etymologies, expert cognate sets (IE-CoR, NorthEuraLex) and the StarLing etymological databases (Pokorny, Vasmer, Altaic; downloaded and imported on your own machine). Russian alone has 214,720 words and 77,523 of them have documented links.
 
 **Built for research, careful about redistribution.** The richest sources on Indo-Aryan and Dravidian word history (Turner's CDIAL, Burrow & Emeneau's DEDR) are still in copyright. They are used for research with a citation on every record, but never committed here or put in the downloadable open data. An *Open data only* switch shows what remains without them.
 
 ## At a glance
 
 > [!NOTE]
-> Headline numbers, as of **2026-10-30**. They change as sources are added: `make db-size` prints the research database's words and links per dataset, and `data/public_seed/manifest.json` describes the seed.
+> Headline numbers, as of **2026-11-02**. They change as sources are added: `make db-size` prints the research database's words and links per dataset, and `data/public_seed/manifest.json` describes the seed.
 
 | | Open public seed<br/><sub>`data/public_seed`, committed</sub> | Research database<br/><sub>`make research-db`, built locally</sub> |
 |---|---:|---:|
-| Words | **521,448** | **8,480,391** |
-| &nbsp;&nbsp;from open-licensed / research-use sources | 521,448 / 0 | 7,101,577 / 1,378,814 |
-| Documented, cited relationships | **221,594** | **4,560,323** |
-| &nbsp;&nbsp;from open-licensed / research-use sources | 221,594 / 0 | 3,746,248 / 814,075 |
-| Evidence rows (citations with locators) | 221,594 | 4,623,616 |
-| Datasets with words or profiles | 12 | 147 |
-| Sources cited on individual records | 12 | 541 |
+| Words | **521,448** | **13,882,287** |
+| &nbsp;&nbsp;from open-licensed / research-use sources | 521,448 / 0 | 12,229,664 / 1,652,623 |
+| Documented, cited relationships | **221,594** | **7,139,912** |
+| &nbsp;&nbsp;from open-licensed / research-use sources | 221,594 / 0 | 6,081,540 / 1,058,372 |
+| Evidence rows (citations with locators) | 221,594 | 7,203,205 |
+| Datasets with words or profiles | 12 | 148 |
+| Sources cited on individual records | 12 | 522 |
 | Concepts linking meanings (Concepticon, wordnet ILI) | 1,393 | 121,692 |
-| Language profile values (WALS, PHOIBLE) | — | 151,380 |
+| Language profile values (WALS, PHOIBLE) | — | 151,303 |
 | Transliteration spelling pairs | 947,189 | 947,189 |
-| Language records / searchable languages | 728 / 25 | 9,651 / **3,489** |
-| Size | ≈ 55 MB compressed, ≈ 680 MB loaded | ≈ 9.8 GB |
+| Language records / searchable languages | 728 / 25 | 10,742 / **3,745** |
+| Size | ≈ 55 MB compressed, ≈ 680 MB loaded | ≈ 14 GB |
 
-<sub>The committed seed was built before the global imports; `make public-seed` rebuilds it from the open-licensed part of the research database. The research column does not yet include the StarLing databases, which are downloaded and imported on your own machine. `make full-db` (Wiktionary and Wikidata in every language) adds an estimated 5–8 million words and 8–12 million links; see [`REQUIREMENTS.md`](REQUIREMENTS.md).</sub>
+<sub>The committed seed was built before the global imports; `make public-seed` rebuilds it from the open-licensed part of the research database. The research column is the output of `make full-db` (Wiktionary and Wikidata in every language, with descendant lists, plus the StarLing databases) on a desktop with 28 threads, 61 GB of RAM and an NVMe SSD; it took about 50 minutes from downloaded inputs (the 4–8 hours in `REQUIREMENTS.md` is a conservative estimate for slower machines). A build with only `make research-db` (no `FULL=1`) is smaller; see [`REQUIREMENTS.md`](REQUIREMENTS.md).</sub>
 
-**3,489 searchable languages.** A language becomes searchable when it has at least 200 words; `refresh-languages` gives every Glottolog language (8,594 languages in 4,853 families) one record, whichever sources it comes from. The explorer's language box filters them by name or family.
+**3,745 searchable languages.** A language becomes searchable when it has at least 200 words; `refresh-languages` gives every Glottolog language (8,594 languages in 4,853 families) one record, whichever sources it comes from. The explorer's language box filters them by name or family.
 
 **25 configured languages** get the most care: native-script search, romanisation rules and transliteration aliases (configured in [`data/config/languages.csv`](data/config/languages.csv)):
 
@@ -80,10 +80,10 @@ what it was inherited from, borrowed from, built from, or is cognate with, with 
 | Historical and reference | Sanskrit, Pali, Prakrit, Apabhramsha, Ashokan Prakrit, Old Indo-Aryan (CDIAL headwords) |
 
 <p align="center">
-  <img src="docs/media/coverage-by-language.svg" width="860" alt="Bar chart of words per language in the research database, split into open-licensed and research-use sources, in three sections. Steppe corridor: Finnish 305,995, Russian 193,952, Ukrainian 58,820, Persian 42,716, Turkish 42,178, Hungarian 41,679, down to Proto-Uralic 923. South Asia: Sanskrit 444,091 (mostly research-use), Pali 93,394, Malayalam 90,418, Hindi-Urdu 68,064, down to Bodo 470. Largest elsewhere: English 631,453, Spanish 116,039, Latin 113,966, Japanese 112,656.">
+  <img src="docs/media/coverage-by-language.svg" width="860" alt="Bar chart of words per language in the research database, split into open-licensed and research-use sources, in three sections. Steppe corridor: Finnish 317,863, Russian 214,720, Ukrainian 60,495, Turkish 54,941, Persian 48,592, Hungarian 46,840, down to Proto-Uralic 1,117. South Asia: Sanskrit 448,046 (mostly research-use), Malayalam 95,859, Pali 94,444, Hindi-Urdu 76,262, down to Bodo 496. Largest elsewhere: English 1,169,396, Mandarin Chinese 485,522, German 357,822, Japanese 319,682.">
 </p>
 
-<sub>Generated by `scripts/coverage_chart.py` from read-only queries of the research database on 2026-10-30; each section has its own scale. Coverage is very uneven, and the app shows it as such: the live per-language table is on the app's *Data &amp; methodology* page.</sub>
+<sub>Generated by `scripts/coverage_chart.py` from read-only queries of the research database on 2026-11-02; each section has its own scale. Coverage is very uneven, and the app shows it as such: the live per-language table is on the app's *Data &amp; methodology* page.</sub>
 
 ## A word's history, as the sources tell it
 
@@ -165,19 +165,19 @@ The same pattern runs through the basic vocabulary: "hundred" is Hindi सौ, S
 
 ## How the links are typed
 
-Each source's own label is kept beside the normalised type, so nothing is silently reinterpreted. Counts are relationships in the research database / committed open seed (2026-10-30).
+Each source's own label is kept beside the normalised type, so nothing is silently reinterpreted. Counts are relationships in the research database / committed open seed (2026-11-02).
 
 | Edge in the graph | Type | Reads as | Research / open seed |
 |---|---|---|---:|
-| ![](https://img.shields.io/badge/-component-7c3aed) | `has_component` | compound or phrase *A* contains *B* | 1,575,938 / 50,231 |
-| ![](https://img.shields.io/badge/-inherited-2563eb) | `inherited_form` | *A* is a regular descendant of *B* | 1,250,550 / 29,646 |
-| ![](https://img.shields.io/badge/-cognate-be123c) | `cognate` | *A* and *B* share an inherited origin (undirected) | 990,029 / 93,860 |
-| ![](https://img.shields.io/badge/-borrowed-ea580c) | `borrowed_from` | *A* was borrowed from *B* | 401,148 / 30,531 |
-| ![](https://img.shields.io/badge/-from-0f766e) | `etymon` | *A* comes from *B*; inherited or borrowed is not stated | 193,160 / 16,881 |
+| ![](https://img.shields.io/badge/-component-7c3aed) | `has_component` | compound or phrase *A* contains *B* | 2,553,556 / 50,231 |
+| ![](https://img.shields.io/badge/-inherited-2563eb) | `inherited_form` | *A* is a regular descendant of *B* | 1,701,837 / 29,646 |
+| ![](https://img.shields.io/badge/-cognate-be123c) | `cognate` | *A* and *B* share an inherited origin (undirected) | 1,313,938 / 93,860 |
+| ![](https://img.shields.io/badge/-borrowed-ea580c) | `borrowed_from` | *A* was borrowed from *B* | 688,476 / 30,531 |
+| ![](https://img.shields.io/badge/-from-0f766e) | `etymon` | *A* comes from *B*; inherited or borrowed is not stated | 718,134 / 16,881 |
 | ![](https://img.shields.io/badge/-related-0891b2) | `related_form` | the source relates them without saying how | 52,863 / 0 |
 | ![](https://img.shields.io/badge/-derived-059669) | `derived_form` | *A* is derived from *B* (affixation, extension) | 49,091 / 0 |
 | ![](https://img.shields.io/badge/-variant-64748b) | `variant_of` | *A* is a documented variant of *B* | 36,193 / 0 |
-| ![](https://img.shields.io/badge/-calque-c2410c) | `calque_or_loan_translation` | *A* is a loan translation of *B* | 11,333 / 418 |
+| ![](https://img.shields.io/badge/-calque-c2410c) | `calque_or_loan_translation` | *A* is a loan translation of *B* | 25,806 / 418 |
 | ![](https://img.shields.io/badge/-influence-db2777) | `contact_influence` | *A* was influenced by *B* through contact | 18 / 0 |
 
 Meaning is kept apart from history: words that share a meaning meet through shared concepts (Concepticon and the wordnets' interlingual index, 5.5 million word–concept links), never through drawn edges. Language profiles (WALS features, PHOIBLE sound inventories) are served per language at `GET /api/v1/languages/{id}/profile`.
@@ -376,7 +376,7 @@ docs/        specification, architecture, licence audit, pipeline, deployment, w
 - [x] **Phase 2, scripts and graph.** Native-script and romanised search in 9 scripts; graph clutter control; eight more Devanagari languages (17 → 25).
 - [x] **Phase 3, presentation.** Landing and methodology pages, write-up, Docker image and deployment docs.
 - [x] **Research expansion.** Jambu in full, Wiktionary etymologies, expert cognate sets, Sanskrit and Pāli dictionaries, with per-record citations and the *Open data only* switch.
-- [x] **Global expansion.** Every Glottolog language as one record; 130 Lexibank wordlists, the Open Multilingual Wordnet, WALS and PHOIBLE profiles, WOLD and ACD borrowings; the steppe corridor (Russian and its neighbours and ancestors) in Wiktionary and Wikidata; 3,489 searchable languages.
+- [x] **Global expansion.** Every Glottolog language as one record; 130 Lexibank wordlists, the Open Multilingual Wordnet, WALS and PHOIBLE profiles, WOLD and ACD borrowings; the steppe corridor (Russian and its neighbours and ancestors) in Wiktionary and Wikidata; 3,745 searchable languages.
 - [x] **Everything on your own machine.** `make full-db` (Wiktionary and Wikidata in every language, with descendant lists) and the StarLing etymological databases; Linux setup in [`REQUIREMENTS.md`](REQUIREMENTS.md).
 - [ ] **Translation and profile panels** in the app for the meaning links and language profiles already in the database.
 - [ ] **Rebuild the open seed** from the global open data, published as release assets (it outgrows a git repository).

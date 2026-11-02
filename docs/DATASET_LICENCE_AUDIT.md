@@ -232,13 +232,15 @@ Each source below was checked against its own licence, terms and robots.txt. Row
 **Access.**
 - `starlingdb.org/robots.txt` disallows AI crawlers (`anthropic-ai`, `GPTBot`, `CCBot`, `Google-Extended`).
 - So the archives are never fetched by an automated agent working on this repository. They are downloaded only by the user's own `make fetch-dev-data`, as a person would from the site's Download page.
-- Their checksums are recorded on that first download: the manifest entries are `unpinned`.
+- Their checksums were recorded on that first download (2026-11-02) and are now pinned in `data/manifests/downloads.json`, so a changed archive is rejected.
 - The online-only databases (Uralic, Nostratic, Afroasiatic, Eskimo, long-range) have no download and are not scraped.
 
 **What is stored.**
 - Proto-forms, reflex forms, glosses of up to 120 characters, links between etymologies, and page references (Walde–Pokorny, Pokorny *IEW* pages, Vasmer volume and page).
 - No dictionary prose: no Vasmer or Trubachev articles, no Pokorny material, no comments.
 - Every record and link cites its own database and compilers, for example "StarLing, Indo-European etymology (S. L. Nikolayev, on the basis of Walde and Pokorny …), no. 1", with page locators.
+
+**Counts (2026-11-02).** 273,809 words and 235,852 links, of which 17,331 words are Russian (Vasmer).
 
 **Caveat.** The Altaic databases present Turkic, Mongolic, Tungusic, Korean and Japanese as one family. That is a contested hypothesis, so links between those databases carry a note saying so.
 

@@ -22,7 +22,7 @@ Where the disk goes:
 
 The database lives in a Docker volume, under `/var/lib/docker` by default, so that is the partition that needs the space. `docker system df -v` shows the volume's size; if your large disk is mounted elsewhere, point Docker's `data-root` there (in `/etc/docker/daemon.json`) before `make db-up`.
 
-`full-db` imports the same downloads in every language, so its extra space is all database: about 15–25 GB more for Wiktionary and Wikidata in every language, plus working space while it builds.
+`full-db` imports the same downloads in every language, so its extra space is all database. Measured on 2026-11-02 for the finished build: the database is 14 GB, the Docker volume 24 GB (it includes write-ahead logs) and `data/raw` 12 GB, about 36 GB in total, plus working space while it builds. The 60 GB minimum above leaves room for that. On a desktop with 28 threads, 61 GB of RAM and an NVMe SSD the whole build took about 50 minutes; the 4–8 hours in the table is for slower machines.
 
 ## Software
 

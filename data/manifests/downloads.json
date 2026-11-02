@@ -595,8 +595,7 @@
       "group": "research",
       "kind": "http",
       "url": "https://starlingdb.org/download/IE.exe",
-      "sha256": null,
-      "unpinned": true,
+      "sha256": "e2b1cbb332419883f6e2d1e17387a3284beb8877eb39cf3fc07f040b49784b0f",
       "dest": "starling/IE.exe",
       "note": "StarLing databases of 18 Nov 2005 (6.3 MB), a self-extracting ZIP read directly by make import-starling; research use, never redistributed"
     },
@@ -605,8 +604,7 @@
       "group": "research",
       "kind": "http",
       "url": "https://starlingdb.org/download/ALTAIC.exe",
-      "sha256": null,
-      "unpinned": true,
+      "sha256": "855e82a67a8f7b1c6a9c50e6f7098b229228446210712049969f5cffd3e1d048",
       "dest": "starling/ALTAIC.exe",
       "note": "StarLing databases of 18 Nov 2005 (1.9 MB), a self-extracting ZIP read directly by make import-starling; research use, never redistributed"
     },
@@ -615,8 +613,7 @@
       "group": "research",
       "kind": "http",
       "url": "https://starlingdb.org/download/DRAV.exe",
-      "sha256": null,
-      "unpinned": true,
+      "sha256": "1ff655a7ca0c99e73300cd6e91710556fd098a62a0d662018d975cfe0005a5d3",
       "dest": "starling/DRAV.exe",
       "note": "StarLing databases of 18 Nov 2005 (2.1 MB), a self-extracting ZIP read directly by make import-starling; research use, never redistributed"
     },
@@ -625,8 +622,7 @@
       "group": "research",
       "kind": "http",
       "url": "https://starlingdb.org/download/CAUC.exe",
-      "sha256": null,
-      "unpinned": true,
+      "sha256": "b0187353194a844b6dd458211db6733856290d747c9f67bf89e8470a1f79642c",
       "dest": "starling/CAUC.exe",
       "note": "StarLing databases of 18 Nov 2005 (1.3 MB), a self-extracting ZIP read directly by make import-starling; research use, never redistributed"
     },
@@ -635,8 +631,7 @@
       "group": "research",
       "kind": "http",
       "url": "https://starlingdb.org/download/SINTIB.exe",
-      "sha256": null,
-      "unpinned": true,
+      "sha256": "dd87b7bbadf1eba4ce7ef216de377cb610cbbdfbc953527fe928a8f3c741c26d",
       "dest": "starling/SINTIB.exe",
       "note": "StarLing databases of 18 Nov 2005 (2.3 MB), a self-extracting ZIP read directly by make import-starling; research use, never redistributed"
     },
@@ -645,8 +640,7 @@
       "group": "research",
       "kind": "http",
       "url": "https://starlingdb.org/download/CHUKCHEE.exe",
-      "sha256": null,
-      "unpinned": true,
+      "sha256": "9b00cca7636eb96d30e1aee17400bf8164abd075873b49a45e20771cb4136e2e",
       "dest": "starling/CHUKCHEE.exe",
       "note": "StarLing databases of 18 Nov 2005 (0.8 MB), a self-extracting ZIP read directly by make import-starling; research use, never redistributed"
     },
@@ -655,8 +649,7 @@
       "group": "research",
       "kind": "http",
       "url": "https://starlingdb.org/download/KART.exe",
-      "sha256": null,
-      "unpinned": true,
+      "sha256": "311ed963131fd3ee031b060c55d210a64a6497fd76e64e9281d6c7677ef6602e",
       "dest": "starling/KART.exe",
       "note": "StarLing databases of 18 Nov 2005 (0.2 MB), a self-extracting ZIP read directly by make import-starling; research use, never redistributed"
     },
@@ -665,8 +658,7 @@
       "group": "research",
       "kind": "http",
       "url": "https://starlingdb.org/download/YENISEY.exe",
-      "sha256": null,
-      "unpinned": true,
+      "sha256": "91ad3ddba76d68466b01438376a808508ba7463c5c65172b00deabc490cca5bf",
       "dest": "starling/YENISEY.exe",
       "note": "StarLing databases of 18 Nov 2005 (0.2 MB), a self-extracting ZIP read directly by make import-starling; research use, never redistributed"
     }
