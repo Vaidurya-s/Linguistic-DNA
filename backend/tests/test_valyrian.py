@@ -415,3 +415,79 @@ def test_fetch_run_survives_a_failing_page_and_keeps_progress(monkeypatch, tmp_p
     assert mod.main() == 0
     assert (tmp_path / "pages" / "Hepvos.html").read_text() == "<html>again</html>"
     assert (tmp_path / "pages" / "Hepagon.html").read_text() == "<html>page</html>"
+
+
+CATEGORY = (
+    '<div id="mw-subcategories"><ul><li><a href="/Category:Old" title="Category:Old">Old</a></li>'
+    "</ul></div>"
+    '<div id="mw-pages"><h2>Pages in category "Astapori Valyrian lemmas"</h2>'
+    '<div class="mw-category mw-category-columns">'
+    '<div class="mw-category-group"><h3>A</h3><ul>'
+    '<li><a href="/Abra" title="Abra">abra</a></li>'
+    '<li><a href="/Template:Foo" title="Template:Foo">Template:Foo</a></li>'
+    '</ul></div><div class="mw-category-group"><h3>G</h3><ul>'
+    '<li><a href="/G%C4%93za" title="G\u0113za">g\u0113za</a></li>'
+    "</ul></div></div></div>"
+    '<div class="printfooter">Retrieved from "https://wiki.languageinvention.com/X"</div>'
+    '<li><a href="/Elsewhere" title="Elsewhere">not a member</a></li>'
+)
+
+
+def test_category_titles():
+    mod = _fetch_module()
+    titles, more = mod.category_titles(CATEGORY)
+    assert titles == ["Abra", "G\u0113za"] and not more  # no subcategories, namespaces or footer
+    nxt = CATEGORY.replace(
+        '</div></div><div class="printfooter"',
+        '<a href="/index.php?title=Category:X&amp;pagefrom=Zz#mw-pages" title="Category:X">next'
+        ' page</a></div></div><div class="printfooter"',
+        1,
+    )
+    assert mod.category_titles(nxt)[1] is True
+    assert mod.category_titles("<html>no list here</html>") == ([], False)
+
+
+def test_fetch_category_pages_are_only_the_two_lemma_lists(monkeypatch):
+    mod = _fetch_module()
+    log = _scripted_urlopen(mod, monkeypatch, lambda url: CATEGORY)
+    f = mod.Fetcher(delay=3)
+    cat = "Category:Astapori_Valyrian_lemmas"
+    for bad in (cat, "Category:Other", "Special:Search"):
+        try:
+            f.get(bad, category=bad != cat)
+        except RuntimeError as exc:
+            assert "not a" in str(exc)
+        else:
+            raise AssertionError(bad)
+    assert f.get(cat, category=True) == CATEGORY
+    assert log[-1] == f"{mod.BASE}/{cat}"  # the colon stays literal in the URL
+
+
+def test_fetch_run_with_categories_adds_their_pages(monkeypatch, tmp_path):
+    import json
+    import sys
+
+    mod = _fetch_module()
+    (tmp_path / "High_Valyrian_Dictionary.html").write_text(DICTIONARY, encoding="utf-8")
+
+    def handler(url):
+        if "Category:Astapori" in url:
+            return CATEGORY
+        if "Category:Meereenese" in url or "Dictionary" in url:
+            return _http_error(mod, url, 404)
+        return "<html>page</html>"
+
+    log = _scripted_urlopen(mod, monkeypatch, handler)
+    argv = ["fetch_valyrian.py", "--dest", str(tmp_path), "--delay", "1", "--categories"]
+    monkeypatch.setattr(sys, "argv", argv)
+    assert mod.main() == 0
+    pages = {p.name for p in (tmp_path / "pages").iterdir()}
+    assert {"Abra.html", "G%C4%93za.html", "Hepvos.html"} <= pages  # category members and terms
+    assert (tmp_path / "categories" / "Astapori_Valyrian_lemmas.html").exists()
+    manifest = json.loads((tmp_path / "manifest.json").read_text())
+    assert "Category:Astapori_Valyrian_lemmas" in manifest
+    # without the flag no category page is requested
+    before = len(log)
+    monkeypatch.setattr(sys, "argv", ["fetch_valyrian.py", "--dest", str(tmp_path), "--delay", "1"])
+    assert mod.main() == 0
+    assert not any("Category:" in u for u in log[before:])

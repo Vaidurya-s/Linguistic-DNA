@@ -3,6 +3,7 @@
 
     python3 scripts/fetch_valyrian.py                 # dictionary pages and every lemma page
     python3 scripts/fetch_valyrian.py --no-pages      # dictionary pages only (words and glosses)
+    python3 scripts/fetch_valyrian.py --categories    # also the Astapori / Meereenese lemma lists
 
 The wiki's content belongs to HBO and David J. Peterson and carries no licence for reuse, so this
 is run by the user on their own machine, like downloading the pages in a browser, and the result
@@ -13,6 +14,11 @@ skips pages it already has, so it can be stopped and resumed. Uses only the stan
 A slow or failed request is retried with a pause (HTTP 429 waits a minute); a page that still
 fails is skipped and listed at the end, and the next run retries it. Five skipped pages in a row
 stop the run, and HTTP 401/403 stops it at once. Progress is saved whatever ends the run.
+
+--categories adds two requests: the wiki's lemma categories for Astapori and Meereenese Valyrian
+(their prose dictionary pages are marked incomplete and are not tables). /Category: pages are
+allowed by robots.txt, but the continuation of a long list is served through /index.php, which is
+not, so a list of more than one page is used as far as it goes and the script says so.
 """
 
 import argparse
@@ -43,12 +49,32 @@ class Blocked(Exception):
     """The site refuses us (HTTP 401/403). Stop at once and do not keep asking."""
 
 
+CATEGORIES = {
+    "asta": "Category:Astapori_Valyrian_lemmas",
+    "meer": "Category:Meereenese_Valyrian_lemmas",
+}
 DICTIONARIES = {
     "hval": "High_Valyrian_Dictionary",
     "asta": "Astapori_Valyrian_Dictionary",
     "meer": "Meereenese_Valyrian_Dictionary",
 }
+_MW_PAGES = re.compile(r'<div id="mw-pages">(.*?)(?:<div class="printfooter"|\Z)', re.S)
+_MEMBER = re.compile(r'<li><a href="/([^"#?]+)"[^>]*>')
 _ROW_LINK = re.compile(r'<td><b><a href="/([^"#?]+)(?:#[^"]*)?" title="[^"]*">')
+
+
+def category_titles(category_html: str) -> tuple[list[str], bool]:
+    """(page titles of the members of a category page, whether the list continues on a next
+    page). Subcategories and namespace pages are not members we want."""
+    m = _MW_PAGES.search(category_html)
+    if not m:
+        return [], False
+    out = []
+    for path in _MEMBER.findall(m.group(1)):
+        title = urllib.parse.unquote(html.unescape(path))
+        if ":" not in title and title not in out:
+            out.append(title)
+    return out, "pagefrom=" in m.group(1)
 
 
 def page_file(dest: Path, title: str) -> Path:
@@ -86,10 +112,15 @@ class Fetcher:
             ) from exc
         self.last = 0.0
 
-    def get(self, title: str) -> str | None:
-        if ":" in title or "?" in title or title.lower().startswith("index.php"):
+    def get(self, title: str, category: bool = False) -> str | None:
+        if category:  # only the two lemma categories, nothing else with a colon
+            if title not in CATEGORIES.values():
+                raise RuntimeError(f"not a listed category page: {title!r}")
+            url = f"{BASE}/{urllib.parse.quote(title, safe=':')}"
+        elif ":" in title or "?" in title or title.lower().startswith("index.php"):
             raise RuntimeError(f"not an article page: {title!r}")  # never a namespace or script
-        url = f"{BASE}/{urllib.parse.quote(title)}"
+        else:
+            url = f"{BASE}/{urllib.parse.quote(title)}"
         if not self.robots.can_fetch(UA, url):
             raise RuntimeError(f"robots.txt disallows {url}")
         for attempt in range(1, RETRIES + 1):
@@ -133,6 +164,9 @@ def main() -> int:
     parser.add_argument("--dest", type=Path, default=ROOT / "data" / "raw" / "valyrian")
     parser.add_argument("--delay", type=float, default=3.0, help="seconds between requests")
     parser.add_argument("--no-pages", action="store_true", help="only the dictionary pages")
+    parser.add_argument(
+        "--categories", action="store_true", help="also the Astapori and Meereenese lemma lists"
+    )
     args = parser.parse_args()
     if args.delay < 1:
         parser.error("--delay must be at least 1 second")
@@ -153,11 +187,32 @@ def main() -> int:
         found = lemma_titles(path.read_text(encoding="utf-8"))
         print(f"{title}: {len(found)} terms")
         titles += [t for t in found if t not in titles]
+    if args.categories:
+        for code, title in CATEGORIES.items():
+            path = args.dest / "categories" / (title.split(":", 1)[1] + ".html")
+            if not path.exists():
+                text = fetcher.get(title, category=True)
+                if text is None:
+                    print(f"{title}: no such page (skipped)")
+                    continue
+                path.parent.mkdir(exist_ok=True)
+                write_atomic(path, text)
+                manifest[title] = {"fetched": time.strftime("%Y-%m-%d"), "language": code}
+            found, more = category_titles(path.read_text(encoding="utf-8"))
+            print(f"{title}: {len(found)} lemma pages")
+            if not found:
+                print("  warning: no members found; the page layout may differ from the usual")
+            if more:
+                print("  warning: the list continues on a next page, which robots.txt does not")
+                print("  allow us to fetch; only the members on this first page are used")
+            titles += [t for t in found if t not in titles]
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=1))
     if args.no_pages:
         return 0
     todo = [t for t in titles if not page_file(args.dest, t).exists()]
-    print(f"{len(titles)} pages, {len(todo)} to fetch (about {len(todo) * args.delay / 60:.0f} min)")
+    print(
+        f"{len(titles)} pages, {len(todo)} to fetch (about {len(todo) * args.delay / 60:.0f} min)"
+    )
     (args.dest / "pages").mkdir(exist_ok=True)
     failed: list[str] = []
     streak = 0

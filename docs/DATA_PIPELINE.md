@@ -116,7 +116,8 @@ make import-jambu validate
 - **Download.** `scripts/fetch_valyrian.py` (`make fetch-valyrian`) is run by the user.
   - It saves the dictionary pages, then every term's article page, into `data/raw/valyrian/`.
   - It honours robots.txt: article pages only, never `/index.php` or `/api.php`.
-  - It waits 3 seconds between requests and resumes where it stopped.
+  - It waits between requests (`make fetch-valyrian` uses 6 seconds, because the wiki answers HTTP 429 at 3), retries timeouts and 429/5xx errors, skips a page that keeps failing, and resumes where it stopped. HTTP 403 stops it at once.
+  - `make fetch-valyrian VALYRIAN_ARGS="--delay 6 --categories"` also fetches the wiki's `Category:Astapori_Valyrian_lemmas` and `Category:Meereenese_Valyrian_lemmas` (two extra requests) and adds their members to the pages to download. Those dictionary pages are prose lists marked incomplete, so the category lists are the up-to-date source. `/Category:` pages are allowed by robots.txt, but the continuation of a list of more than one page is served through `/index.php`, which is not, so a longer list is used as far as its first page goes and the script says so. The importer needs no change: it reads every saved page, whatever languages its sections are in.
 - **Import** (`app/importers/valyrian.py`):
   - The dictionary table gives each term and its definition. The row anchor gives the lower-case spelling, and the page's headword restores the capitals of proper nouns.
   - Each language section of a word page gives its headword, up to three definitions, the Etymology and the Descendants.

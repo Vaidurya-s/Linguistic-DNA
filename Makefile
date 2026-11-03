@@ -83,7 +83,8 @@ import-research: import-jambu import-peirosst import-dpd import-cdsl-mw import-l
 # Game of Thrones), from The Languages of David J. Peterson wiki. Research and reference use: run
 # the download yourself: 2,787 pages, one request every 6 seconds (the wiki answers 429 at 3),
 # so 4-7 hours; it retries transient errors and resumes where it stopped. Use
-# `make fetch-valyrian VALYRIAN_ARGS=--no-pages` for the dictionary only (a few seconds).
+# `make fetch-valyrian VALYRIAN_ARGS=--no-pages` for the dictionary only (a few seconds), or
+# VALYRIAN_ARGS="--delay 6 --categories" to add the Astapori and Meereenese lemma lists.
 VALYRIAN_ARGS ?= --delay 6
 fetch-valyrian:
 	python3 scripts/fetch_valyrian.py $(VALYRIAN_ARGS)
