@@ -80,6 +80,20 @@ const SOURCES = [
     credit: 'Hellwig (2010–2021)',
     url: 'https://github.com/OliverHellwig/sanskrit',
   },
+  {
+    name: 'Open Multilingual Wordnet 2.0; Mongolian Wordnet',
+    licence: 'Each wordnet’s own open licence (CC BY, CC BY-SA, WordNet licence and others)',
+    use: 'Words in 32 languages, plus Halh Mongolian, linked to shared meanings (interlingual index); no word-to-word links',
+    credit: 'Bond & Foster (2013) and the wordnet authors; Mongolian Wordnet (CC BY-SA 4.0)',
+    url: 'https://github.com/omwn/omw-data',
+  },
+  {
+    name: 'Lexibank wordlists, WALS, PHOIBLE',
+    licence: 'CC BY (the non-commercial wordlists are research use, below)',
+    use: 'About 125 more wordlists with cognate sets and borrowings (ABVD, ACD, SEABOR, WOLD), and language profiles (typological features, sound inventories)',
+    credit: 'List et al. (Lexibank); Dryer & Haspelmath (WALS); Moran & McCloy (PHOIBLE)',
+    url: 'https://lexibank.clld.org',
+  },
 ]
 
 // Unlicensed or in-copyright sources, used for academic research with a citation on every
@@ -133,6 +147,24 @@ const RESEARCH_SOURCES = [
     credit: 'David J. Peterson; the languages belong to HBO. Each record cites its wiki page and revision',
     url: 'https://wiki.languageinvention.com/High_Valyrian_language',
   },
+  {
+    name: 'Sindhi Open Lexicon',
+    use: 'Sindhi words with definitions, compiled from several dictionaries; no word-to-word links',
+    credit: 'SindhiLanguage.org; Amar Fayaz Buriro (2026). Custom terms; each record cites the lexicon',
+    url: 'https://zenodo.org/records/20175520',
+  },
+  {
+    name: 'Kurdish Lexicographical Resources',
+    use: 'Sorani, Kurmanji, Hawrami and Southern Kurdish words with translations (CC BY-NC-SA 4.0); no word-to-word links',
+    credit: 'Ahmadi, Azin, Hassani & McCrae',
+    url: 'https://github.com/sinaahmadi/KurdishLexicography',
+  },
+  {
+    name: 'Calfa Classical Armenian dictionary',
+    use: 'Classical Armenian headwords with English definitions (CC BY-NC 4.0); no word-to-word links',
+    credit: 'Calfa',
+    url: 'https://github.com/calfa-co/lexical-databases',
+  },
 ]
 
 const SECTIONS: [string, string[]][] = [
@@ -157,7 +189,7 @@ const SECTIONS: [string, string[]][] = [
   [
     'Known limitations',
     [
-      'Coverage is very uneven (see the table below). Malayalam and Bengali have many Wikidata entries; several languages have only a 40–200-word comparative wordlist.',
+      'Coverage is very uneven (see the table below). Languages such as Russian, Sanskrit and Malayalam have many words and links; many others have words and meanings from wordlists and wordnets but few or no documented links, because no open etymology source covers them.',
       'The richest scholarly sources on Indo-Aryan and Dravidian word history, Turner’s Comparative Dictionary and Burrow & Emeneau’s Dravidian Etymological Dictionary, are still in copyright. This research app uses them, through Jambu, with a citation on every record; they are not part of the downloadable open dataset. Tick “Open data only” in Explore to see what remains without them.',
       'Wikidata is edited by volunteers. Its claims are shown with their references, but some are doubtful and none has been reviewed for this project.',
       'Spelling-based matching ignores vowel length, so a romanised query can surface unrelated words with similar consonants. These are labelled as transliteration matches and never presented as relationships.',

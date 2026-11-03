@@ -10,7 +10,7 @@ Back to the [project README](../README.md).
 
 **If you are a researcher or linguist**, start with what the data says and where it comes from:
 
-1. [`WRITEUP.md`](WRITEUP.md): the problem, what the app does, design decisions and limitations. Its "Numbers" section is a snapshot from before the research expansion; current figures are in the project README's *At a glance* table.
+1. [`WRITEUP.md`](WRITEUP.md): the problem, what the app does, design decisions and limitations. Its "Numbers" section compares the open seed with the research database; the project README's *At a glance* table has the same current figures.
 2. [`DATASET_LICENCE_AUDIT.md`](DATASET_LICENCE_AUDIT.md): **the authority** on every dataset, its licence evidence, the decision (APPROVED, RESEARCH USE, BLOCKED), counts, and how each source is mapped to link types.
 3. [`LINGUISTIC_ENGINE.md`](LINGUISTIC_ENGINE.md): relationship types, what counts as evidence, and why similarity is never evidence.
 4. [`DATASET_AUDIT.md`](DATASET_AUDIT.md): the first audit of Jambu's coverage and schema.
@@ -45,7 +45,7 @@ Related files outside `docs/`: [`data/manifests/dataset_audit.csv`](../data/mani
 
 ## Media
 
-Screenshots and the demo recording in [`media/`](media/) were captured from a local build against the research database on 2026-10-30, at 1440 px wide (phone views at 390 px). Research-use records in them are shown with their citations, for research presentation; the underlying data is never stored in this repository.
+Screenshots and the demo recording in [`media/`](media/) were captured from a local build against the research database on 2026-10-30; the landing page, the two methodology views and the phone landing page were retaken on 2026-11-03 after the global expansion. Desktop views are 1440 px wide, phone views 390 px. Research-use records in them are shown with their citations, for research presentation; the underlying data is never stored in this repository.
 
 | File | Shows |
 |---|---|

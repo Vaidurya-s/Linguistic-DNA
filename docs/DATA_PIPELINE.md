@@ -6,24 +6,28 @@ There are two databases you can build:
 
 | Build | Contents | May be deployed? |
 |---|---|---|
-| **Public seed** (`data/public_seed/`) | Only audit-approved datasets: Glottolog, Concepticon, LSI, ASJP and Wikidata Lexemes. | Yes, with `ATTRIBUTION.md` |
-| **Development database** | The above plus Jambu (CDIAL, DEDR and others). | **No.** Local research only. `make validate-public` reports it as blocked. |
+| **Public seed** (`data/public_seed/`) | Only audit-approved datasets, 15 of them: Glottolog, Concepticon, LSI, ASJP, IE-CoR, DravLex, DunniLex, NorthEuraLex, Hale's Nepal wordlists, the Digital Corpus of Sanskrit lexicon, Wikidata Lexemes, Wiktionary, and the Dakshina and Aksharantar spelling pairs. Built before the global imports (`make public-seed` rebuilds it). | Yes, with `ATTRIBUTION.md` |
+| **Research database** (`make research-db`, or `make full-db` for every language) | The open datasets plus the research-use ones: Jambu (CDIAL, DEDR and others), Monier-Williams, the Digital Pāḷi Dictionary, Peiros and six more non-commercial Lexibank wordlists, StarLing, High Valyrian, and the Sindhi, Kurdish and Calfa word lists. It also has the open Lexibank wordlists, the Open Multilingual and Mongolian wordnets, WALS and PHOIBLE. | **No.** Local research only. `make validate-public` reports it as blocked. |
 
 ## 1. Getting the data after cloning
 
 Raw inputs are never committed; `data/raw/` is git-ignored. They are pinned in [`data/manifests/downloads.json`](../data/manifests/downloads.json): git repositories by tag and commit, and files by SHA-256. To fetch them:
 
 ```bash
-make fetch-data        # audit-approved datasets (about 3.3 GB: Dakshina 1.9 GB, Aksharantar, Wikidata)
+make fetch-data        # the audit-approved datasets (the "public" group of downloads.json)
 ```
 
 ```bash
-make fetch-dev-data    # adds the restricted Jambu data (about 5 GB in total)
+make fetch-dev-data    # adds the research-use groups: Jambu, Peiros, DPD, Monier-Williams, StarLing, Kurdish, Calfa, Sindhi
 ```
+
+Together they are about 8 GB (Wiktionary 2.9 GB, DPD 2.3 GB, Dakshina 1.9 GB, Jambu 2 GB, the Lexibank sets, Aksharantar and Wikidata Lexemes make up most of it). The Sindhi Open Lexicon (84 MB) is fetched with a 10 s pause before the request, as its host asks. The High Valyrian pages are not part of either command: `make fetch-valyrian` (below) is run separately.
 
 The script, `scripts/fetch_data.py`, uses only the Python standard library. It verifies every checksum and skips files that already match.
 
 **If you don't need to rebuild:** the committed public seed (`data/public_seed/*.csv`) is enough to run the app. Load it with `make migrate load-public-seed`.
+
+`downloads.json` has 83 entries: 66 public, 15 research-use and 2 restricted (Jambu). Some examples:
 
 | Input | Group | Pin |
 |---|---|---|
@@ -34,7 +38,13 @@ The script, `scripts/fetch_data.py`, uses only the Python standard library. It v
 | Wikidata Lexemes dump | public | `wikidata-20261028-lexemes.json.bz2`, sha256 `49bc13d3…` |
 | Dakshina v1.0 | public | sha256 `83530bec…` |
 | Aksharantar, 12 language zips | public | HF revision `e418c1f`; sha256 per file |
+| Mongolian Wordnet | public | commit `c747dcf` |
 | Jambu CLDF and its LFS `forms.csv` | restricted | commit `665850c`; sha256 `b08eb1f0…` |
+| StarLing archives (8) | research | sha256 per archive |
+| Kurdish lexicographical resources, Calfa | research | commits `27a85fa`, `71109ce` |
+| Sindhi Open Lexicon | research | sha256 `d353a169…` |
+
+The rest (the Lexibank wordlists, the wordnets, WALS, PHOIBLE and so on) are listed in the file itself.
 
 Wikimedia keeps dated dumps for a limited time. If the pinned dump is gone, pick a newer date and update both `downloads.json` and `WIKIDATA_DUMP` in the Makefile.
 
@@ -52,17 +62,31 @@ make import-open validate coverage benchmark
 make public-seed
 ```
 
-Development only:
+The research database (needs `make fetch-dev-data` first; run `make fetch-valyrian` yourself for High Valyrian):
 
 ```bash
-make import-jambu validate
+make research-db         # import-open, import-research, Glottolog, refresh-languages, rekey-search, validate --research
+```
+
+```bash
+make FULL=1 research-db  # the same with Wiktionary and Wikidata in every language (or `make full-db`, which also downloads)
+```
+
+One importer at a time, for example after adding a dataset (each `import-*` target is listed in the Makefile; those for research-use word lists skip themselves while their download is missing):
+
+```bash
+make import-sindhi refresh-languages
 ```
 
 | Step | What it does |
 |---|---|
-| `migrate` | Alembic migrations 0001–0003: schema, `pg_trgm`, vocabularies, the `dataset_audit` table and `lexeme.form_kind`. |
-| `import-open` | Concepticon, LSI, ASJP, Wikidata Lexemes, transliteration aliases (Dakshina and approved Aksharantar components), then Glottolog classification. Each step first loads the audit and source manifest and registers the configured languages. |
+| `migrate` | Alembic migrations 0001–0006: schema, `pg_trgm`, vocabularies, the `dataset_audit` table and `lexeme.form_kind`, transliteration aliases, the research-use decision, and the global-language tables (`language_stats`, language profiles). |
+| `import-open` | Every approved dataset, in dependency order: `refresh-languages`, Concepticon, LSI, ASJP, Wikidata Lexemes, transliteration aliases (Dakshina and approved Aksharantar components), Wiktionary, the expert cognate sets (IE-CoR, DravLex, DunniLex, NorthEuraLex, Hale), the Digital Corpus of Sanskrit lexicon, the Open Multilingual Wordnet, the Mongolian Wordnet, WALS and PHOIBLE, then Glottolog classification. Each step first loads the audit and source manifest and registers the configured languages. |
 | `import-jambu` | The restricted development import (§3). Prunes unused auto-created sources afterwards. |
+| `import-research` | The research-use imports: Jambu, Peiros, DPD, Monier-Williams, the research-use and open Lexibank wordlists, StarLing, High Valyrian, Kurdish, Calfa and Sindhi. |
+| `refresh-languages` | Gives every Glottolog language one record, merges the `wkt-`/`jb-`/`wd-`/`gl-` records the sources created into it, refreshes per-language statistics and makes a language searchable from 200 words. Run it after any import that adds languages. |
+| `research-db` | `import-open`, `import-research`, Glottolog, `refresh-languages`, `rekey-search` and `validate --research`. |
+| `db-size` | The database size and the words and links per dataset. |
 | `validate` | Data-quality and provenance checks, plus "every row traces to an audit record". Writes `reports/validation.json`. |
 | `validate-public` | Same, but rows from BLOCKED datasets also fail. This is the gate for any deployment. |
 | `coverage` | Per-language table in `reports/coverage.md`. |
@@ -91,7 +115,7 @@ make import-jambu validate
 - Every link cites the Wiktionary page and template.
 - Scope:
   - by default, the configured languages, their ancestors and the steppe corridor, plus large languages (English, German, Persian, Finnish …) where an entry has an etymology;
-  - with `FULL=1` (`make full-db`), every language in the dump, about 5.4 million entries in 5,000 languages.
+  - with `FULL=1` (`make full-db`), every language in the dump: 6.0 million words in 6,253 language records.
 - Rows are staged in temporary tables and merged in SQL, so memory stays flat.
 
 **StarLing (The Tower of Babel; research use).**

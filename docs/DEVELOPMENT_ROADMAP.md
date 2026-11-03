@@ -1,4 +1,6 @@
-# Development Roadmap — Language Similarity Graph
+# Development Roadmap — Linguistic DNA
+
+> **Status (2026-11-03): the original six-week MVP plan, kept for the record.** The MVP, the research expansion and the global expansion are done; the live roadmap with what is still open is at the end of the [README](../README.md#roadmap). The Definition of Done below was met for the open seed (see § 7 of [DATASET_LICENCE_AUDIT.md](DATASET_LICENCE_AUDIT.md)), except that no hosted demo exists yet.
 
 ## 1. Plan overview
 

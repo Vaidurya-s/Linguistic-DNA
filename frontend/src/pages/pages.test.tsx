@@ -32,7 +32,7 @@ describe('pages', () => {
     render(<HomePage />)
     const link = screen.getByRole('link', { name: /bidyut/ })
     expect(link.getAttribute('href')).toBe('#/explore?q=bidyut')
-    expect(await screen.findByText('5,549')).toBeInTheDocument() // words indexed
+    expect(await screen.findByText('5,549')).toBeInTheDocument() // words in these languages
     // every searchable language is counted, and families come from Glottolog
     expect(screen.getByText('searchable languages').nextSibling).toHaveTextContent('2')
     expect(screen.getByText('language families').nextSibling).toHaveTextContent('2')

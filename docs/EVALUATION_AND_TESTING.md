@@ -1,4 +1,6 @@
-# Evaluation and Testing Plan — Language Similarity Graph
+# Evaluation and Testing Plan — Linguistic DNA
+
+> **Status (2026-11-03): the evaluation plan, partly carried out.** What exists: a 22-case relationship and lookup benchmark in `data/benchmark/relationships.csv` (`make benchmark`; all cases pass, none reviewed yet by a linguist), 125 backend tests against PostgreSQL, 16 frontend tests, and 25 data-quality checks (`validate`). Candidate-retrieval precision and recall (§ 4) are not measured, because no phonetic candidates exist yet.
 
 ## 1. Purpose
 

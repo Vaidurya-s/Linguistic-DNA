@@ -40,9 +40,9 @@ export default function Layout({ path, children }: { path: string; children: Rea
         <div className="mx-auto max-w-7xl px-4 py-5 text-xs leading-relaxed text-slate-600">
           Open data: Glottolog, Concepticon, LSI, ASJP, IE-CoR, IELex, DravLex, NorthEuraLex and the
           Digital Corpus of Sanskrit (CC BY 4.0); Wiktionary and Dakshina (CC BY-SA 4.0); Wikidata
-          Lexemes (CC0); Aksharantar (CC BY / CC0). For research use, with citation: Jambu (Arora et
+          Lexemes (CC0); the Open Multilingual and Mongolian wordnets, Lexibank wordlists, WALS and PHOIBLE (each under its own open licence); Aksharantar (CC BY / CC0). For research use, with citation: Jambu (Arora et
           al. 2023) with Turner&apos;s CDIAL and Burrow &amp; Emeneau&apos;s DEDR, Monier-Williams
-          (Cologne), the Digital Pāḷi Dictionary, Peiros&apos; Sino-Tibetan wordlists and the StarLing databases (Starostin et al., Tower of Babel); and, as constructed languages, David J. Peterson&apos;s Valyrian. Full
+          (Cologne), the Digital Pāḷi Dictionary, Peiros&apos; Sino-Tibetan wordlists and the StarLing databases (Starostin et al., Tower of Babel), the Sindhi Open Lexicon, the Kurdish lexicographical resources and Calfa&apos;s Classical Armenian dictionary; and, as constructed languages, David J. Peterson&apos;s Valyrian. Full
           credits, licences and how to cite are on the{' '}
           <a className="underline" href={href('/methodology')}>
             Data &amp; methodology

@@ -60,7 +60,7 @@ The app uses hash URLs (`#/explore?q=…`), so no rewrite rules are needed.
 
 ## 5. The research version
 
-The research version adds the research-use sources (Jambu, and through it Turner's CDIAL, Burrow & Emeneau's DEDR and the other works Jambu cites). These have no open licence: they are used for academic research with a citation on every record, and this repository never contains or redistributes them. The hosted research database is therefore built on your machine from the sources' own upstream and copied to the host. It is never baked into the image.
+The research version adds the research-use sources (Jambu, and through it Turner's CDIAL, Burrow & Emeneau's DEDR and the other works Jambu cites; Monier-Williams, the Digital Pāḷi Dictionary, the StarLing databases, High Valyrian, and the Sindhi, Kurdish and Calfa word lists). These have no open licence: they are used for academic research with a citation on every record, and this repository never contains or redistributes them. The hosted research database is therefore built on your machine from the sources' own upstream and copied to the host. It is never baked into the image.
 
 1. **Build it locally.**
    ```bash
@@ -68,7 +68,7 @@ The research version adds the research-use sources (Jambu, and through it Turner
    make migrate research-db
    ```
    `research-db` imports the open datasets, then the research-use ones, then runs `validate --research`. That check fails on any BLOCKED data and on any research-use record without a cited source.
-2. **Size the host.** With every research source imported the database is about 14 GB (13.9M words and 7.1M links, as built by `make full-db`; without `FULL=1` it is smaller), against about 680 MB for the open seed. That is beyond the 500 MB free tiers of Neon and Supabase. Use a paid tier, or a small VM running PostgreSQL 16 with `pg_trgm`.
+2. **Size the host.** With every research source imported the database is about 14 GB (14.1M words and 7.1M links, as built by `make full-db`; without `FULL=1` it is smaller), against about 680 MB for the open seed. That is beyond the 500 MB free tiers of Neon and Supabase. Use a paid tier, or a small VM running PostgreSQL 16 with `pg_trgm`.
 3. **Copy it to the host.**
    ```bash
    make research-dump
@@ -128,13 +128,15 @@ make load-public-seed
 make fetch-data fetch-dev-data
 ```
 
+The High Valyrian pages (research and reference use) are a separate, slow download that you run yourself: `make fetch-valyrian` (one request every 6 s, 4 to 7 hours, resumable). `make import-valyrian` skips them while they are missing.
+
 Build the database, which ends with `validate --research`:
 
 ```bash
 make research-db
 ```
 
-**4c. Everything, in every language (recommended with 100 GB free).** This is 4b plus the whole Wiktionary dump and all of Wikidata Lexemes in every language (about 5,000 languages), with Wiktionary's descendant lists. Measured on 2026-11-02, that took the research database from 8.5 to 13.9 million words and from 4.6 to 7.1 million cited links, including the English, European and global etymologies that 4b leaves out. It took about 50 minutes on a desktop with 28 threads, 61 GB of RAM and an NVMe SSD, and used about 36 GB at the end (24 GB for the Docker volume, 12 GB for `data/raw`); allow 4–8 hours and 60 GB on a slower machine. 16 GB of RAM is recommended. One command does the downloads, the imports, the checks and a size report:
+**4c. Everything, in every language (recommended with 100 GB free).** This is 4b plus the whole Wiktionary dump and all of Wikidata Lexemes in every language (about 5,000 languages), with Wiktionary's descendant lists. Measured on 2026-11-02, that took the research database from 8.5 to 13.9 million words and from 4.6 to 7.1 million cited links (the word lists for thinly covered languages and High Valyrian, imported afterwards, bring it to 14.1 million words), including the English, European and global etymologies that 4b leaves out. It took about 50 minutes on a desktop with 28 threads, 61 GB of RAM and an NVMe SSD, and used about 36 GB at the end (24 GB for the Docker volume, 12 GB for `data/raw`); allow 4–8 hours and 60 GB on a slower machine. 16 GB of RAM is recommended. One command does the downloads, the imports, the checks and a size report:
 
 ```bash
 make full-db
@@ -179,6 +181,16 @@ cloudflared tunnel --url http://localhost:5173
 ```
 
 Anyone with that address can then read everything the app shows, including research-use data. Share it only with people the research-use terms allow, and close the tunnel when you are done.
+
+### Share it on your local network (optional)
+
+To let other devices on the same network open the site, serve the built site on all interfaces. The API stays on `127.0.0.1`, because the site forwards `/api` to it:
+
+```bash
+cd frontend && npm run build && npx vite preview --host 0.0.0.0 --port 5173 --strictPort
+```
+
+Other devices then use `http://<this machine's address>:5173`. The site serves the research-use data, so keep this to a network you trust. If a device cannot connect, check the firewall (`sudo ufw status`).
 
 ### Updating later
 

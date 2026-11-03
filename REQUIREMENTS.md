@@ -10,13 +10,13 @@ There are three setups (see [docs/DEPLOYMENT.md § 6](docs/DEPLOYMENT.md#6-runni
 |---|---|---|---|
 | Free disk | 5 GB | 30 GB minimum, 40 GB recommended | **60 GB minimum, 100 GB recommended** |
 | Memory (RAM) | 4 GB | 8 GB minimum, 16 GB recommended | 16 GB recommended (8 GB works, slower) |
-| Downloads | none | about 8 GB, once | about 8 GB, once (the same files) |
+| Downloads | none | about 8 GB, once (High Valyrian, 4–7 hours, is optional and separate) | about 8 GB, once (the same files) |
 | Time | minutes | 1.5–3 hours | 4–8 hours |
 
 An SSD makes the imports several times faster.
 
 Where the disk goes:
-- about 7.5 GB of downloaded source data in `data/raw/`;
+- about 8 GB of downloaded source data, which takes about 12 GB in `data/raw/` once the Digital Pāḷi Dictionary is unpacked and High Valyrian is downloaded;
 - the research database (Postgres), several GB with every source imported;
 - about 0.5 GB for Python and Node dependencies.
 

@@ -1,7 +1,7 @@
 [project]
 name = "lsg-backend"
 version = "0.1.0"
-description = "API and data pipeline for the Language Similarity Graph"
+description = "API and data pipeline for Linguistic DNA"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115",

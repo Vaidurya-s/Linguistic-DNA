@@ -1,4 +1,6 @@
-# Linguistic Engine — Language Similarity Graph
+# Linguistic Engine — Linguistic DNA
+
+> **Status (2026-11-03): the design of the relationship model, which the code follows.** Relationship types and statuses are in [TECHNICAL_ARCHITECTURE.md](TECHNICAL_ARCHITECTURE.md) § 5; the vocabulary has 16 types, 10 of them in use, including `etymon` (a source that does not say inherited or borrowed), `has_component` and `variant_of`, which this design did not list. Only spelling candidates (`pg_trgm`) are built. Phonetic and embedding-based candidates (§ 4.3, § 4.4, § 10) are not, and no candidate is ever stored as a relationship.
 
 ## 1. Design objective
 

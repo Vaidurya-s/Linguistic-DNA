@@ -1,4 +1,6 @@
-# Project Specification — Language Similarity Graph
+# Project Specification — Linguistic DNA
+
+> **Status (2026-11-03): the original specification, kept as the statement of goals and principles.** The project began as the Language Similarity Graph for 11 Indian languages and is now Linguistic DNA, with 3,748 searchable languages (see the [README](../README.md) and [TECHNICAL_ARCHITECTURE.md](TECHNICAL_ARCHITECTURE.md)). The product principles in § 6 and the functional requirements FR-01 to FR-08 are implemented in substance. The exceptions: FR-04 has spelling candidates (`pg_trgm`) but no phonetic ones, and FR-07 filters by relationship type, language group and depth, not by region or evidence status. The coverage in § 5 and the non-goal "support every language" are superseded: every Glottolog language has a record. The deferred releases in § 11 are still deferred.
 
 ## 1. Executive summary
 

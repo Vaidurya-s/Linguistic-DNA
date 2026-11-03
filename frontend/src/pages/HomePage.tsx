@@ -37,7 +37,7 @@ export default function HomePage() {
     <main>
       <section className="border-b border-slate-200 bg-gradient-to-b from-amber-50 to-white">
         <div className="mx-auto max-w-5xl px-4 py-14 sm:py-20">
-          <p className="text-sm font-medium tracking-wide text-amber-800 uppercase">Language Similarity Graph</p>
+          <p className="text-sm font-medium tracking-wide text-amber-800 uppercase">An evidence-first graph of word relationships</p>
           <h1 className="mt-3 text-4xl leading-tight font-semibold tracking-tight sm:text-5xl">
             How are words related, from India&apos;s languages to the steppe and beyond?
           </h1>
@@ -60,11 +60,11 @@ export default function HomePage() {
               {[
                 [languages.length.toLocaleString(), 'searchable languages'],
                 [families.size.toLocaleString(), 'language families'],
-                [words.toLocaleString(), 'words indexed'],
+                [words.toLocaleString(), 'words in these languages'],
               ].map(([value, label]) => (
-                <div key={label} className="rounded-lg border border-slate-200 bg-white px-2 py-3">
+                <div key={label} className="min-w-0 rounded-lg border border-slate-200 bg-white px-2 py-3">
                   <dt className="text-xs text-slate-500">{label}</dt>
-                  <dd className="text-2xl font-semibold">{value}</dd>
+                  <dd className="text-lg font-semibold tabular-nums sm:text-2xl">{value}</dd>
                 </div>
               ))}
             </dl>

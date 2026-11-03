@@ -2,7 +2,7 @@
 
 First audit for the [Dataset and Licensing Plan](DATASET_AND_LICENSING_PLAN.md) (§2.1, §3, §10). It covers coverage, schema fit against the [Technical Architecture](TECHNICAL_ARCHITECTURE.md) (§5–6), and licence status. Licence findings are recorded in [`data/manifests/source_manifest.csv`](../data/manifests/source_manifest.csv).
 
-**Status:** preliminary. This audit only read the upstream repository. Nothing from it is committed here. The licence calls below are working positions, not legal conclusions.
+**Status (2026-11-03): historical.** This was the first, preliminary audit of Jambu, made before anything was imported. Jambu is now imported in full as a research-use dataset (991,379 words and 492,312 links), and the current decisions and counts are in [DATASET_LICENCE_AUDIT.md](DATASET_LICENCE_AUDIT.md). The licence calls below were working positions, not legal conclusions. Nothing from Jambu is committed here.
 
 ## 1. Snapshot audited
 

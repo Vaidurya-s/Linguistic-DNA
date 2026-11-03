@@ -11,7 +11,7 @@ Status: **a research list.** Every dataset needs an audit row in `data/manifests
 
 ## What the language counts say
 
-Words held today, from the research database (2026-11-03). "Linked" is words with at least one documented relationship.
+Words held today, from the research database (2026-11-03, after the imports listed under "Added"). "Linked" is words with at least one documented relationship. The languages that gained words from those imports (Sindhi, Halh Mongolian, the Kurdish dialects, Classical Armenian) are not in this table; Central Kurdish is, and it grew from 2,346 words.
 
 | Language | Words | Linked | Notes |
 |---|---:|---:|---|
@@ -29,7 +29,7 @@ Words held today, from the research database (2026-11-03). "Linked" is words wit
 | Southern Pashto | 371 | 0 | |
 | Cusco Quechua | 204 | 159 | |
 | Khasi | 2,046 | 513 | |
-| Central Kurdish (Sorani) | 2,346 | 1,796 | |
+| Central Kurdish (Sorani) | 7,828 | 1,796 | 5,482 words added; none linked |
 | Samoan / Tongan / Fijian | 2,689 / 3,860 / 4,961 | 2,183 / 1,758 / 3,894 | |
 | Amharic | 3,142 | 1,467 | |
 | Manipuri (Meitei) | 4,890 | 837 | |
@@ -123,11 +123,12 @@ The agents listed these as new, but they are in `data/manifests/lexibank.tsv` an
 
 ## Suggested order
 
+Done on 2026-11-03: the Sindhi Open Lexicon, MonWN, Calfa Armenian and KurdishLexicography. Still to do:
+
 1. **Read the IndoWordNet licence** at CFILT. If it is usable, it is the broadest help for the thin Indo-Aryan languages.
-2. **Sindhi Open Lexicon**, then **MonWN** and **UzWordNet**: clear licences, small importers, immediate word gains.
-3. **Calfa Armenian** and **KurdishLexicography** as research use.
-4. **Other Wiktionary editions** (DBnary or kaikki) for etymology links across many languages. This needs a decision about which editions to take and a check of the extraction format.
-5. **Ask permission** from STEDT, Bantu Lexical Reconstructions and POLLEX, which hold the etymological content the open sources lack.
+2. **UzWordNet**: a clear licence (CC BY 4.0), but the file must be downloaded by hand from a browser.
+3. **Other Wiktionary editions** (DBnary or kaikki) for etymology links across many languages. This needs a decision about which editions to take and a check of the extraction format.
+4. **Ask permission** from STEDT, Bantu Lexical Reconstructions and POLLEX, which hold the etymological content the open sources lack. Only you can send these requests.
 
 ## Not verified
 

@@ -89,7 +89,7 @@ Ask the user to run, in their own terminal, from the repository folder:
 make fetch-dev-data
 ```
 
-It downloads about 8 GB, every file pinned by commit or SHA-256, and skips what is already there, so it can be re-run after an interruption. It includes the StarLing archives from starlingdb.org; that site disallows AI crawlers, which is why the user, not Claude Code, runs this step.
+It downloads about 8 GB, every file pinned by commit or SHA-256, and skips what is already there, so it can be re-run after an interruption. It includes the StarLing archives from starlingdb.org; that site disallows AI crawlers, which is why the user, not Claude Code, runs this step. It also fetches the Sindhi Open Lexicon (84 MB), with a 10 s pause before the request, as its host asks. The Kurdish, Calfa and Mongolian Wordnet repositories come as git clones.
 
 If the user wants High Valyrian, they also run, in their own terminal (4–7 hours at one request every 6 seconds, because the wiki answers HTTP 429 at 3 seconds; it can run alongside the build, retries transient errors and resumes if stopped):
 
@@ -97,13 +97,13 @@ If the user wants High Valyrian, they also run, in their own terminal (4–7 hou
 make fetch-valyrian
 ```
 
-When it has finished, run `make import-valyrian` (it is also part of `research-db`, which skips it while nothing is downloaded). Its output gives words per language (`words:hval` should be about 3,100, `words:asta` about 350 and `words:meer` about 180) and relationship counts.
+When it has finished, run `make import-valyrian` (it is also part of `research-db`, which skips it while nothing is downloaded). Its output gives words per language (`words:hval` should be about 3,160, `words:asta` 444 and `words:meer` 266, with `skipped:<code>` counts for mentions of other languages) and relationship counts (about 3,700).
 
 When the user says it has finished:
 - Look at its output (ask the user to paste it if needed). Every line should be `ok`, `downloaded` or `cloned`.
 - A `FAILED` line: re-run the command once (network); if it fails again, report the entry and the error.
 - `NEWER snapshot` (kaikki.org Wiktionary, the ISO 639-3 table): fine, the upstream file was updated.
-- `downloaded (unpinned; sha256 …)` for the eight `starling-*` entries: note the checksums. In step 6 they are written into `data/manifests/downloads.json`.
+- `sha256 mismatch` for a `starling-*` entry (the eight StarLing checksums are already pinned in `data/manifests/downloads.json`): the archive on the server changed. Do not overwrite the pin; report it to the user.
 
 ## 4. Build everything
 
@@ -113,7 +113,7 @@ Run in the background with a log (4–8 hours is a safe estimate; the first run 
 nohup make FULL=1 research-db > build.log 2>&1 &
 ```
 
-This runs every open import, every research import (including StarLing), Wiktionary and Wikidata in **every** language, Glottolog classification, `refresh-languages`, `rekey-search` and `validate --research`.
+This runs every open import (including the Mongolian Wordnet), every research import (StarLing, High Valyrian when downloaded, and the Kurdish, Calfa and Sindhi word lists), Wiktionary and Wikidata in **every** language, Glottolog classification, `refresh-languages`, `rekey-search` and `validate --research`.
 
 While it runs:
 - Check `tail -n 30 build.log`, `df -h` and `docker system df` every 15–30 minutes. Do not start a second build.
@@ -146,11 +146,11 @@ Then reclaim space and refresh the planner statistics:
 docker compose exec db psql -U postgres -d lsg -c "VACUUM ANALYZE lexeme" -c "VACUUM ANALYZE relationship" -c "VACUUM ANALYZE evidence"
 ```
 
-`validate --research` must pass. Any check that fails: report it with its count and a few example rows (read-only queries).
+`validate --research` must pass. Spot-check the thinly covered languages through the API, for example Sindhi (`GET /api/v1/search?q=سنڌي`), a Kurdish dialect, Classical Armenian and Halh Mongolian: each should have its words from `sindhi-lexicon`, `kurdish-lexicography`, `calfa-armenian` or `monwn`. Any check that fails: report it with its count and a few example rows (read-only queries).
 
-## 6. StarLing: mapping and checksums
+## 6. StarLing: mapping
 
-`make import-starling` (part of the build) writes `reports/starling_unmapped.csv`: StarLing field names and segment abbreviations it could not assign to a language, with how often each occurs.
+`make import-starling` (part of the build) writes `reports/starling_unmapped.csv`: StarLing field names and segment abbreviations it could not assign to a language, with how often each occurs. The committed `data/config/starling_languages.csv` already maps the frequent ones, so the list should be short; what remains (family-level fields, uncertain dialects, columns that are not languages) was left unmapped on purpose.
 
 1. **Map the frequent entries.** For each one with many occurrences, find the language it names. The StarLing field alias (e.g. "Old Church Slavonic") or abbreviation (e.g. "Lith.") usually says it plainly. Add a row to `data/config/starling_languages.csv` with its Wiktionary language code. Use `*` for a field that mixes several languages.
    - Do not guess: leave anything unclear for the user, and list it in the report. Family-level fields (Tungus-Manchu, Mongolian, Turkic), dialect fields whose language is uncertain, and fields that are not languages at all (Grammar, reference columns) stay unmapped.
@@ -166,8 +166,7 @@ docker compose exec db psql -U postgres -d lsg -c "VACUUM ANALYZE lexeme" -c "VA
    ```
 
    Russian should appear as `gl-russ1263` (about 17,000 words), not `wkt-ru`. Afterwards, `cd backend && .venv/bin/python -m app.cli rekey-search` rebuilds the search keys (there is no make target for it); it is cheap and safe to run.
-3. **Pin the checksums.** Write the eight StarLing checksums from step 3 into `data/manifests/downloads.json`: set `"sha256"` and remove `"unpinned"`.
-4. **Commit only the config changes** (`starling_languages.csv`, `downloads.json`) on a new branch. Ask the user before pushing.
+3. **Commit only the config change** (`starling_languages.csv`) on a new branch. Ask the user before pushing.
 
 ## 7. Update the README figures (optional; ask first)
 
@@ -211,6 +210,7 @@ End with a short report:
 - **Database:** `make db-size`: size, words and links per dataset, and searchable languages.
 - **Checks:** the `validate --research` and `benchmark` results.
 - **Russian:** words and links (`gl-russ1263`), and the StarLing totals (words, links, the databases found).
+- **Word lists:** words per dataset for the Sindhi, Kurdish, Calfa and Mongolian imports, and High Valyrian if it was downloaded.
 - **StarLing mapping:** what was mapped from `reports/starling_unmapped.csv`, and what is left for the user to decide.
 - **Fixes:** any code or config changes, with their branch and commits, unpushed unless the user approved.
 - **Problems:** anything that failed and was not fixed, with the error and a suggested next step.

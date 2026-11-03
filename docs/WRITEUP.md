@@ -37,7 +37,7 @@ flowchart LR
   API --> UI[React + Cytoscape<br/>static site]
 ```
 
-**Back end.** FastAPI, SQLAlchemy and Alembic on PostgreSQL 16 with `pg_trgm`. Every lexeme and relationship records the dataset it came from, and every source links to a row of the licence audit. The validator runs about 20 checks, which fall into three groups:
+**Back end.** FastAPI, SQLAlchemy and Alembic on PostgreSQL 16 with `pg_trgm`. Every lexeme and relationship records the dataset it came from, and every source links to a row of the licence audit. The validator runs 25 checks, which fall into three groups:
 - **Data integrity:** dangling references, a documented edge without evidence, a starred form marked as attested, verbatim dictionary markup.
 - **Licensing:** any row from a BLOCKED dataset, in public mode.
 - **Form classification:** a stem or affix classified as a whole word.
@@ -65,11 +65,11 @@ flowchart LR
 
 ## Testing
 
-- **Backend (pytest against PostgreSQL), 91 tests:**
+- **Backend (pytest against PostgreSQL), 125 tests:**
   - importer behaviour, ID stability across re-imports, and a sentinel proving verbatim dictionary text is never stored;
   - a seed that, built from a mixed database, contains only approved data and passes public-mode validation on a fresh load;
   - a multilingual regression suite with one native-script query for each of the 19 modern languages.
-- **Frontend (Vitest), 13 tests.**
+- **Frontend (Vitest), 16 tests.**
 - **Benchmark:** 22 hand-picked relationship and lookup cases. They pass, but are marked unreviewed until a linguist signs off.
 - **CI:** all of the above on every push.
 
@@ -77,8 +77,8 @@ flowchart LR
 
 - **Open versus research data.** The richest word-history sources, CDIAL and DEDR (through Jambu), Monier-Williams, the Digital Pāḷi Dictionary and the StarLing etymological databases (Pokorny, Vasmer, Altaic and other families), have no open or only a non-commercial licence. They are used in the research database, cited on every record, but are not in the downloadable open dataset, which is therefore thinner.
 - **Crowd-sourced data.** Wikidata and Wiktionary claims are shown with their references, and some are doubtful.
-- **Coverage is uneven.** Sanskrit has 441k words; Bodo has 442.
-- **Not yet handled:** Perso-Arabic, Ol Chiki and Meitei Mayek scripts, which is why Urdu spellings, Kashmiri, Sindhi, Santali and Manipuri are not yet searchable natively.
+- **Coverage is uneven.** Sanskrit has 448k words; Bodo has 496.
+- **Not yet handled:** Perso-Arabic, Ol Chiki and Meitei Mayek scripts, which is why Urdu spellings, Kashmiri, Sindhi, Santali and Manipuri cannot yet be searched by romanisation. Sindhi (103,743 words from the Sindhi Open Lexicon) can be searched by its own spelling, but the Sindhi words have no relationships yet: no open etymology source has been found for it, nor for several other thinly covered languages.
 
 ## Numbers
 

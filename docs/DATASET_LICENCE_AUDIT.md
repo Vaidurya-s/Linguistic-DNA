@@ -2,7 +2,7 @@
 
 This is the authority on what may enter the public application. The machine-readable version is [`data/manifests/dataset_audit.csv`](../data/manifests/dataset_audit.csv), with one row per dataset or separately licensed component. The importers, the validator and the public-seed builder all read it.
 
-Audit date: 2026-10-29. Every input is pinned in [`data/manifests/downloads.json`](../data/manifests/downloads.json); fetch them with `make fetch-data`.
+Audit date: 2026-10-29; sections 4a to 4g were added as sources were imported, the latest on 2026-11-03. Every input is pinned in [`data/manifests/downloads.json`](../data/manifests/downloads.json); fetch them with `make fetch-data`.
 
 ## 1. Decision rules
 
@@ -104,8 +104,11 @@ The project now serves academic research. A source with no open licence, or one 
 | Jambu | Arora, Aryaman, Adam Farris, Samopriya Basu and Suresh Kolichala. 2023. Jambu: A historical linguistic database for South Asian languages. *Proceedings of the 20th SIGMORPHON Workshop*, 68–77. ACL. doi:10.18653/v1/2023.sigmorphon-1.8 | No repository licence; aggregates works with differing terms |
 | CDIAL, through Jambu | Turner, Ralph Lilley. 1962–1966. *A comparative dictionary of the Indo-Aryan languages*. London: Oxford University Press | In copyright |
 | DEDR, through Jambu | Burrow, Thomas and Murray Barnson Emeneau. 1984. *A Dravidian Etymological Dictionary*. 2nd edn. Oxford: Clarendon Press | In copyright |
-| Wiktionary (wiktextract) | Wiktionary contributors, via wiktextract (Ylonen 2022) and kaikki.org | Provisional, until the extract's licence terms are verified |
 | StarLing etymological databases | Starostin, Sergei A., George S. Starostin et al. *The Tower of Babel: An Etymological Database Project*. https://starlingdb.org/, plus each database's own compilers and source book (§ 4c) | No licence stated; compiled from in-copyright dictionaries |
+| Valyrian languages (constructed) | The Languages of David J. Peterson wiki, with the page and revision of each record (§ 4d) | No licence; all rights reserved |
+| Kurdish Lexicographical Resources, Calfa's Classical Armenian dictionary | Ahmadi et al. and Calfa, as given in the audit CSV (§ 4f) | CC BY-NC-SA 4.0 and CC BY-NC 4.0 |
+| Sindhi Open Lexicon | SindhiLanguage.org and Amar Fayaz Buriro (§ 4g) | Custom terms that conflict with the record's CC BY 4.0 field; the stricter reading is applied |
+| Peiros and six other Lexibank wordlists, Monier-Williams, the Digital Pāḷi Dictionary | The citation in the audit CSV (§ 4a) | Non-commercial licences |
 
 Jambu cites the work behind each form and edge: CDIAL, DEDR and about 570 more, listed in its `sources.bib`. That citation is kept on every lexeme (`source_id`) and on every relationship's evidence, with the page or entry locator. `GET /api/v1/citations` lists all of them with record counts.
 
@@ -141,7 +144,7 @@ Every source below was downloaded, its licence was read from the artefact itself
 | DravLex | v1.1 | CC BY 4.0 | APPROVED WITH CONDITIONS | 2,127 | 3,525 cognate |
 | Hale's Nepal wordlists | v4.0 | CC BY 4.0 | APPROVED WITH CONDITIONS | 1,227 | 0 |
 
-Alongside the existing Wikidata, LSI and ASJP imports, the research database holds **1,812,733 words, 996,776 documented relationships and 1,060,069 evidence rows** (about 2.1 GB).
+Alongside the existing Wikidata, LSI and ASJP imports, the research database held **1,812,733 words, 996,776 documented relationships and 1,060,069 evidence rows** (about 2.1 GB) at the end of this stage on 2026-10-30. The current figures, after the global expansion, are in the project README.
 
 **How each source is mapped.**
 - Wiktionary etymology templates become typed links: `inh` → inherited, `bor`/`lbor` → borrowed, `der` → "from", calques, `af`/`compound` → component, and `cog` → cognate (undirected). Etymology-only Prakrit and Sanskrit varieties merge into their language, with the variety kept in the label.
@@ -151,7 +154,7 @@ Alongside the existing Wikidata, LSI and ASJP imports, the research database hol
 
 **Examined but not used.**
 - **DSAL dictionaries (Platts, Tamil Lexicon, Kittel and others):** no bulk download. The terms are CC BY-NC-ND or all rights reserved, and `robots.txt` disallows automated agents. Their entries reach the project only where Jambu cites them.
-- **IndoWordNet:** no working bulk download. The Hindi licence is GPL/FDL; licences for the other languages are not stated.
+- **IndoWordNet:** no working bulk download. The Hindi licence is GPL/FDL; licences for the other languages are not stated or conflict (see [CANDIDATE_DATASETS.md](CANDIDATE_DATASETS.md)). Still to be read at CFILT.
 - **CogNet v2 (CC BY-NC-SA):** its cognates are computed automatically and include loans. It can return later as a *candidate* layer once the graph draws candidates distinctly.
 
 ## 4b. The global source list (50 sources, 2026-10-30)
@@ -163,12 +166,12 @@ Each source below was checked against its own licence, terms and robots.txt. Row
 | # | Source | Outcome |
 |---|---|---|
 | 1 | PanLex | **Not imported.** No official snapshot is reachable. PanLex's licence is CC BY-NC-SA 4.0, while third-party mirrors say CC0. Revisit if PanLex confirms terms. |
-| 2, 3 | Wiktionary dumps, kaikki.org | **Imported** (Indian languages and their ancestors). A global import is sized at 3.0M entries with etymology across 2,939 languages. It runs in capped form within the disk budget. |
+| 2, 3 | Wiktionary dumps, kaikki.org | **Imported** in every language (`make FULL=1`): 6.0 million words in 6,253 language records, with 5.0 million links. The default build keeps only the configured, steppe and etymology-bearing languages within a smaller disk budget. |
 | 4 | Open Multilingual Wordnet 2.0 | **Imported.** 32 wordnets, every one licensed for redistribution. Senses are linked through interlingual (ILI) concepts. |
 | 5 | Global WordNet Association | A directory, not a dataset. Its open wordnets are reached through OMW. |
 | 6 | Concepticon | **Imported** (v3.4.0). |
 | 7, 8 | Lexibank, CLDF datasets | **Imported.** 130 datasets plus the earlier ones: 124 CC BY, and 6 non-commercial treated as RESEARCH USE. All languages, cognate sets and borrowings are included. |
-| 9 | Glottolog | **Imported** in full: 8,594 languages and 4,853 families. Every source's languages map to one record per glottocode. |
+| 9 | Glottolog | **Imported** in full: 8,618 languages and 4,853 families. Every source's languages map to one record per glottocode. |
 | 10 | WALS | **Imported** as language profiles: 73k values for 2,433 languages. |
 | 11 | PHOIBLE | **Imported** as language profiles: 79k segment entries for 2,048 languages. |
 | 12 | ASJP | **Imported**, all 11,115 doculects. |
@@ -309,7 +312,7 @@ Each source below was checked against its own licence, terms and robots.txt. Row
 
 ## 5. Shortlist datasets not yet audited
 
-The other 22 shortlisted resources have rows with decision BLOCKED and reason "unverified": Lexibank (as a collection), Open English WordNet, Unicode CLDR, IndicLID, Samanantar, IndicCorp v2, Naamapadam, BPCC-Mined, BPCC-H-Wiki, BPCC-H-Daily, IN22-Gen, IN22-Conv, FLORES-200, NLLB-Seed, Tatoeba, Wiktionary, Wikipedia, Open Multilingual Wordnet, Universal Dependencies, Common Voice, FLEURS, and CLDF datasets on Zenodo.
+The other 20 shortlisted resources have rows with decision BLOCKED and reason "unverified": Lexibank (as a collection; its datasets have their own rows), Open English WordNet, Unicode CLDR, IndicLID, Samanantar, IndicCorp v2, Naamapadam, BPCC-Mined, BPCC-H-Wiki, BPCC-H-Daily, IN22-Gen, IN22-Conv, FLORES-200, NLLB-Seed, Tatoeba, Wikipedia, Universal Dependencies, Common Voice, FLEURS, and CLDF datasets on Zenodo. With the two blocked Aksharantar components (§ 2), these are the 22 BLOCKED rows of the audit.
 
 Their licence column records what the shortlist claims, not a verified fact. Each one is promoted only after its release is downloaded and its terms are read. IndicLID's MIT licence for code and models is verified from its README at tag v1.0, but the licence for its benchmark data is not yet confirmed.
 
@@ -323,7 +326,7 @@ Their licence column records what the shortlist claims, not a verified fact. Eac
 
 | Gate condition | Status |
 |---|---|
-| All deployed dataset components have documented reuse permission | Met for the public seed, which contains APPROVED and APPROVED WITH CONDITIONS rows only. Not met for the development database. |
+| All deployed dataset components have documented reuse permission | Met for the public seed, which contains APPROVED and APPROVED WITH CONDITIONS rows only. Not met for the research database, which holds research-use data by design. |
 | Native-script and romanised searches pass a multilingual regression suite | Met for the 19 modern languages: `backend/tests/test_multilingual.py` (one native-script query per language, the alias path, and romanisation rules). |
 | Exact matches are not confused with compounds or approximate matches | Met: `form_kind`, separate result groups, and regression tests. |
 | Every documented historical relationship has traceable evidence | Met: validator checks, plus Wikidata statement IDs. |

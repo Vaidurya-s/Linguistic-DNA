@@ -1,4 +1,6 @@
-# Dataset and Licensing Plan — Language Similarity Graph
+# Dataset and Licensing Plan — Linguistic DNA
+
+> **Status (2026-11-03): the original plan, kept for the record.** Its licence rules were carried out as a machine-readable audit (`data/manifests/dataset_audit.csv`), which is the authority: see [DATASET_LICENCE_AUDIT.md](DATASET_LICENCE_AUDIT.md). The source list in § 2 has been audited and mostly imported; candidates for thinly covered languages are in [CANDIDATE_DATASETS.md](CANDIDATE_DATASETS.md).
 
 ## 1. Purpose
 
