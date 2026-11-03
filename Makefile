@@ -81,10 +81,12 @@ import-research: import-jambu import-peirosst import-dpd import-cdsl-mw import-l
 
 # High Valyrian and its Low Valyrian descendants (David J. Peterson's constructed languages for
 # Game of Thrones), from The Languages of David J. Peterson wiki. Research and reference use: run
-# the download yourself (about 2-3 hours at one page every 3 seconds; it resumes where it
-# stopped); add --no-pages for the dictionary only (words and glosses, a few seconds).
+# the download yourself: 2,787 pages, one request every 6 seconds (the wiki answers 429 at 3),
+# so 4-7 hours; it retries transient errors and resumes where it stopped. Use
+# `make fetch-valyrian VALYRIAN_ARGS=--no-pages` for the dictionary only (a few seconds).
+VALYRIAN_ARGS ?= --delay 6
 fetch-valyrian:
-	python3 scripts/fetch_valyrian.py
+	python3 scripts/fetch_valyrian.py $(VALYRIAN_ARGS)
 
 import-valyrian:
 	@if [ -d data/raw/valyrian ]; then \

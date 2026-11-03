@@ -254,12 +254,14 @@ Each source below was checked against its own licence, terms and robots.txt. Row
 - The wiki's robots.txt allows article pages, but not `/index.php`, which also serves the paginated category lists. A commented-out Content-Signal line reads `ai-train=no, user=reference`.
 
 **Access.**
-- The user downloads the pages with `make fetch-valyrian`: robots-compliant, one request every 3 seconds, identified by its user agent, and resumable.
+- The user downloads the pages with `make fetch-valyrian`: robots-compliant, one request every 6 seconds by default (the wiki answers HTTP 429 at 3 seconds), identified by its user agent, retrying transient errors, and resumable.
 - Nothing is committed or redistributed. The test fixtures are synthetic pages in the same structure.
 
 **What is stored.**
 - Terms, definitions of up to 300 characters, and the etymology and descendant links each page records, each citing its page and revision.
 - Not stored: example sentences, inflection tables or other page text.
+
+**Counts (2026-11-03).** 3,102 High Valyrian, 350 Astapori Valyrian and 182 Meereenese Valyrian words, and 3,483 links (2,846 compounds, 532 inheritance, 102 derivations, 3 borrowings), from the dictionary page and 2,786 word pages (one dictionary term, Hōzalbar, has no page). Four Dothraki and four Asshai'i mentions were skipped.
 
 **Kept apart.** These are fictional, constructed languages. They have their own family, are never merged with natural languages, and are never linked to them. Words of any other language that a page mentions are skipped, not imported, and counted in the import statistics.
 
