@@ -19,6 +19,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 import urllib.request
 from pathlib import Path
 
@@ -43,6 +44,8 @@ def fetch_http(entry: dict, raw: Path) -> str:
     if dest.exists() and sha256(dest) == entry["sha256"]:
         return "ok (cached)"
     dest.parent.mkdir(parents=True, exist_ok=True)
+    if entry.get("delay"):  # a host that asks for a crawl delay (e.g. Zenodo: 10 s)
+        time.sleep(entry["delay"])
     tmp = dest.with_suffix(dest.suffix + ".part")
     req = urllib.request.Request(entry["url"], headers={"User-Agent": UA})
     with urllib.request.urlopen(req, timeout=120) as r, tmp.open("wb") as fh:

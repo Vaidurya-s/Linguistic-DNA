@@ -261,9 +261,51 @@ Each source below was checked against its own licence, terms and robots.txt. Row
 - Terms, definitions of up to 300 characters, and the etymology and descendant links each page records, each citing its page and revision.
 - Not stored: example sentences, inflection tables or other page text.
 
-**Counts (2026-11-03).** 3,102 High Valyrian, 350 Astapori Valyrian and 182 Meereenese Valyrian words, and 3,483 links (2,846 compounds, 532 inheritance, 102 derivations, 3 borrowings), from the dictionary page and 2,786 word pages (one dictionary term, Hōzalbar, has no page). Four Dothraki and four Asshai'i mentions were skipped.
+**Counts (2026-11-03).** 3,160 High Valyrian, 444 Astapori Valyrian and 266 Meereenese Valyrian words, and 3,733 links (2,916 compounds, 692 inheritance, 119 derivations, 6 borrowings), from the dictionary page, 2,786 word pages and the 386 lemma pages of the Astapori and Meereenese category lists (first page of each, 200 of 473 and 200 of 264 members; one dictionary term, Hōzalbar, has no page). Mentions of other languages were skipped: 6 Dothraki, 4 Ghiscari and 4 Asshai'i.
 
 **Kept apart.** These are fictional, constructed languages. They have their own family, are never merged with natural languages, and are never linked to them. Words of any other language that a page mentions are skipped, not imported, and counted in the import statistics.
+
+## 4e. Mongolian Wordnet (MonWN)
+
+**Decision: APPROVED WITH CONDITIONS** (attribution, share-alike).
+
+**Evidence.**
+- The repository's `LICENSE.txt` is the CC BY-SA 4.0 legal code, and `README.md` states "available under the Attribution-ShareAlike 4.0 International (CC BY-SA 4.0) License".
+- The header line of `wn-data-mon.tsv` says CC BY 4.0. The two differ, and the stricter share-alike is applied.
+- The synsets are identified by Princeton WordNet 3.0 offsets (identifiers only).
+
+**What is stored.** One Halh Mongolian word per distinct lemma, linked to the interlingual concept (ILI) of each of its synsets through the Open Multilingual Wordnet's English synset IDs. No word-to-word relationships.
+
+**Counts (2026-11-03).** 23,393 words and 39,423 word-to-concept links from 39,427 lemma lines; every synset mapped to a concept.
+
+## 4f. Kurdish lexicons and Calfa's Classical Armenian dictionary
+
+**Decision for both: RESEARCH USE** (non-commercial licences: used for academic research with citation; not in the public seed).
+
+**Kurdish Lexicographical Resources** (Ahmadi, Azin, Hassani, McCrae; github.com/sinaahmadi/KurdishLexicography).
+- Evidence: `LICENSE` in the repository is CC BY-NC-SA 4.0, and the README states that all resources are available under it.
+- Stored: one word per lexical entry in Sorani (5,482), Kurmanji (4,020), Hawrami (1,146) and Southern Kurdish (11,026), 21,674 in all, each with the label of its linked translation entry (English preferred) as a short gloss. The files declare exactly these entry counts. No relationships.
+
+**Calfa Classical Armenian dictionary** (github.com/calfa-co/lexical-databases).
+- Evidence: the README states "These data can be freely used under a CC BY-NC 4.0 license". The dictionary is compiled from 19th-century dictionaries.
+- Stored: 42,235 headwords (41,317 common words and 918 proper nouns) with their first English definition; headwords lower-cased, proper nouns kept as written.
+- Not stored: the etymology file. It is Ačaṙean's dictionary as Armenian prose that Calfa describes as "working document, AI processed"; relationships read from free text would be guesses.
+
+## 4g. Sindhi Open Lexicon (SindhiLanguage.org)
+
+**Decision: RESEARCH USE.** The licence evidence conflicts, and the stricter reading is applied (as for Monier-Williams).
+
+**Evidence.**
+- Zenodo record 20175520 gives the licence field as CC BY 4.0, and the IEEE DataPort listing repeats it.
+- The `LICENSE.txt` shipped in the same record is custom: the data is released "for research, education, AI/NLP development, software development, and non-malicious public-interest use", with mandatory attribution to SindhiLanguage.org and Amar Fayaz Buriro. A "non-malicious" clause is a field-of-use restriction, which CC BY does not allow.
+- The lexicon is compiled from several third-party dictionaries (Jamia Sindhi Lughat, Mewaram Lughat, translation and terminology dictionaries). Their own copyright terms are not stated.
+- Research use is expressly permitted, so the data is kept in the local research database with the attribution on every word, and kept out of the public seed.
+
+**What is stored.** Only entries whose headword is Sindhi (`language_direction` = `sindhi`), one word per distinct headword, with the English definition if a dictionary gives one and otherwise the first Sindhi definition. The English, Hindi and Arabic headword dictionaries are not imported. The bracketed origin notes inside the Sindhi definitions (such as `[ع.ف]` and `[سن. ...]`) are abbreviations in running text and are not read as relationships.
+
+**Counts (2026-11-03).** 103,743 Sindhi words from the 223,342 rows: the entries with a Sindhi headword (the Jamia Sindhi Lughat 80,588, Mewaram Lughat 29,514 and Devanagari/Sindhi–English 16,519 rows) collapse to one word per distinct headword. Sindhi had 11,151 words before. Zenodo's md5 for the CSV was verified after download.
+
+**Access.** The files come from Zenodo's file endpoint (`/api/records/<id>/files/<name>/content`), which its robots.txt allows, with one request per file. Zenodo's `/api/records/<id>` metadata endpoint is disallowed and is not used.
 
 ## 5. Shortlist datasets not yet audited
 

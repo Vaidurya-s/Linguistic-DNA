@@ -2,7 +2,7 @@
 
 # Linguistic DNA
 
-**An evidence-first graph of how words are related: built around India's languages, now reaching 3,747 searchable languages from the Eurasian steppe to the Pacific.**
+**An evidence-first graph of how words are related: built around India's languages, now reaching 3,748 searchable languages from the Eurasian steppe to the Pacific.**
 
 Type a word in any of 9 Brahmic scripts, in romanisation, or in Cyrillic, Latin, Greek and other scripts, and follow its documented links:
 what it was inherited from, borrowed from, built from, or is cognate with, with the source for every claim.
@@ -14,8 +14,8 @@ what it was inherited from, borrowed from, built from, or is cognate with, with 
 ![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Cytoscape.js](https://img.shields.io/badge/graph-Cytoscape.js-F7DF1E)
-![Languages](https://img.shields.io/badge/searchable%20languages-3%2C747-8A2BE2)
-![Words](https://img.shields.io/badge/words-13.9M-2a78d6)
+![Languages](https://img.shields.io/badge/searchable%20languages-3%2C748-8A2BE2)
+![Words](https://img.shields.io/badge/words-14.1M-2a78d6)
 ![Links](https://img.shields.io/badge/cited%20links-7.1M-eb6834)
 
 [What it does](#what-it-does) ·
@@ -53,22 +53,22 @@ what it was inherited from, borrowed from, built from, or is cognate with, with 
 
 | | Open public seed<br/><sub>`data/public_seed`, committed</sub> | Research database<br/><sub>`make research-db`, built locally</sub> |
 |---|---:|---:|
-| Words | **521,448** | **13,885,921** |
-| &nbsp;&nbsp;from open-licensed / research-use sources | 521,448 / 0 | 12,229,664 / 1,656,257 |
-| Documented, cited relationships | **221,594** | **7,143,395** |
-| &nbsp;&nbsp;from open-licensed / research-use sources | 221,594 / 0 | 6,081,540 / 1,061,855 |
-| Evidence rows (citations with locators) | 221,594 | 7,206,688 |
-| Datasets with words or profiles | 12 | 149 |
+| Words | **521,448** | **14,077,202** |
+| &nbsp;&nbsp;from open-licensed / research-use sources | 521,448 / 0 | 12,253,057 / 1,824,145 |
+| Documented, cited relationships | **221,594** | **7,143,645** |
+| &nbsp;&nbsp;from open-licensed / research-use sources | 221,594 / 0 | 6,081,540 / 1,062,105 |
+| Evidence rows (citations with locators) | 221,594 | 7,206,938 |
+| Datasets with words or profiles | 12 | 153 |
 | Sources cited on individual records | 12 | 523 |
 | Concepts linking meanings (Concepticon, wordnet ILI) | 1,393 | 121,692 |
 | Language profile values (WALS, PHOIBLE) | — | 151,303 |
 | Transliteration spelling pairs | 947,189 | 947,189 |
-| Language records / searchable languages | 728 / 25 | 10,745 / **3,747** |
+| Language records / searchable languages | 728 / 25 | 10,745 / **3,748** |
 | Size | ≈ 55 MB compressed, ≈ 680 MB loaded | ≈ 14 GB |
 
 <sub>The committed seed was built before the global imports; `make public-seed` rebuilds it from the open-licensed part of the research database. The research column is the output of `make full-db` (Wiktionary and Wikidata in every language, with descendant lists, plus the StarLing databases) on a desktop with 28 threads, 61 GB of RAM and an NVMe SSD; it took about 50 minutes from downloaded inputs (the 4–8 hours in `REQUIREMENTS.md` is a conservative estimate for slower machines). A build with only `make research-db` (no `FULL=1`) is smaller; see [`REQUIREMENTS.md`](REQUIREMENTS.md).</sub>
 
-**3,747 searchable languages.** A language becomes searchable when it has at least 200 words; `refresh-languages` gives every Glottolog language (8,594 languages in 4,853 families) one record, whichever sources it comes from. The explorer's language box filters them by name or family.
+**3,748 searchable languages.** A language becomes searchable when it has at least 200 words; `refresh-languages` gives every Glottolog language (8,594 languages in 4,853 families) one record, whichever sources it comes from. The explorer's language box filters them by name or family.
 
 **25 configured languages** get the most care: native-script search, romanisation rules and transliteration aliases (configured in [`data/config/languages.csv`](data/config/languages.csv)):
 
@@ -169,13 +169,13 @@ Each source's own label is kept beside the normalised type, so nothing is silent
 
 | Edge in the graph | Type | Reads as | Research / open seed |
 |---|---|---|---:|
-| ![](https://img.shields.io/badge/-component-7c3aed) | `has_component` | compound or phrase *A* contains *B* | 2,556,402 / 50,231 |
-| ![](https://img.shields.io/badge/-inherited-2563eb) | `inherited_form` | *A* is a regular descendant of *B* | 1,702,369 / 29,646 |
+| ![](https://img.shields.io/badge/-component-7c3aed) | `has_component` | compound or phrase *A* contains *B* | 2,556,472 / 50,231 |
+| ![](https://img.shields.io/badge/-inherited-2563eb) | `inherited_form` | *A* is a regular descendant of *B* | 1,702,529 / 29,646 |
 | ![](https://img.shields.io/badge/-cognate-be123c) | `cognate` | *A* and *B* share an inherited origin (undirected) | 1,313,938 / 93,860 |
-| ![](https://img.shields.io/badge/-borrowed-ea580c) | `borrowed_from` | *A* was borrowed from *B* | 688,479 / 30,531 |
+| ![](https://img.shields.io/badge/-borrowed-ea580c) | `borrowed_from` | *A* was borrowed from *B* | 688,482 / 30,531 |
 | ![](https://img.shields.io/badge/-from-0f766e) | `etymon` | *A* comes from *B*; inherited or borrowed is not stated | 718,134 / 16,881 |
 | ![](https://img.shields.io/badge/-related-0891b2) | `related_form` | the source relates them without saying how | 52,863 / 0 |
-| ![](https://img.shields.io/badge/-derived-059669) | `derived_form` | *A* is derived from *B* (affixation, extension) | 49,193 / 0 |
+| ![](https://img.shields.io/badge/-derived-059669) | `derived_form` | *A* is derived from *B* (affixation, extension) | 49,210 / 0 |
 | ![](https://img.shields.io/badge/-variant-64748b) | `variant_of` | *A* is a documented variant of *B* | 36,193 / 0 |
 | ![](https://img.shields.io/badge/-calque-c2410c) | `calque_or_loan_translation` | *A* is a loan translation of *B* | 25,806 / 418 |
 | ![](https://img.shields.io/badge/-influence-db2777) | `contact_influence` | *A* was influenced by *B* through contact | 18 / 0 |
@@ -219,8 +219,8 @@ Every dataset is a row in a machine-readable licence audit, [`data/manifests/dat
 
 | Decision | Datasets | Where it can appear |
 |---|---|---|
-| **APPROVED** / **APPROVED WITH CONDITIONS** | Glottolog, Concepticon, LSI, ASJP, Wikidata Lexemes, Wiktionary (wiktextract), IE-CoR, IELex, DravLex, NorthEuraLex, Hale's Nepal wordlists, about 125 more Lexibank CLDF wordlists (among them ABVD, the Austronesian Comparative Dictionary, SEABOR and WOLD's loanwords), the Open Multilingual Wordnet (32 wordnets), WALS and PHOIBLE (language profiles), Digital Corpus of Sanskrit lexicon, Dakshina, Aksharantar (approved components) | Everywhere, including the committed open seed, with attribution in [`data/public_seed/ATTRIBUTION.md`](data/public_seed/ATTRIBUTION.md) |
-| **RESEARCH USE** | Jambu (and through it Turner's CDIAL, Burrow & Emeneau's DEDR and about 570 other works), Monier-Williams 1899 (Cologne), Digital Pāḷi Dictionary, Peiros' Sino-Tibetan wordlists and six other non-commercial Lexibank wordlists, the StarLing etymological databases (Pokorny, Vasmer, Indo-European, Altaic, Dravidian, North Caucasian, Sino-Tibetan and more), and David J. Peterson's Valyrian languages (constructed) | The research database and a research deployment, with a citation on every record. **Never** in this repository or the open seed |
+| **APPROVED** / **APPROVED WITH CONDITIONS** | Glottolog, Concepticon, LSI, ASJP, Wikidata Lexemes, Wiktionary (wiktextract), IE-CoR, IELex, DravLex, NorthEuraLex, Hale's Nepal wordlists, about 125 more Lexibank CLDF wordlists (among them ABVD, the Austronesian Comparative Dictionary, SEABOR and WOLD's loanwords), the Open Multilingual Wordnet (32 wordnets) and the Mongolian Wordnet, WALS and PHOIBLE (language profiles), Digital Corpus of Sanskrit lexicon, Dakshina, Aksharantar (approved components) | Everywhere, including the committed open seed, with attribution in [`data/public_seed/ATTRIBUTION.md`](data/public_seed/ATTRIBUTION.md) |
+| **RESEARCH USE** | Jambu (and through it Turner's CDIAL, Burrow & Emeneau's DEDR and about 570 other works), Monier-Williams 1899 (Cologne), Digital Pāḷi Dictionary, Peiros' Sino-Tibetan wordlists and six other non-commercial Lexibank wordlists, the StarLing etymological databases (Pokorny, Vasmer, Indo-European, Altaic, Dravidian, North Caucasian, Sino-Tibetan and more), David J. Peterson's Valyrian languages (constructed), and word lists for thinly covered languages: the Sindhi Open Lexicon, Kurdish lexicons (Sorani, Kurmanji, Hawrami, Southern Kurdish) and Calfa's Classical Armenian dictionary | The research database and a research deployment, with a citation on every record. **Never** in this repository or the open seed |
 | **BLOCKED** | everything unverified | Nowhere. `validate --research` fails on it |
 
 In the app:
@@ -257,7 +257,7 @@ make research-db            # open imports, research imports, Glottolog, re-key,
 
 The research imports include the **StarLing etymological databases** (Starostin's *Tower of Babel*), with Pokorny's and Vasmer's dictionaries, Indo-European, Germanic, Baltic, Altaic, Dravidian, North Caucasian, Sino-Tibetan, Chukchee-Kamchatkan, Kartvelian and Yeniseian etymologies. `make fetch-dev-data` downloads their 2005 archives (about 15 MB) from starlingdb.org on your machine; no StarLing software is needed. `make import-starling` re-runs just that import and lists any field names or abbreviations it could not assign to a language in `reports/starling_unmapped.csv` ([details](docs/DATA_PIPELINE.md)).
 
-**High Valyrian** (optional). David J. Peterson's constructed language for *Game of Thrones* and *House of the Dragon*, with its Low Valyrian descendants (Astapori and Meereenese Valyrian), from [The Languages of David J. Peterson](https://wiki.languageinvention.com/High_Valyrian_language) wiki: about 3,100 High Valyrian words with definitions (and 350 Astapori and 180 Meereenese ones), plus the compounds, derivations and descendants each word page records. They are fictional languages, so they get their own family, *Valyrian languages (constructed, fictional)*, and are never linked to natural languages. The wiki's content belongs to HBO and Peterson, so it is research and reference use, downloaded by you:
+**High Valyrian** (optional). David J. Peterson's constructed language for *Game of Thrones* and *House of the Dragon*, with its Low Valyrian descendants (Astapori and Meereenese Valyrian), from [The Languages of David J. Peterson](https://wiki.languageinvention.com/High_Valyrian_language) wiki: about 3,160 High Valyrian words with definitions (and 444 Astapori and 266 Meereenese ones), plus the compounds, derivations and descendants each word page records. They are fictional languages, so they get their own family, *Valyrian languages (constructed, fictional)*, and are never linked to natural languages. The wiki's content belongs to HBO and Peterson, so it is research and reference use, downloaded by you:
 
 ```bash
 make fetch-valyrian         # robots-compliant, one page every 6 s, retries, resumable; 4-7 hours
@@ -387,7 +387,7 @@ docs/        specification, architecture, licence audit, pipeline, deployment, w
 - [x] **Phase 2, scripts and graph.** Native-script and romanised search in 9 scripts; graph clutter control; eight more Devanagari languages (17 → 25).
 - [x] **Phase 3, presentation.** Landing and methodology pages, write-up, Docker image and deployment docs.
 - [x] **Research expansion.** Jambu in full, Wiktionary etymologies, expert cognate sets, Sanskrit and Pāli dictionaries, with per-record citations and the *Open data only* switch.
-- [x] **Global expansion.** Every Glottolog language as one record; 130 Lexibank wordlists, the Open Multilingual Wordnet, WALS and PHOIBLE profiles, WOLD and ACD borrowings; the steppe corridor (Russian and its neighbours and ancestors) in Wiktionary and Wikidata; 3,747 searchable languages.
+- [x] **Global expansion.** Every Glottolog language as one record; 130 Lexibank wordlists, the Open Multilingual Wordnet, WALS and PHOIBLE profiles, WOLD and ACD borrowings; the steppe corridor (Russian and its neighbours and ancestors) in Wiktionary and Wikidata; 3,748 searchable languages.
 - [x] **Everything on your own machine.** `make full-db` (Wiktionary and Wikidata in every language, with descendant lists) and the StarLing etymological databases; Linux setup in [`REQUIREMENTS.md`](REQUIREMENTS.md).
 - [x] **A constructed language family.** High Valyrian and its Low Valyrian descendants, kept apart from natural languages.
 - [ ] **Translation and profile panels** in the app for the meaning links and language profiles already in the database.

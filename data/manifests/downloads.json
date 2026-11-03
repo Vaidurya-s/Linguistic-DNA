@@ -661,6 +661,56 @@
       "sha256": "91ad3ddba76d68466b01438376a808508ba7463c5c65172b00deabc490cca5bf",
       "dest": "starling/YENISEY.exe",
       "note": "StarLing databases of 18 Nov 2005 (0.2 MB), a self-extracting ZIP read directly by make import-starling; research use, never redistributed"
+    },
+    {
+      "id": "monwn",
+      "group": "public",
+      "kind": "git",
+      "url": "https://github.com/num-milab/monwn",
+      "ref": "master",
+      "commit": "c747dcf3be8af169e717dc2ae6d2c15bc7735688",
+      "full_history": true,
+      "dest": "monwn"
+    },
+    {
+      "id": "kurdish-lexicography",
+      "group": "research",
+      "kind": "git",
+      "url": "https://github.com/sinaahmadi/KurdishLexicography",
+      "ref": "master",
+      "commit": "27a85fa67010532e9231dadec1027e025c7b05b8",
+      "full_history": true,
+      "dest": "kurdish-lexicography"
+    },
+    {
+      "id": "calfa-armenian",
+      "group": "research",
+      "kind": "git",
+      "url": "https://github.com/calfa-co/lexical-databases",
+      "ref": "main",
+      "commit": "71109ce90a8c3bbbb17b772f2b8287f84e540ee6",
+      "full_history": true,
+      "dest": "calfa-armenian"
+    },
+    {
+      "id": "sindhi-lexicon",
+      "group": "research",
+      "kind": "http",
+      "url": "https://zenodo.org/api/records/20175520/files/sindhi_open_lexicon_master_223342.csv/content",
+      "sha256": "d353a169f1445fa28b6ce26059ba85e0cde8529a32c120a17fa69a239856fc3a",
+      "dest": "sindhi-lexicon/sindhi_open_lexicon_master_223342.csv",
+      "note": "Sindhi Open Lexicon v1.0 (84.5 MB, Zenodo 20175520, md5 5904e41a047139258423d0a779f533a2); Zenodo throttles it, so allow about an hour. Research use; Zenodo's robots.txt allows only the /files/ path",
+      "delay": 10
+    },
+    {
+      "id": "sindhi-lexicon-licence",
+      "group": "research",
+      "kind": "http",
+      "url": "https://zenodo.org/api/records/20175520/files/LICENSE.txt/content",
+      "sha256": "07bebe54bbd2bf9cba1f4a74eb33b503fd6a609ee72b346807a8f67853ffa17a",
+      "dest": "sindhi-lexicon/LICENSE.txt",
+      "note": "the licence text shipped with the Sindhi Open Lexicon",
+      "delay": 10
     }
   ]
 }

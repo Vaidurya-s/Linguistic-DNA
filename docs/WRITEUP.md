@@ -86,11 +86,11 @@ As of 2026-11-03.
 
 | | Open public seed | Research database, South Asia phase | Research database, after the global expansion |
 |---|---:|---:|---:|
-| Words | 521,448 | 1,812,733 | 13,885,921 |
-| Cited relationships, each with evidence | 221,594 | 996,776 | 7,143,395 |
+| Words | 521,448 | 1,812,733 | 14,077,202 |
+| Cited relationships, each with evidence | 221,594 | 996,776 | 7,143,645 |
 | Transliteration spelling pairs | 947,189 | 947,189 | 947,189 |
-| Searchable languages | 25 | 25 | 3,747 |
-| Datasets | 15 (14 sources; Aksharantar counts twice) | 19 (adds Jambu, Monier-Williams, DPD and Peiros) | 149 with words or profiles (adds 130 Lexibank wordlists, 32 wordnets, WALS, PHOIBLE, StarLing, High Valyrian, and Wiktionary and Wikidata in every language) |
+| Searchable languages | 25 | 25 | 3,748 |
+| Datasets | 15 (14 sources; Aksharantar counts twice) | 19 (adds Jambu, Monier-Williams, DPD and Peiros) | 153 with words or profiles (adds 130 Lexibank wordlists, 32 wordnets, WALS, PHOIBLE, StarLing, High Valyrian, four word lists for thin languages, and Wiktionary and Wikidata in every language) |
 | Size | about 55 MB compressed, 680 MB loaded | about 2.2 GB | about 14 GB |
 
 The global expansion and the steppe corridor are described in [DATASET_LICENCE_AUDIT.md](DATASET_LICENCE_AUDIT.md) § 4b, and the StarLing databases in § 4c. The last column is the output of `make full-db`: Wiktionary and Wikidata in every language, plus the StarLing databases (273,809 words and 235,852 links), which are downloaded and imported on the user's own machine. The earlier snapshot of this table, before `full-db`, had 8,480,391 words and 4,560,323 relationships.

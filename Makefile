@@ -38,6 +38,7 @@ endif
         validate-public validate-research import-research research-db research-dump \
         import-wiktionary import-cognates import-peirosst import-dcs import-dpd import-cdsl-mw \
         refresh-languages import-lexibank import-profiles import-omw full-db db-size import-starling fetch-valyrian import-valyrian \
+        import-monwn import-kurdish import-calfa import-sindhi \
         coverage benchmark public-seed load-public-seed fixture test lint
 
 setup:
@@ -77,7 +78,7 @@ import-glottolog:
 
 # Research-use datasets, cited per record; never in the public seed.
 import-research: import-jambu import-peirosst import-dpd import-cdsl-mw import-lexibank \
-                 import-starling import-valyrian
+                 import-starling import-valyrian import-kurdish import-calfa import-sindhi
 
 # High Valyrian and its Low Valyrian descendants (David J. Peterson's constructed languages for
 # Game of Thrones), from The Languages of David J. Peterson wiki. Research and reference use: run
@@ -140,6 +141,33 @@ import-omw:
 	cd backend && .venv/bin/python -m app.cli import-omw --dir ../data/raw/omw \
 		--glottolog ../$(GLOTTOLOG_CLDF) --iso ../data/raw/iso639/iso-639-3.tab --version v2.0
 
+# Mongolian Wordnet (CC BY-SA 4.0): words linked to the interlingual concepts of import-omw.
+import-monwn:
+	@if [ -d data/raw/monwn ]; then \
+		cd backend && .venv/bin/python -m app.cli import-monwn --dir ../data/raw/monwn \
+			--omw-en ../data/raw/omw/omw-en-2.0.tar.xz --version "c747dcf (2021-11-14)"; \
+	else echo "import-monwn: data/raw/monwn not downloaded (make fetch-data); skipped"; fi
+
+# Research-use word lists (non-commercial or unverified licences; cited on every word). Each is
+# skipped while its download is missing.
+import-kurdish:
+	@if [ -d data/raw/kurdish-lexicography ]; then \
+		cd backend && .venv/bin/python -m app.cli import-kurdish \
+			--dir ../data/raw/kurdish-lexicography --version "27a85fa (2021-07-08)"; \
+	else echo "import-kurdish: not downloaded (make fetch-dev-data); skipped"; fi
+
+import-calfa:
+	@if [ -d data/raw/calfa-armenian ]; then \
+		cd backend && .venv/bin/python -m app.cli import-calfa \
+			--dir ../data/raw/calfa-armenian --version "71109ce (2026-09-29)"; \
+	else echo "import-calfa: not downloaded (make fetch-dev-data); skipped"; fi
+
+import-sindhi:
+	@if [ -f data/raw/sindhi-lexicon/sindhi_open_lexicon_master_223342.csv ]; then \
+		cd backend && .venv/bin/python -m app.cli import-sindhi \
+			--csv ../data/raw/sindhi-lexicon/sindhi_open_lexicon_master_223342.csv --version "1.0 (2026-05-14)"; \
+	else echo "import-sindhi: not downloaded (make fetch-dev-data); skipped"; fi
+
 import-dcs:
 	cd backend && .venv/bin/python -m app.cli import-dcs --dictionary ../data/raw/dcs/dictionary.csv \
 		--version "8aeed5a"
@@ -192,7 +220,7 @@ research-dump:
 # imports that attach data to it by glottocode or ISO code (wordnets, profiles, Wikidata).
 import-open: refresh-languages import-concepticon import-lsi import-asjp import-wikidata \
              import-aliases import-wiktionary import-cognates import-dcs import-omw \
-             import-profiles import-glottolog
+             import-monwn import-profiles import-glottolog
 
 import-concepticon:
 	cd backend && .venv/bin/python -m app.cli import-concepticon --data ../data/raw/concepticon-data

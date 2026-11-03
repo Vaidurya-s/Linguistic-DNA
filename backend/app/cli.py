@@ -16,6 +16,7 @@ import sys
 from pathlib import Path
 
 from app.config import REPO_ROOT
+from app.importers.calfa import import_calfa
 from app.importers.cdsl import import_cdsl_mw
 from app.importers.cldf_structure import import_cldf_structure
 from app.importers.cldf_wordlist import import_cldf_wordlist
@@ -25,8 +26,11 @@ from app.importers.dcs import import_dcs
 from app.importers.dpd import import_dpd
 from app.importers.glottolog import import_glottolog
 from app.importers.jambu import JambuImporter
+from app.importers.kurdish import import_kurdish
 from app.importers.manifest import load_manifest, prune_orphan_sources
+from app.importers.monwn import import_monwn
 from app.importers.omw import import_omw
+from app.importers.sindhi import import_sindhi
 from app.importers.starling import import_starling, name_languages_from_glottolog
 from app.importers.transliteration import import_aksharantar, import_dakshina
 from app.importers.valyrian import import_valyrian
@@ -93,6 +97,19 @@ def main(argv: list[str] | None = None) -> int:
     ow.add_argument("--glottolog", type=Path, required=True)
     ow.add_argument("--iso", type=Path, required=True)
     ow.add_argument("--version", default="unknown")
+    mw = sub.add_parser("import-monwn", help="Mongolian Wordnet (MonWN)")
+    mw.add_argument("--dir", type=Path, required=True, help="the monwn repository folder")
+    mw.add_argument("--omw-en", type=Path, required=True, help="omw-en-2.0.tar.xz (ILI mapping)")
+    mw.add_argument("--version", default="unknown")
+    ku = sub.add_parser("import-kurdish", help="Kurdish lexicographical resources (research use)")
+    ku.add_argument("--dir", type=Path, required=True, help="the KurdishLexicography folder")
+    ku.add_argument("--version", default="unknown")
+    ca = sub.add_parser("import-calfa", help="Calfa Classical Armenian dictionary (research use)")
+    ca.add_argument("--dir", type=Path, required=True, help="the calfa-armenian folder")
+    ca.add_argument("--version", default="unknown")
+    sl = sub.add_parser("import-sindhi", help="Sindhi Open Lexicon (research use)")
+    sl.add_argument("--csv", type=Path, required=True, help="sindhi_open_lexicon_master_*.csv")
+    sl.add_argument("--version", default="unknown")
     st = sub.add_parser("import-structure", help="CLDF StructureDataset -> language profiles")
     st.add_argument("--cldf", type=Path, required=True)
     st.add_argument("--dataset", required=True, help="dataset_id from dataset_audit.csv")
@@ -237,6 +254,18 @@ def main(argv: list[str] | None = None) -> int:
                 part1,
                 args.version,
             )
+        elif args.cmd == "import-monwn":
+            load_manifest(conn)
+            result = import_monwn(conn, args.dir / "wn-data-mon.tsv", args.omw_en, args.version)
+        elif args.cmd == "import-kurdish":
+            load_manifest(conn)
+            result = import_kurdish(conn, args.dir, args.version)
+        elif args.cmd == "import-calfa":
+            load_manifest(conn)
+            result = import_calfa(conn, args.dir, args.version)
+        elif args.cmd == "import-sindhi":
+            load_manifest(conn)
+            result = import_sindhi(conn, args.csv, args.version)
         elif args.cmd == "import-structure":
             load_manifest(conn)
             result = import_cldf_structure(conn, args.cldf, args.dataset)
