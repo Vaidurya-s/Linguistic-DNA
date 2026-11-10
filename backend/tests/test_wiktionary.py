@@ -68,7 +68,7 @@ def test_wiktionary_entries_and_typed_etymologies(db):
             (pani,),
         ).fetchone()
         assert cite == (
-            "Wiktionary, “पानी”, etymology ({{der}})",
+            "Wiktionary, “पानी”, etymology (derived)",
             "https://en.wiktionary.org/wiki/पानी",
         )
         assert run_checks(db, research=True)["passed"]
@@ -258,7 +258,7 @@ def test_all_languages_descendants_and_etymon_template(db, tmp_path):
             " WHERE r.source_lexeme_id = %s",
             (wid("af", "fok"),),
         ).fetchone()
-        assert cite == ("Wiktionary, “fuck”, descendants ({{desc}})",)
+        assert cite == ("Wiktionary, “fuck”, descendants",)
         locator = db.execute(
             "SELECT e.locator FROM evidence e JOIN relationship r ON r.id = e.relationship_id"
             " WHERE r.source_lexeme_id = %s",
@@ -268,5 +268,334 @@ def test_all_languages_descendants_and_etymon_template(db, tmp_path):
         langs = {r[0] for r in db.execute("SELECT DISTINCT language_id FROM lexeme")}
         assert {"wkt-en", "wkt-gem-pro", "wkt-sco", "wkt-tpi"} <= langs
         assert run_checks(db, research=True)["passed"]
+    finally:
+        db.rollback()
+
+
+def test_unmarked_descendant_yields_to_the_descendants_own_etymology(db, tmp_path):
+    """An unmarked {{desc}} only defaults to "inherited". When the descendant's own entry says
+    it was borrowed (or merely derived), that statement wins and no inherited link remains;
+    an unmarked descendant with no statement of its own stays inherited."""
+    import json
+
+    lines = [
+        {
+            "word": "câmara",
+            "lang": "Portuguese",
+            "lang_code": "pt",
+            "senses": [{"glosses": ["chamber"]}],
+            "descendants": [
+                {"lang": "Hindi", "lang_code": "hi", "word": "kamra"},
+                {"lang": "Marathi", "lang_code": "mr", "word": "khoṇa"},
+                {"lang": "Kannada", "lang_code": "kn", "word": "kemre"},
+            ],
+        },
+        {
+            "word": "kamra",
+            "lang": "Hindi",
+            "lang_code": "hi",
+            "senses": [{"glosses": ["room"]}],
+            "etymology_templates": [{"name": "bor", "args": {"1": "hi", "2": "pt", "3": "câmara"}}],
+        },
+        {
+            "word": "kemre",
+            "lang": "Kannada",
+            "lang_code": "kn",
+            "senses": [{"glosses": ["room"]}],
+            "etymology_templates": [{"name": "der", "args": {"1": "kn", "2": "pt", "3": "câmara"}}],
+        },
+    ]
+    path = tmp_path / "desc.jsonl"
+    path.write_text("\n".join(json.dumps(x, ensure_ascii=False) for x in lines), encoding="utf-8")
+    try:
+        import_wiktionary(db, [path], "fixture", {}, all_languages=True)
+        pt = wid("pt", "câmara")
+        for child, expected in (
+            (wid("hi", "kamra"), "borrowed_from"),
+            (wid("kn", "kemre"), "etymon"),
+            (wid("mr", "khoṇa"), "inherited_form"),
+        ):
+            rows = db.execute(
+                "SELECT type_id FROM relationship WHERE source_lexeme_id = %s"
+                " AND target_lexeme_id = %s",
+                (child, pt),
+            ).fetchall()
+            assert rows == [(expected,)]
+    finally:
+        db.rollback()
+
+
+def _run(db, tmp_path, lines, **kw):
+    import json
+
+    path = tmp_path / "x.jsonl"
+    path.write_text("\n".join(json.dumps(x, ensure_ascii=False) for x in lines), encoding="utf-8")
+    return import_wiktionary(db, [path], "fixture", {}, all_languages=True, **kw)
+
+
+def _types(db, child, parent):
+    return [
+        r[0]
+        for r in db.execute(
+            "SELECT type_id FROM relationship WHERE source_lexeme_id = %s"
+            " AND target_lexeme_id = %s ORDER BY type_id",
+            (child, parent),
+        ).fetchall()
+    ]
+
+
+def test_entry_etymology_text_decides_an_unmarked_descendant(db, tmp_path):
+    """Hindi कमरा: the Portuguese page lists it under Descendants with no tag, and the Hindi
+    entry has no template, but its own etymology sentence says "Borrowed from"."""
+    lines = [
+        {
+            "word": "câmara",
+            "lang": "Portuguese",
+            "lang_code": "pt",
+            "senses": [{"glosses": ["chamber"]}],
+            "descendants": [
+                {"lang": "Hindi", "lang_code": "hi", "word": "kamra"},
+                {"lang": "Marathi", "lang_code": "mr", "word": "khoṇa"},
+                {"lang": "Tamil", "lang_code": "ta", "word": "araiyā"},
+            ],
+        },
+        {
+            "word": "kamra",
+            "lang": "Hindi",
+            "lang_code": "hi",
+            "senses": [{"glosses": ["room"]}],
+            "etymology_text": "Borrowed from Portuguese câmara, from Latin camera.",
+        },
+        {
+            "word": "khoṇa",
+            "lang": "Marathi",
+            "lang_code": "mr",
+            "senses": [{"glosses": ["x"]}],
+            "etymology_text": "Inherited from Old Marathi.",
+        },
+        {  # two etymologies on one page, one borrowed and one inherited: ambiguous, so unchanged
+            "word": "araiyā",
+            "lang": "Tamil",
+            "lang_code": "ta",
+            "senses": [{"glosses": ["a"]}],
+            "etymology_text": "Borrowed from X.",
+        },
+        {
+            "word": "araiyā",
+            "lang": "Tamil",
+            "lang_code": "ta",
+            "senses": [{"glosses": ["b"]}],
+            "etymology_text": "Inherited from Old Tamil.",
+        },
+    ]
+    try:
+        stats = _run(db, tmp_path, lines)
+        pt = wid("pt", "câmara")
+        assert _types(db, wid("hi", "kamra"), pt) == ["borrowed_from"]
+        assert _types(db, wid("mr", "khoṇa"), pt) == ["inherited_form"]
+        assert _types(db, wid("ta", "araiyā"), pt) == ["inherited_form"]
+        assert stats["links_retyped_borrowed_by_etymology_text"] == 1
+        cite, label = db.execute(
+            "SELECT e.citation, r.original_label FROM evidence e JOIN relationship r"
+            " ON r.id = e.relationship_id WHERE r.source_lexeme_id = %s",
+            (wid("hi", "kamra"),),
+        ).fetchone()
+        assert cite == "Wiktionary, “kamra”, etymology text (borrowing)".replace("kamra", "câmara")
+        assert "{{" not in cite and label == "{{desc}} + entry etymology text"
+    finally:
+        db.rollback()
+
+
+def test_contradicting_descendant_lines_leave_no_false_cycle(db, tmp_path):
+    """Two pages that each list the other as a descendant: no link either way. When one side
+    states its own {{inh}}, that statement is kept."""
+    lines = [
+        {
+            "word": "a",
+            "lang": "Alpha",
+            "lang_code": "aaa",
+            "senses": [{"glosses": ["a"]}],
+            "descendants": [{"lang": "Beta", "lang_code": "bbb", "word": "b"}],
+        },
+        {
+            "word": "b",
+            "lang": "Beta",
+            "lang_code": "bbb",
+            "senses": [{"glosses": ["b"]}],
+            "descendants": [{"lang": "Alpha", "lang_code": "aaa", "word": "a"}],
+        },
+        {
+            "word": "c",
+            "lang": "Alpha",
+            "lang_code": "aaa",
+            "senses": [{"glosses": ["c"]}],
+            "etymology_templates": [{"name": "inh", "args": {"1": "aaa", "2": "bbb", "3": "d"}}],
+        },
+        {
+            "word": "d",
+            "lang": "Beta",
+            "lang_code": "bbb",
+            "senses": [{"glosses": ["d"]}],
+            "descendants": [{"lang": "Alpha", "lang_code": "aaa", "word": "c"}],
+        },
+        {  # d's page also claims c is the ancestor of d: contradicts c's own {{inh}}
+            "word": "c",
+            "lang": "Alpha",
+            "lang_code": "aaa",
+            "senses": [{"glosses": ["c2"]}],
+            "descendants": [{"lang": "Beta", "lang_code": "bbb", "word": "d"}],
+        },
+    ]
+    try:
+        _run(db, tmp_path, lines)
+        assert _types(db, wid("aaa", "a"), wid("bbb", "b")) == []
+        assert _types(db, wid("bbb", "b"), wid("aaa", "a")) == []
+        assert _types(db, wid("aaa", "c"), wid("bbb", "d")) == ["inherited_form"]  # own {{inh}}
+        assert _types(db, wid("bbb", "d"), wid("aaa", "c")) == []  # reverse desc line dropped
+    finally:
+        db.rollback()
+
+
+def test_proto_status_follows_the_language_name_not_the_code_suffix(db, tmp_path):
+    lines = [
+        {  # oc-pro is Provençal in the dump, not a reconstruction
+            "word": "sota",
+            "lang": "Provençal",
+            "lang_code": "oc-pro",
+            "senses": [{"glosses": ["under"]}],
+        },
+        {
+            "word": "h₂ster",
+            "lang": "Proto-Indo-European",
+            "lang_code": "ine-pro",
+            "senses": [{"glosses": ["star"]}],
+        },
+    ]
+    try:
+        _run(db, tmp_path, lines)
+        assert db.execute(
+            "SELECT form, reconstruction_status::text FROM lexeme WHERE id = %s",
+            (wid("oc-pro", "sota"),),
+        ).fetchone() == ("sota", "attested")
+        assert db.execute(
+            "SELECT form, reconstruction_status::text FROM lexeme WHERE id = %s",
+            (wid("ine-pro", "h₂ster"),),
+        ).fetchone() == ("*h₂ster", "reconstructed")
+        protos = dict(db.execute("SELECT id, is_proto FROM language WHERE id LIKE 'wkt-%'"))
+        assert protos == {"wkt-oc-pro": False, "wkt-ine-pro": True}
+    finally:
+        db.rollback()
+
+
+def test_residue_in_forms_is_cleaned_and_placeholders_are_skipped(db, tmp_path):
+    lines = [
+        {
+            "word": "ficken",
+            "lang": "German",
+            "lang_code": "de",
+            "senses": [{"glosses": ["x"]}],
+            "etymology_templates": [
+                {"name": "cog", "args": {"1": "gem", "2": "adārum>>>, \u200bfoo\n>>"}},
+            ],
+        },
+        {"word": "-", "lang": "German", "lang_code": "de", "senses": [{"glosses": ["dash"]}]},
+        {
+            "word": "ba\u200bd\ufffd",
+            "lang": "German",
+            "lang_code": "de",
+            "senses": [{"glosses": ["ok"]}],
+        },
+    ]
+    try:
+        stats = _run(db, tmp_path, lines, fallback_names={"gem": "Germanic"})
+        forms = {r[0] for r in db.execute("SELECT form FROM lexeme")}
+        assert {"ficken", "adārum", "foo", "bad"} <= forms
+        assert not any("\n" in f or ">" in f or "\u200b" in f for f in forms)
+        assert "-" not in forms and stats["skipped_placeholder_form"] == 1
+        assert db.execute("SELECT name FROM language WHERE id = 'wkt-gem'").fetchone() == (
+            "Germanic",
+        )
+    finally:
+        db.rollback()
+
+
+def test_citations_never_show_raw_template_markup(db, tmp_path):
+    lines = [
+        {
+            "word": "ficken",
+            "lang": "German",
+            "lang_code": "de",
+            "senses": [{"glosses": ["x"]}],
+            "etymology_templates": [
+                {"name": "inh", "args": {"1": "de", "2": "gmh", "3": "ficken"}},
+                {"name": "bor+", "args": {"1": "de", "2": "fr", "3": "foo"}},
+                {"name": "af", "args": {"1": "de", "2": "a", "3": "b"}},
+            ],
+        }
+    ]
+    try:
+        _run(db, tmp_path, lines)
+        cites = {r[0] for r in db.execute("SELECT citation FROM evidence")}
+        assert cites and not any("{{" in c or "}}" in c for c in cites)
+        assert "Wiktionary, “ficken”, etymology (inherited)" in cites
+        assert "Wiktionary, “ficken”, etymology (borrowed)" in cites
+        labels = {r[0] for r in db.execute("SELECT original_label FROM relationship")}
+        assert "{{inh}}" in labels  # the raw template stays where it is deliberate
+    finally:
+        db.rollback()
+
+
+def test_ety_tree_template_and_tree_text_are_read(db, tmp_path):
+    """Current Wiktionary writes {{ety|hi|:bor|pt:câmara}} and the entry text starts with an
+    "Etymology tree" before the sentence "Borrowed from ..."."""
+    lines = [
+        {
+            "word": "kamra",
+            "lang": "Hindi",
+            "lang_code": "hi",
+            "senses": [{"glosses": ["room"]}],
+            "etymology_text": "Etymology tree\nLatin camera\nPortuguese câmara\nHindi kamra\n"
+            "Borrowed from Portuguese câmara.",
+            "etymology_templates": [
+                {"name": "ety", "args": {"1": "hi", "2": ":bor", "3": "pt:câmara", "tree": "1"}}
+            ],
+        },
+        {
+            "word": "dukaan",
+            "lang": "Hindi",
+            "lang_code": "hi",
+            "senses": [{"glosses": ["shop"]}],
+            "etymology_templates": [
+                {
+                    "name": "ety",
+                    "args": {"1": "hi", "2": ":af<surf>", "3": "hi:duk", "4": "hi:aan"},
+                },
+                {"name": "ety", "args": {"1": "hi", "2": ":uder", "3": "fa:dukan"}},
+                {"name": "ety", "args": {"1": "hi", "2": ":bor<unc>", "3": "ar:dukkan"}},
+            ],
+        },
+        {  # the template-less variant: only the sentence after the tree says "Borrowed"
+            "word": "mez",
+            "lang": "Hindi",
+            "lang_code": "hi",
+            "senses": [{"glosses": ["table"]}],
+            "etymology_text": "Etymology tree\nLatin mensa\nBorrowed from Portuguese mesa.",
+        },
+        {
+            "word": "mesa",
+            "lang": "Portuguese",
+            "lang_code": "pt",
+            "senses": [{"glosses": ["t"]}],
+            "descendants": [{"lang": "Hindi", "lang_code": "hi", "word": "mez"}],
+        },
+    ]
+    try:
+        _run(db, tmp_path, lines)
+        assert _types(db, wid("hi", "kamra"), wid("pt", "câmara")) == ["borrowed_from"]
+        assert _types(db, wid("hi", "dukaan"), wid("hi", "duk")) == ["has_component"]
+        assert _types(db, wid("hi", "dukaan"), wid("hi", "aan")) == ["has_component"]
+        assert _types(db, wid("hi", "dukaan"), wid("fa", "dukan")) == ["etymon"]
+        assert _types(db, wid("hi", "dukaan"), wid("ar", "dukkan")) == ["borrowed_from"]
+        assert _types(db, wid("hi", "mez"), wid("pt", "mesa")) == ["borrowed_from"]
     finally:
         db.rollback()

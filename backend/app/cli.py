@@ -35,7 +35,7 @@ from app.importers.starling import import_starling, name_languages_from_glottolo
 from app.importers.transliteration import import_aksharantar, import_dakshina
 from app.importers.valyrian import import_valyrian
 from app.importers.wikidata_lexemes import fetch_language_names, import_wikidata_lexemes
-from app.importers.wiktionary import import_wiktionary, wiktionary_code_map
+from app.importers.wiktionary import import_wiktionary, load_iso_names, wiktionary_code_map
 from app.pipeline.benchmark import run_benchmark
 from app.pipeline.coverage import coverage, to_markdown
 from app.pipeline.languages import (
@@ -123,6 +123,12 @@ def main(argv: list[str] | None = None) -> int:
         "--reference-codes",
         default="",
         help="comma-separated Wiktionary codes of ancestor languages whose entries to import",
+    )
+    wk.add_argument(
+        "--iso",
+        type=Path,
+        default=None,
+        help="iso-639-3.tab, to name languages that Wiktionary mentions only by code",
     )
     wk.add_argument(
         "--etymology-only-codes",
@@ -283,6 +289,7 @@ def main(argv: list[str] | None = None) -> int:
                 reference_codes=[c for c in args.reference_codes.split(",") if c],
                 etymology_only_codes=[c for c in args.etymology_only_codes.split(",") if c],
                 all_languages=args.all_languages,
+                fallback_names=load_iso_names(args.iso) if args.iso else None,
             )
         elif args.cmd == "import-concepticon":
             load_manifest(conn)

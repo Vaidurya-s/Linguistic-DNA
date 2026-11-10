@@ -179,7 +179,7 @@ import-peirosst:
 
 import-wiktionary:
 	cd backend && .venv/bin/python -m app.cli import-wiktionary --dir ../$(WIKTIONARY_DIR) \
-		--version $(WIKTIONARY_VERSION) $(WIKTIONARY_FLAGS)
+		--version $(WIKTIONARY_VERSION) --iso ../data/raw/iso639/iso-639-3.tab $(WIKTIONARY_FLAGS)
 
 # The full research database: open data, then research-use data, then checks.
 research-db: import-open import-research

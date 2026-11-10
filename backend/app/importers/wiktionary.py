@@ -14,7 +14,9 @@ etymology templates into documented, typed relationships:
     etymon               -> by its :inh / :bor / :der / :af ... markers
 
 The entry's "Descendants" list adds the other direction: each descendant is inherited from
-the entry, or borrowed or calqued when Wiktionary marks it so.
+the entry, or borrowed or calqued when Wiktionary marks it so. An unmarked {{desc}} is only a
+default: when the descendant's own entry states how it got the word (a bor, der or calque
+template), that statement replaces the default "inherited" link.
 
 Terms that templates point to but that have no entry here (e.g. a Sanskrit etymon, an
 Arabic donor) are created from the template itself, in their own language. Languages that
@@ -37,7 +39,14 @@ import psycopg
 
 from app.importers.common import copy_rows, sha256_file
 from app.services.ids import lexeme_id, relationship_id
-from app.services.normalize import form_kind, lexeme_search_key, normalize_form
+from app.services.normalize import (
+    clean_form,
+    form_kind,
+    is_placeholder_form,
+    lexeme_search_key,
+    normalize_form,
+    plain_text,
+)
 
 DATASET = "wiktionary"
 SOURCE_ID = "wiktionary"
@@ -79,9 +88,48 @@ ETYMON_MARKERS = {
     "blend": "has_component",
     "pre": "has_component",
     "suf": "has_component",
+    "deverbal": "etymon",
+    "clipping": "etymon",
+    "clip": "etymon",
+    "uder": "etymon",  # uncertain derivation
+    "bf": "etymon",  # back-formation
+    "ellipsis": "etymon",
 }
 COMPONENT = {"af", "affix", "compound", "com", "prefix", "pre", "suffix", "suf", "confix", "con"}
 COGNATE = {"cog", "cognate"}
+
+# The first words of an entry's own etymology sentence ("Borrowed from Portuguese câmara"). An
+# entry that states how it got its word without a template still tells us, and it outranks the
+# parent page's unmarked {{desc}} line, which only defaults to "inherited".
+# (After an etymology tree the sentence sits on a later line.)
+_BORROWED_TEXT = re.compile(
+    r"(?:^|\n)\W*(?:borrowed|learned borrowing|semi-learned borrowing|loan(?:ed)?\b|reborrowed)",
+    re.I,
+)
+_INHERITED_TEXT = re.compile(r"(?:^|\n)\W*inherited\b", re.I)
+
+
+def is_proto_code(code: str, names: dict[str, str]) -> bool:
+    """Proto-languages: Wiktionary names them "Proto-X" and mostly codes them "...-pro". The code
+    alone misleads (oc-pro is Provençal, not a reconstruction), so a known name wins."""
+    name = names.get(code)
+    if name:
+        return name.startswith("Proto-")
+    return code.endswith("-pro")
+
+
+def load_iso_names(path: Path) -> dict[str, str]:
+    """ISO 639-3 and 639-1 code -> reference name, from SIL's iso-639-3.tab, to name languages
+    Wiktionary only mentions by code."""
+    import csv
+
+    out: dict[str, str] = {}
+    with path.open(encoding="utf-8", newline="") as fh:
+        for r in csv.DictReader(fh, delimiter="\t"):
+            out[r["Id"]] = r["Ref_Name"]
+            if r["Part1"]:
+                out[r["Part1"]] = r["Ref_Name"]
+    return out
 
 
 _LANG_CODE = re.compile(r'"lang_code": ?"([^"]+)"')
@@ -141,6 +189,8 @@ class Term:
     roman: str | None = None
     is_entry: bool = False
     glosses: list[str] = field(default_factory=list)
+    borrowed_text: bool = False  # the entry's own etymology sentence says "Borrowed"
+    inherited_text: bool = False  # ... or says "Inherited" (an entry with both is ambiguous)
 
 
 @dataclass
@@ -169,12 +219,12 @@ def language_codes(arg: str) -> list[str]:
     return out
 
 
-_HTML = re.compile(r"</?[a-zA-Z][^>]*>")
 _MODIFIER = re.compile(r"<(\w+):([^>]*)>")
 
 
 def strip_html(text: str) -> str:
-    return re.sub(r"\s+", " ", _HTML.sub("", text)).strip()
+    """A gloss as plain text: HTML, wiki links, templates and entities removed."""
+    return plain_text(text)
 
 
 def parse_terms(raw: str) -> list[tuple[str, str | None, str | None]]:
@@ -186,9 +236,9 @@ def parse_terms(raw: str) -> list[tuple[str, str | None, str | None]]:
     if not raw or raw == "-" or re.search(r"</?(i|b|span|a)\b", raw):
         return []
     pieces, depth, cur = [], 0, ""
-    for ch in raw:  # split on commas outside <...>
+    for ch in raw:  # split on commas outside <...>; a stray ">" must not break later splits
         depth += ch == "<"
-        depth -= ch == ">"
+        depth = max(0, depth - (ch == ">"))
         if ch == "," and depth == 0:
             pieces.append(cur)
             cur = ""
@@ -198,8 +248,9 @@ def parse_terms(raw: str) -> list[tuple[str, str | None, str | None]]:
     out = []
     for piece in pieces:
         mods = dict(_MODIFIER.findall(piece))
-        term = re.sub(r"<[^>]*>", "", piece).strip()
-        if term and term != "-":
+        term = clean_form(re.sub(r"<[^>]*>", "", piece))
+        term = re.sub(r"[\s<>]+$", "", term)  # residue of an unbalanced tag, e.g. "adārum>>"
+        if term and term != "-" and ">>" not in term and not is_placeholder_form(term):
             out.append((term, mods.get("t") or mods.get("gloss"), mods.get("tr") or mods.get("ts")))
     return out
 
@@ -246,12 +297,14 @@ def template_edges(entry: dict, child_key: str, code: str) -> Iterator[tuple[Edg
                         ),
                         Term(src, term, t_gloss, tr),
                     )
-        elif name == "etymon" and args.get("1") == code:
+        elif name in ("etymon", "ety") and args.get("1") == code:
+            # {{ety}} is the etymology-tree form of {{etymon}}: the same markers and terms
             relation = "etymon"
             for k in sorted((k for k in args if k.isdigit() and k != "1"), key=int):
                 arg = args[k].strip()
                 if arg.startswith(":"):
-                    relation = ETYMON_MARKERS.get(arg[1:].strip())
+                    # markers may carry modifiers: ":af<surf>", ":bor<unc>", ":der<conj:and>"
+                    relation = ETYMON_MARKERS.get(re.sub(r"<.*$", "", arg[1:]).strip())
                     continue
                 if not relation:  # a marker we do not map (e.g. :doublet): skip its terms
                     continue
@@ -362,7 +415,7 @@ STAGING = """
 CREATE TEMP TABLE wkt_term (
     seq bigint, key text, lid text, language_id text, form text, normalized_form text,
     search_key text, roman text, gloss text, form_kind text, reconstructed boolean,
-    is_entry boolean) ON COMMIT DROP;
+    is_entry boolean, borrowed_text boolean) ON COMMIT DROP;
 CREATE TEMP TABLE wkt_edge (
     seq bigint, rid text, child_lid text, parent_lid text, type_id text, directed boolean,
     record text, label text, rank integer, word text, template text) ON COMMIT DROP;
@@ -380,6 +433,7 @@ TERM_COLS = (
     "form_kind",
     "reconstructed",
     "is_entry",
+    "borrowed_text",
 )
 EDGE_COLS = (
     "seq",
@@ -405,6 +459,7 @@ def import_wiktionary(
     reference_codes: Iterable[str] = (),
     etymology_only_codes: Iterable[str] = (),
     all_languages: bool = False,
+    fallback_names: dict[str, str] | None = None,
 ) -> dict:
     """code_map: Wiktionary code -> configured language id (the entry languages).
 
@@ -444,8 +499,9 @@ def import_wiktionary(
 
         def stage_term(key: str, t: Term, gloss: str | None) -> None:
             nonlocal seq
-            form = t.form.strip()
-            if t.code.endswith("-pro") and not form.startswith("*"):
+            form = clean_form(t.form)
+            proto = is_proto_code(t.code, names)
+            if proto and not form.startswith("*"):
                 form = "*" + form  # reconstruction pages are titled without the asterisk
             lang = language_of(t.code)
             codes.add(t.code)
@@ -462,8 +518,9 @@ def import_wiktionary(
                     t.roman,
                     gloss,
                     form_kind(form, False).value,
-                    form.startswith("*") or t.code.endswith("-pro"),
+                    form.startswith("*") or proto,
                     t.is_entry,
+                    t.borrowed_text and not t.inherited_text,
                 )
             )
 
@@ -505,8 +562,12 @@ def import_wiktionary(
 
         for path in files:
             for e in iter_jsonl(path, wanted, names):
-                code, word = e.get("lang_code"), e.get("word")
+                code, raw_word = e.get("lang_code"), e.get("word")
+                word = clean_form(raw_word) if raw_word else ""
                 if not word or not code or (wanted is not None and code not in wanted):
+                    continue
+                if is_placeholder_form(word):
+                    bump("skipped_placeholder_form")
                     continue
                 if not _CODE.fullmatch(code):
                     continue
@@ -524,12 +585,17 @@ def import_wiktionary(
                     continue
                 key = term_key(code, word)
                 # citations name the page: reconstructions live at "Reconstruction:<lang>/<word>"
-                page = e.get("original_title") or word
+                page = e.get("original_title") or raw_word
                 if page != word:
                     e = {**e, "word": page}
                 if key != pending_key:
                     stage_pending()
                     pending, pending_key = Term(code, word, is_entry=True), key
+                text = e.get("etymology_text") or ""
+                pending.borrowed_text = pending.borrowed_text or bool(_BORROWED_TEXT.search(text))
+                pending.inherited_text = pending.inherited_text or bool(
+                    _INHERITED_TEXT.search(text)
+                )
                 pending.glosses.extend(entry_glosses(e))
                 pending.roman = pending.roman or romanization(e)
                 for edge, other in (
@@ -572,7 +638,7 @@ def import_wiktionary(
         cur.execute("DELETE FROM lexeme WHERE dataset = %s", (DATASET,))
 
         for code in sorted(codes - set(code_map)):
-            name = names.get(code, code)
+            name = names.get(code) or (fallback_names or {}).get(code) or code
             cur.execute(
                 "INSERT INTO language (id, name, role, is_proto, is_enabled, metadata_json)"
                 " VALUES (%s, %s, 'other', %s, false, %s) ON CONFLICT (id) DO UPDATE SET"
@@ -580,7 +646,7 @@ def import_wiktionary(
                 (
                     language_of(code),
                     name,
-                    code.endswith("-pro") or name.startswith("Proto-"),
+                    is_proto_code(code, names),
                     psycopg.types.json.Jsonb({"wiktionary": code}),
                 ),
             )
@@ -633,10 +699,75 @@ def import_wiktionary(
                AND NOT EXISTS (SELECT 1 FROM lexeme l WHERE l.language_id = g.id)"""
         )
 
+        # An unmarked {{desc}} line on the parent's page only defaults to "inherited". Where the
+        # descendant's own entry says more, that wins; where two statements contradict, no link
+        # is better than a wrong one. Pairs are aggregated first so no step is a nested loop.
+        cur.execute(
+            """
+            CREATE TEMP TABLE wkt_pair ON COMMIT DROP AS
+            SELECT child_lid, parent_lid,
+                bool_or(type_id IN ('borrowed_from', 'etymon', 'calque_or_loan_translation'))
+                    AS other_type,
+                bool_or(template <> 'desc' AND type_id = 'inherited_form') AS own_inherited
+            FROM wkt_edge
+            WHERE type_id IN ('inherited_form', 'borrowed_from', 'etymon',
+                              'calque_or_loan_translation')
+            GROUP BY child_lid, parent_lid
+            """
+        )
+        cur.execute(
+            """
+            CREATE TEMP TABLE wkt_drop ON COMMIT DROP AS
+            -- the default "inherited" yields to any other statement about the same pair
+            SELECT e.seq, 'default_inherited' AS why
+            FROM wkt_edge e JOIN wkt_pair p USING (child_lid, parent_lid)
+            WHERE e.template = 'desc' AND e.type_id = 'inherited_form' AND p.other_type
+            UNION
+            -- the parent's marked-borrowed line yields to the child's own "inherited" template
+            SELECT e.seq, 'marked_vs_own_inherited'
+            FROM wkt_edge e JOIN wkt_pair p USING (child_lid, parent_lid)
+            WHERE e.template = 'desc'
+              AND e.type_id IN ('borrowed_from', 'calque_or_loan_translation')
+              AND p.own_inherited
+            UNION
+            -- mutual "inherited" pairs: each page lists the other as its descendant
+            SELECT a.seq, 'mutual'
+            FROM wkt_edge a JOIN wkt_edge b
+              ON a.child_lid = b.parent_lid AND a.parent_lid = b.child_lid
+            WHERE a.type_id = 'inherited_form' AND b.type_id = 'inherited_form'
+              AND a.template = 'desc'
+            """
+        )
+        cur.execute(
+            """
+            CREATE TEMP TABLE wkt_retype ON COMMIT DROP AS
+            SELECT DISTINCT e.seq
+            FROM wkt_edge e
+            JOIN wkt_term t ON t.lid = e.child_lid AND t.is_entry AND t.borrowed_text
+            LEFT JOIN wkt_drop d ON d.seq = e.seq
+            WHERE e.template = 'desc' AND e.type_id = 'inherited_form' AND d.seq IS NULL
+            """
+        )
+        cur.execute("SELECT why, count(*) FROM wkt_drop GROUP BY why")
+        for why, n in cur.fetchall():
+            stats[f"links_dropped:{why}"] = n
+        cur.execute("SELECT count(*) FROM wkt_retype")
+        stats["links_retyped_borrowed_by_etymology_text"] = cur.fetchone()[0]
         cur.execute(
             """
             CREATE TEMP TABLE wkt_rel ON COMMIT DROP AS
-            SELECT DISTINCT ON (rid) * FROM wkt_edge ORDER BY rid, seq
+            SELECT DISTINCT ON (e.rid) e.seq, e.rid, e.child_lid, e.parent_lid,
+                CASE WHEN r.seq IS NOT NULL THEN 'borrowed_from' ELSE e.type_id END AS type_id,
+                e.directed, e.record,
+                CASE WHEN r.seq IS NOT NULL THEN '{{desc}} + entry etymology text'
+                     ELSE e.label END AS label,
+                e.rank, e.word,
+                CASE WHEN r.seq IS NOT NULL THEN 'etymtext' ELSE e.template END AS template
+            FROM wkt_edge e
+            LEFT JOIN wkt_drop d ON d.seq = e.seq
+            LEFT JOIN wkt_retype r ON r.seq = e.seq
+            WHERE d.seq IS NULL
+            ORDER BY e.rid, (e.template = 'desc'), e.seq
             """
         )
         cur.execute(
@@ -654,9 +785,17 @@ def import_wiktionary(
         cur.execute(
             """
             INSERT INTO evidence (relationship_id, source_id, citation, locator)
-            SELECT rid, %(src)s, 'Wiktionary, “' || word || '”, '
-                || CASE WHEN template = 'desc' THEN 'descendants' ELSE 'etymology' END
-                || ' ({{' || template || '}})',
+            SELECT rid, %(src)s, 'Wiktionary, “' || word || '”, ' || CASE
+                    WHEN template = 'desc' THEN 'descendants'
+                    WHEN template = 'etymtext' THEN 'etymology text (borrowing)'
+                    ELSE 'etymology (' || CASE type_id
+                        WHEN 'inherited_form' THEN 'inherited'
+                        WHEN 'borrowed_from' THEN 'borrowed'
+                        WHEN 'calque_or_loan_translation' THEN 'calque'
+                        WHEN 'cognate' THEN 'cognate'
+                        WHEN 'has_component' THEN 'word formation'
+                        ELSE 'derived' END || ')'
+                    END,
                 'https://en.wiktionary.org/wiki/' || replace(word, ' ', '_')
             FROM wkt_rel
             """,
@@ -666,7 +805,7 @@ def import_wiktionary(
         for type_id, n in cur.fetchall():
             stats[type_id] = n
         stats.update(lexemes=total, relationships=sum(stats.get(t, 0) for t in TYPE_IDS))
-        cur.execute("DROP TABLE wkt_rel, wkt_edge, wkt_term")
+        cur.execute("DROP TABLE wkt_rel, wkt_retype, wkt_drop, wkt_pair, wkt_edge, wkt_term")
         cur.execute(
             "UPDATE import_batch SET stats = %s, finished_at = now() WHERE id = %s",
             (psycopg.types.json.Jsonb(stats), batch),
