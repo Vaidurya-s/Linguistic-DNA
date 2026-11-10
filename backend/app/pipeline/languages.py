@@ -12,6 +12,10 @@ Wikidata items (``wd-``), CLDF glottocodes (``gl-``). After the imports:
    that glottocode, or to ``gl-<glottocode>``; the old row survives as a *variety*, so dialect
    and source detail is kept. A glottocode that several configured languages share (Sanskrit
    and the CDIAL headword layer) is ambiguous and never merged.
+   A code that Glottolog files as a dialect but gives its own ISO 639-3 code (Jerriais,
+   Anglo-Norman, Middle Irish) is a language in its own right: it keeps its ``wkt-`` record.
+   Afterwards ``merge_duplicate_lexemes`` joins the Wiktionary words that two codes of one
+   language (``cmn`` and ``zh``) created twice.
 3. ``refresh_language_stats`` computes word counts once, and ``enable_searchable`` makes a
    language searchable when it has enough attested words.
 """
@@ -33,15 +37,34 @@ from app.importers.jambu import load_languages
 SOURCE_PREFIXES = ("jb-", "wkt-", "wd-", "gl-")
 # A historical stage (Old Hindi, Middle Bengali) often carries its modern language's
 # glottocode; it may only merge into a language that is itself historical (Glottolog's
-# "Old Marathi"), never into the modern language.
+# "Old Marathi") and at the same stage, never into the modern language or another stage.
 _HISTORICAL = re.compile(
-    r"^(old|middle|early|late|classical|ancient|archaic|epic|vedic|medieval|proto)\b|prakrit|apabhra",
+    r"^(?P<stage>old|middle|early|late|classical|ancient|archaic|epic|vedic|medieval|proto)\b"
+    r"|(?P<kind>prakrit|apabhra)",
     re.IGNORECASE,
 )
+# Glottolog's "Early Irish" is Old Irish (sga): the two words name one stage.
+_SAME_STAGE = {"early": "old"}
 
 
 def is_historical(name: str) -> bool:
     return bool(_HISTORICAL.search(name or ""))
+
+
+def stage_of(name: str) -> str | None:
+    """The stage word of a historical name ("old", "middle", "prakrit"), else None."""
+    m = _HISTORICAL.search(name or "")
+    if not m:
+        return None
+    word = (m.group("stage") or m.group("kind")).lower()
+    return _SAME_STAGE.get(word, word)
+
+
+def may_merge(name: str, target_name: str) -> bool:
+    """A historical name merges only into the same name or a target at the same stage."""
+    if not is_historical(name) or name == target_name:
+        return True
+    return is_historical(target_name) and stage_of(name) == stage_of(target_name)
 
 
 # Macrolanguage codes that Wiktionary uses for one main member language.
@@ -66,7 +89,21 @@ MACROLANGUAGE_MEMBER = {
     "kok": "gom",  # Konkani -> Goan Konkani
     "raj": "mwr",
     "kom": "kpv",  # Komi -> Komi-Zyrian
+    "yid": "ydd",  # Yiddish -> Eastern Yiddish
+    "srd": "src",  # Sardinian -> Logudorese Sardinian
+    "mlg": "plt",  # Malagasy -> Plateau Malagasy
+    "zha": "zhn",  # Zhuang -> Nong Zhuang
+    "gon": "gno",  # Gondi -> Northern Gondi
+    "nan-hbl": "nan",  # Hokkien (Wiktionary's variety code) -> Min Nan Chinese
 }
+
+# Glottolog files these as dialects of a wider language, but they are distinct languages or
+# historical stages with their own ISO 639-3 code, and the project never merges those into the
+# modern language: Jerriais (nrf), Anglo-Norman (xno), Middle Irish (mga), Hiberno-Scottish
+# Gaelic (ghc), Frankish (frk), South Ndebele (nbl), Ottoman Turkish (ota). Their Wiktionary
+# rows keep their own wkt-<code> records. (A rule for every dialect-level ISO code would also
+# split Serbian, Croatian, Bosnian, Twi and Fante from the languages people search by.)
+KEEP_SEPARATE = {"nrf", "xno", "mga", "ghc", "frk", "nbl", "ota"}
 
 
 def iso_tables(tab: Path) -> tuple[dict[str, str], set[str]]:
@@ -186,6 +223,8 @@ def resolve_glottocode(
         iso = part1.get(value, value)
         iso = MACROLANGUAGE_MEMBER.get(iso, iso)
         if iso in glottolog.by_iso:
+            if iso in KEEP_SEPARATE:
+                return None  # its own language or stage: the row keeps its wkt- record
             return glottolog.language_of(glottolog.by_iso[iso])
     return None
 
@@ -197,11 +236,7 @@ def split_historical_stages(conn: psycopg.Connection) -> int:
             """SELECT v.id, v.name, g.name FROM variety v JOIN language g ON g.id = v.language_id
                WHERE v.region_description LIKE 'as named by its source%%'"""
         )
-        wrong = [
-            (vid, name)
-            for vid, name, target in cur.fetchall()
-            if is_historical(name) and not is_historical(target)
-        ]
+        wrong = [(vid, name) for vid, name, target in cur.fetchall() if not may_merge(name, target)]
         for vid, name in wrong:
             cur.execute(
                 "INSERT INTO language (id, name, role, is_proto, is_enabled, metadata_json)"
@@ -241,7 +276,7 @@ def canonicalize_languages(
             if not target or target == lid:
                 stats["unresolved"] += 1
                 continue
-            if is_historical(name) and not is_historical(names.get(target, "")):
+            if not may_merge(name, names.get(target, "")):
                 stats["kept_historical"] += 1
                 continue
             variety = f"{lid}"
@@ -270,7 +305,90 @@ def canonicalize_languages(
             )
             cur.execute("DELETE FROM language WHERE id = %s", (lid,))
             stats["merged_languages"] += 1
+    stats["merged_duplicate_lexemes"] = merge_duplicate_lexemes(conn)
     return stats
+
+
+def merge_duplicate_lexemes(conn: psycopg.Connection, dataset: str = "wiktionary") -> int:
+    """Join exact duplicates (same dataset, language, form and gloss) that merging two codes of
+    one language created. The lowest id survives: relationships, concept links and translation
+    links move to it; links that become self-loops or repeat an existing (source, target, type,
+    dataset) are dropped with their evidence. Returns the number of lexemes removed."""
+    with conn.cursor() as cur:
+        cur.execute("DROP TABLE IF EXISTS _dup_map")
+        cur.execute("DROP TABLE IF EXISTS _rel_moved")
+        cur.execute(
+            """CREATE TEMP TABLE _dup_map AS
+               SELECT id AS dup_id, keep_id FROM (
+                   SELECT id, min(id) OVER (
+                       PARTITION BY language_id, form, coalesce(gloss, '')) AS keep_id
+                   FROM lexeme WHERE dataset = %s) t
+               WHERE id <> keep_id""",
+            (dataset,),
+        )
+        cur.execute("CREATE UNIQUE INDEX ON _dup_map (dup_id)")
+        cur.execute("SELECT count(*) FROM _dup_map")
+        merged = cur.fetchone()[0]
+        if merged:
+            cur.execute(
+                """CREATE TEMP TABLE _rel_moved AS
+                   SELECT r.id, coalesce(ms.keep_id, r.source_lexeme_id) AS s,
+                          coalesce(mt.keep_id, r.target_lexeme_id) AS t, r.type_id, r.dataset
+                   FROM relationship r
+                   LEFT JOIN _dup_map ms ON ms.dup_id = r.source_lexeme_id
+                   LEFT JOIN _dup_map mt ON mt.dup_id = r.target_lexeme_id
+                   WHERE ms.dup_id IS NOT NULL OR mt.dup_id IS NOT NULL"""
+            )
+            # evidence goes with its relationship (ON DELETE CASCADE)
+            cur.execute(
+                "DELETE FROM relationship WHERE id IN (SELECT id FROM _rel_moved WHERE s = t)"
+            )
+            cur.execute("DELETE FROM _rel_moved WHERE s = t")
+            cur.execute(
+                """DELETE FROM relationship WHERE id IN (
+                       SELECT id FROM (
+                           SELECT m.id,
+                                  row_number() OVER (
+                                      PARTITION BY m.s, m.t, m.type_id, m.dataset ORDER BY m.id
+                                  ) AS rn,
+                                  EXISTS (
+                                      SELECT 1 FROM relationship o
+                                      WHERE o.source_lexeme_id = m.s AND o.target_lexeme_id = m.t
+                                        AND o.type_id = m.type_id AND o.dataset = m.dataset
+                                        AND o.id NOT IN (SELECT id FROM _rel_moved)
+                                  ) AS has_other
+                           FROM _rel_moved m) y
+                       WHERE rn > 1 OR has_other)"""
+            )
+            cur.execute(
+                """UPDATE relationship r SET source_lexeme_id = m.s, target_lexeme_id = m.t
+                   FROM _rel_moved m WHERE r.id = m.id"""
+            )
+            cur.execute(
+                """INSERT INTO lexeme_concept (lexeme_id, concept_id, sense_note, source_id)
+                   SELECT d.keep_id, lc.concept_id, lc.sense_note, lc.source_id
+                   FROM lexeme_concept lc JOIN _dup_map d ON d.dup_id = lc.lexeme_id
+                   ON CONFLICT DO NOTHING"""
+            )
+            cur.execute(
+                """INSERT INTO translation_link (source_lexeme_id, target_lexeme_id, dataset,
+                                                 evidence_count, source_record_id)
+                   SELECT coalesce(ds.keep_id, tl.source_lexeme_id),
+                          coalesce(dt.keep_id, tl.target_lexeme_id), tl.dataset,
+                          tl.evidence_count, tl.source_record_id
+                   FROM translation_link tl
+                   LEFT JOIN _dup_map ds ON ds.dup_id = tl.source_lexeme_id
+                   LEFT JOIN _dup_map dt ON dt.dup_id = tl.target_lexeme_id
+                   WHERE (ds.dup_id IS NOT NULL OR dt.dup_id IS NOT NULL)
+                     AND coalesce(ds.keep_id, tl.source_lexeme_id)
+                         <> coalesce(dt.keep_id, tl.target_lexeme_id)
+                   ON CONFLICT DO NOTHING"""
+            )
+            # remaining links, concept rows and translation links of the duplicates cascade
+            cur.execute("DELETE FROM lexeme WHERE id IN (SELECT dup_id FROM _dup_map)")
+        cur.execute("DROP TABLE IF EXISTS _rel_moved")
+        cur.execute("DROP TABLE _dup_map")
+    return merged
 
 
 def refresh_language_stats(conn: psycopg.Connection) -> int:
