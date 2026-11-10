@@ -72,6 +72,8 @@ make research-db         # import-open, import-research, Glottolog, refresh-lang
 make FULL=1 research-db  # the same with Wiktionary and Wikidata in every language (or `make full-db`, which also downloads)
 ```
 
+To rebuild into a second database, so that a hosted site never serves a half-built one, see § 5.
+
 One importer at a time, for example after adding a dataset (each `import-*` target is listed in the Makefile; those for research-use word lists skip themselves while their download is missing):
 
 ```bash
@@ -84,10 +86,10 @@ make import-sindhi refresh-languages
 | `import-open` | Every approved dataset, in dependency order: `refresh-languages`, Concepticon, LSI, ASJP, Wikidata Lexemes, transliteration aliases (Dakshina and approved Aksharantar components), Wiktionary, the expert cognate sets (IE-CoR, DravLex, DunniLex, NorthEuraLex, Hale), the Digital Corpus of Sanskrit lexicon, the Open Multilingual Wordnet, the Mongolian Wordnet, WALS and PHOIBLE, then Glottolog classification. Each step first loads the audit and source manifest and registers the configured languages. |
 | `import-jambu` | The restricted development import (§3). Prunes unused auto-created sources afterwards. |
 | `import-research` | The research-use imports: Jambu, Peiros, DPD, Monier-Williams, the research-use and open Lexibank wordlists, StarLing, High Valyrian, Kurdish, Calfa and Sindhi. |
-| `refresh-languages` | Gives every Glottolog language one record, merges the `wkt-`/`jb-`/`wd-`/`gl-` records the sources created into it, refreshes per-language statistics and makes a language searchable from 200 words. Run it after any import that adds languages. |
+| `refresh-languages` | Gives every Glottolog language one record, merges the `wkt-`/`jb-`/`wd-`/`gl-` records the sources created into it, refreshes per-language statistics and makes a language searchable from 200 words. Exact duplicate Wiktionary words that merging two codes of one language created are joined. Run it after any import that adds languages. |
 | `research-db` | `import-open`, `import-research`, Glottolog, `refresh-languages`, `rekey-search` and `validate --research`. |
 | `db-size` | The database size and the words and links per dataset. |
-| `validate` | Data-quality and provenance checks, plus "every row traces to an audit record". Writes `reports/validation.json`. |
+| `validate` | 32 data-quality and provenance checks (16 errors, 8 informational, 4 release and 4 research-use), plus "every row traces to an audit record". Writes `reports/validation.json`. |
 | `validate-public` | Same, but rows from BLOCKED datasets also fail. This is the gate for any deployment. |
 | `coverage` | Per-language table in `reports/coverage.md`. |
 | `benchmark` | Runs `data/benchmark/relationships.csv`; results stay provisional until a person reviews the cases. |
@@ -111,8 +113,16 @@ make import-sindhi refresh-languages
 - One record per language and headword. Up to three English glosses, merged across parts of speech on the same page. Inflected-form entries are skipped outside the configured languages.
 - Etymology templates become typed links: `inh` → `inherited_form`, `bor`/`lbor`/… → `borrowed_from`, `der` → `etymon`, `cal`/`sl` → `calque_or_loan_translation`, `af`/`compound`/… → `has_component`, and `cog` → an undirected `cognate`. `{{etymon}}` follows its `:inh` / `:bor` / `:af` … markers.
 - An entry's Descendants list adds the other direction. Each descendant is `inherited_form` from the entry unless Wiktionary marks it borrowed or calqued. A nested descendant descends from the item above it.
+- An unmarked `{{desc}}` line only defaults to "inherited"; it is never proof. Other statements win over it:
+  - the descendant's own `bor`, `der` or calque template replaces the default link;
+  - the parent's marked-borrowed line yields to the descendant's own `{{inh}}`;
+  - mutual "inherited" pairs, where each page lists the other as a descendant, are dropped;
+  - when the descendant's entry has no template but its etymology sentence starts "Borrowed", "Learned borrowing" or "Semi-learned borrowing" (and does not also say "Inherited"), the link is `borrowed_from`, with the label "{{desc}} + entry etymology text" and the citation "etymology text (borrowing)".
+- Proto-languages follow the language name ("Proto-X"). The `-pro` code ending is only a fallback when the name is unknown (`oc-pro` is Provençal).
+- Languages Wiktionary mentions only by code are named from the ISO 639-3 table (`--iso`; the Makefile passes it).
 - Terms a template names but that have no entry are created from the template, in their own language.
-- Every link cites the Wiktionary page and template.
+- Every link cites the Wiktionary page and, in words, where on it ("etymology (inherited)", "descendants" …). The raw `{{template}}` stays only in `relationship.original_label`.
+- Forms are cleaned (see "Shared cleaning" below); punctuation-only forms are skipped.
 - Scope:
   - by default, the configured languages, their ancestors and the steppe corridor, plus large languages (English, German, Persian, Finnish …) where an entry has an etymology;
   - with `FULL=1` (`make full-db`), every language in the dump: 6.0 million words in 6,253 language records.
@@ -157,6 +167,10 @@ make import-sindhi refresh-languages
 - **Sindhi Open Lexicon** (`make import-sindhi`; research use): only entries whose headword is Sindhi, one word per headword. Other-language headword dictionaries in the same CSV are skipped.
 - All four write through `app/importers/headwords.py` (or `monwn.py`), replace their own dataset on re-import, and are skipped by `research-db` while their download is missing. The language is found by ISO 639-3 code in the Glottolog-based language records, so run `make refresh-languages` first.
 
+**Shared cleaning.** Every importer cleans the text it stores with `clean_form` (forms), `plain_text` (glosses and definitions) and `is_placeholder_form` from `backend/app/services/normalize.py`. They remove HTML tags, entities, wiki links and templates, zero-width and control characters, edge whitespace and stray line breaks such as `\n>>`, while keeping infix and affix notation. A form with nothing letter-like left (a lone dash or question mark) is a placeholder and is skipped, and counted as `skipped_placeholder_form` in the import statistics. `normalize_form`, which feeds the IDs, is not changed, so IDs stay stable. A new importer uses these helpers.
+
+**Monier-Williams (Cologne Digital Sanskrit Lexicon).** A record whose whole body is a `{{Lbody=N}}` pointer takes the gloss of the record it points to.
+
 **Concepts.** Jambu's concept IDs are Concepticon IDs (all 3,321 match ID and gloss), so all datasets share one concept space.
 
 **Transliteration search (Phase 2).** A query in any of the nine supported scripts is romanised by our own rule-based converter (`backend/app/services/transliterate.py`), following ISO 15919. It tries the readings the script leaves open: whether inherent vowels are pronounced, and whether anusvara is a nasal consonant or a nasalised vowel. The resulting loose keys are matched only within languages that use that script. A romanised query such as "paani" is looked up in the transliteration aliases (Dakshina, plus the approved Aksharantar components) to get native spellings, which then take the same path. Every such match has `match_type = transliteration` and a `via` explanation. Records stored only in a native script (most Wikidata lemmas) are keyed by their romanisation, using per-language vowel rules (Sanskrit keeps inherent vowels, Hindi drops some), so romanised queries reach them. After changing these rules, run `python -m app.cli rekey-search`.
@@ -167,6 +181,7 @@ make import-sindhi refresh-languages
 
 - **Scope.** It takes every form in a language listed in `data/config/languages.csv`, then follows `edges.csv` from child to parent to pull in their etyma, proto-forms, donors and components. It keeps edges and comparisons whose two ends are both in scope.
 - **Headers.** It checks the real CSV headers, not `Wordlist-metadata.json`. A missing column fails the import.
+- **Placeholder forms.** A form whose `Form` is blank or only a placeholder (a proto node without a recorded form) is skipped, with the links that touch it.
 - **Normalisation.** The raw `Form` is kept unchanged. `normalized_form` is NFC with control characters removed and whitespace collapsed. Diacritics, case and punctuation are not touched.
 - **Reconstruction.**
   - A `*` prefix, or a `Proto-…` language, gives `reconstructed`.
@@ -174,8 +189,8 @@ make import-sindhi refresh-languages
   - Other forms of configured languages give `attested`.
   - Anything else is `unknown`.
 - **Native script.** `Native` is used when present. Otherwise a `Form` written in a native script is used. Both are marked `native_form_origin = source`. Nothing is transliterated yet.
-- **Relationships.** An edge is read as *source --type--> target*, where the source is the child (descendant, borrower, derivative, compound or variant). Jambu's own kind is kept in `original_label`.
-- **Evidence.** Each `key[locator]` citation becomes an evidence row. When an edge has no citation of its own, the child form's citations are used and the evidence note says so.
+- **Relationships.** An edge is read as *source --type--> target*, where the source is the child (descendant, borrower, derivative, compound or variant). Jambu's own kind is kept in `original_label`. A `reflex` edge from a PIE or Proto-Indo-Iranian form to an Indo-Aryan CDIAL headword only groups headwords under a proto-form and does not claim inheritance, so it is stored as an `etymon` link from the headword to the proto-form (the label is kept).
+- **Evidence.** Each `key[locator]` citation becomes an evidence row whose citation is the reference's plain text (at most 200 characters), not the bare key. When an edge has no citation of its own, the child form's citations are used and the evidence note says so.
 - **Sources.** Citation keys map to manifest sources through `jambu_source_map.csv`. Unmapped keys become `jambu-ref:<key>` sources with `reuse_status = unknown` and `parent_source_id = jambu`.
 - **Never imported:**
   - `forms.Etymology` and `entry-texts.csv`, which hold verbatim dictionary entries;
@@ -206,3 +221,16 @@ The backend tests import `backend/tests/fixtures/jambu_mini` (29 forms; see its 
 - that validation passes in development mode and blocks in public-seed mode.
 
 To regenerate the fixtures from the raw snapshots, run `make fixture`.
+
+## 5. Rebuilding into a second database
+
+Rebuild into a new database next to the live one, check it, and swap the names, so the hosted site never serves a half-built database.
+
+```bash
+export DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/lsg_build
+make migrate
+make FULL=1 research-db
+make validate-research benchmark db-size
+```
+
+Then stop the API, rename `lsg` to `lsg_old` and `lsg_build` to `lsg`, and start the API again. Keep `lsg_old` until the new one has been checked in the app. Run the tests only against their own `TEST_DATABASE_URL`, never against `lsg` or `lsg_build`.

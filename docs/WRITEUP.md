@@ -37,10 +37,11 @@ flowchart LR
   API --> UI[React + Cytoscape<br/>static site]
 ```
 
-**Back end.** FastAPI, SQLAlchemy and Alembic on PostgreSQL 16 with `pg_trgm`. Every lexeme and relationship records the dataset it came from, and every source links to a row of the licence audit. The validator runs 25 checks, which fall into three groups:
+**Back end.** FastAPI, SQLAlchemy and Alembic on PostgreSQL 16 with `pg_trgm`. Every lexeme and relationship records the dataset it came from, and every source links to a row of the licence audit. The validator runs 32 checks, which fall into four groups:
 - **Data integrity:** dangling references, a documented edge without evidence, a starred form marked as attested, verbatim dictionary markup.
 - **Licensing:** any row from a BLOCKED dataset, in public mode.
 - **Form classification:** a stem or affix classified as a whole word.
+- **Quality notes** (informational, never blocking): mutual or conflicting ancestry between two words, markup left in forms, glosses or citations, and a citation that is only a bare source key.
 
 **Front end.** React, TypeScript, Vite and Tailwind. Graph shaping (merging duplicate records, filters, neighbour capping, relation sentences) lives in a pure, unit-tested module. The canvas only draws.
 
@@ -65,11 +66,11 @@ flowchart LR
 
 ## Testing
 
-- **Backend (pytest against PostgreSQL), 125 tests:**
+- **Backend (pytest against PostgreSQL), 190 tests:**
   - importer behaviour, ID stability across re-imports, and a sentinel proving verbatim dictionary text is never stored;
   - a seed that, built from a mixed database, contains only approved data and passes public-mode validation on a fresh load;
   - a multilingual regression suite with one native-script query for each of the 19 modern languages.
-- **Frontend (Vitest), 16 tests.**
+- **Frontend (Vitest), 42 tests.**
 - **Benchmark:** 22 hand-picked relationship and lookup cases. They pass, but are marked unreviewed until a linguist signs off.
 - **CI:** all of the above on every push.
 
@@ -82,20 +83,20 @@ flowchart LR
 
 ## Numbers
 
-As of 2026-11-03.
+As of 2026-11-10.
 
 | | Open public seed | Research database, South Asia phase | Research database, after the global expansion |
 |---|---:|---:|---:|
-| Words | 521,448 | 1,812,733 | 14,077,202 |
-| Cited relationships, each with evidence | 221,594 | 996,776 | 7,143,645 |
+| Words | 521,448 | 1,812,733 | 14,120,500 |
+| Cited relationships, each with evidence | 221,594 | 996,776 | 7,828,053 |
 | Transliteration spelling pairs | 947,189 | 947,189 | 947,189 |
 | Searchable languages | 25 | 25 | 3,748 |
 | Datasets | 15 (14 sources; Aksharantar counts twice) | 19 (adds Jambu, Monier-Williams, DPD and Peiros) | 153 with words or profiles (adds 130 Lexibank wordlists, 32 wordnets, WALS, PHOIBLE, StarLing, High Valyrian, four word lists for thin languages, and Wiktionary and Wikidata in every language) |
-| Size | about 55 MB compressed, 680 MB loaded | about 2.2 GB | about 14 GB |
+| Size | about 55 MB compressed, 680 MB loaded | about 2.2 GB | about 15 GB |
 
 The global expansion and the steppe corridor are described in [DATASET_LICENCE_AUDIT.md](DATASET_LICENCE_AUDIT.md) § 4b, and the StarLing databases in § 4c. The last column is the output of `make full-db`: Wiktionary and Wikidata in every language, plus the StarLing databases (273,809 words and 235,852 links), which are downloaded and imported on the user's own machine. The earlier snapshot of this table, before `full-db`, had 8,480,391 words and 4,560,323 relationships.
 
-- **Open seed:** passes all 25 public-mode validator checks on a fresh load.
+- **Open seed:** passes all validator checks in public mode on a fresh load.
 - **Research database:** passes `validate --research`, so every research-use record cites a source.
 - **Benchmark:** all 22 cases pass; they are still unreviewed.
 - **Datasets:** the per-dataset table is in [DATASET_LICENCE_AUDIT.md](DATASET_LICENCE_AUDIT.md), section 4a.

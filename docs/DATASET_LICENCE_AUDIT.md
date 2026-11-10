@@ -15,6 +15,8 @@ Audit date: 2026-10-29; sections 4a to 4g were added as sources were imported, t
 
 **What counts as verified.** A licence is "verified" only when it was read from the downloaded artefact itself: a LICENSE file, CLDF `dc:license`, a dataset card, or a README at a pinned commit. Each row names that evidence in `licence_evidence`. A licence quoted only from the research shortlist is marked "claimed", and its row stays BLOCKED.
 
+**The audit CSV has 183 rows:** 2 APPROVED, 142 APPROVED WITH CONDITIONS, 17 RESEARCH USE and 22 BLOCKED.
+
 **CC0 packaging is not enough.** CC0 on a package of third-party text does not clear the text inside it. Rows carrying that caveat stay BLOCKED until their upstream sources are identified.
 
 ## 2. Priority datasets (verified)
@@ -147,10 +149,11 @@ Every source below was downloaded, its licence was read from the artefact itself
 Alongside the existing Wikidata, LSI and ASJP imports, the research database held **1,812,733 words, 996,776 documented relationships and 1,060,069 evidence rows** (about 2.1 GB) at the end of this stage on 2026-10-30. The current figures, after the global expansion, are in the project README.
 
 **How each source is mapped.**
-- Wiktionary etymology templates become typed links: `inh` → inherited, `bor`/`lbor` → borrowed, `der` → "from", calques, `af`/`compound` → component, and `cog` → cognate (undirected). Etymology-only Prakrit and Sanskrit varieties merge into their language, with the variety kept in the label.
+- Wiktionary etymology templates become typed links: `inh` → inherited, `bor`/`lbor` → borrowed, `der` → "from", calques, `af`/`compound` → component, and `cog` → cognate (undirected). An unmarked `{{desc}}` line on a parent's page only defaults to "inherited": the descendant's own template, or its own etymology sentence starting "Borrowed" or "Learned borrowing", replaces it, and mutual "inherited" pairs are dropped. Etymology-only Prakrit and Sanskrit varieties merge into their language, with the variety kept in the label.
 - Cognate tables (IE-CoR, IELex, DravLex, Peiros) give undirected `cognate` links between members of a set. A link is kept only when at least one member is in a configured language.
 - DPD's Sanskrit equivalents are `related_form` links, because DPD does not say whether a word was inherited. Its `derived_from` links become derived, and its compound constructions become components.
-- Monier-Williams compounds marked in `k2` (`agni—hotra`) link to their parts.
+- Monier-Williams compounds marked in `k2` (`agni—hotra`) link to their parts. A record that is only a `{{Lbody=N}}` pointer takes the gloss of the record it points to.
+- Jambu's `reflex` edges from a PIE or Proto-Indo-Iranian form to an Indo-Aryan CDIAL headword only group headwords under a proto-form, so they are stored as `etymon` links from the headword to the proto-form, with Jambu's label kept. Jambu forms with a blank or placeholder form are skipped with their links, and each evidence row cites the reference's plain text, not the bare key.
 
 **Examined but not used.**
 - **DSAL dictionaries (Platts, Tamil Lexicon, Kittel and others):** no bulk download. The terms are CC BY-NC-ND or all rights reserved, and `robots.txt` disallows automated agents. Their entries reach the project only where Jambu cites them.

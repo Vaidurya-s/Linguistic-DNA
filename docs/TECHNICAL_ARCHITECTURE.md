@@ -12,7 +12,7 @@ How Linguistic DNA is built. For why the design is the way it is, see [`WRITEUP.
 | Database | PostgreSQL 16 with `pg_trgm` | Words, links, evidence, sources, the licence audit, indexed search |
 | Schema | SQLAlchemy models and Alembic migrations (0001 to 0006) | Reproducible schema |
 | Import and checks | Python importers and a CLI (`python -m app.cli`) | Reproducible ingestion from pinned inputs, validation, public seed |
-| Tests | pytest against PostgreSQL (125), Vitest (16), a 22-case relationship benchmark | Correctness and regression |
+| Tests | pytest against PostgreSQL (190), Vitest (42), a 22-case relationship benchmark | Correctness and regression |
 | Deployment | Docker API image plus a static site; or everything on one Linux machine | See [`DEPLOYMENT.md`](DEPLOYMENT.md) |
 
 No microservices and no graph database: every query pattern so far is served by indexed PostgreSQL tables.
@@ -30,7 +30,7 @@ flowchart TD
     RAW --> IMP[importers/*<br/>typed links + evidence]
     AUD[dataset_audit.csv] -. gates .-> IMP
     IMP --> DB
-    DB --> VAL[pipeline/validate.py<br/>25 checks]
+    DB --> VAL[pipeline/validate.py<br/>32 checks]
     DB --> SEED[pipeline/public_seed.py<br/>approved rows only]
 ```
 
@@ -43,7 +43,8 @@ backend/app/
   db/                       engine, session, dependencies
   models/                   SQLAlchemy models and the enums (relationship types, statuses)
   schemas/api.py            Pydantic response models
-  services/                 retrieval.py (queries), transliterate.py, normalize.py, ids.py
+  services/                 retrieval.py (queries), transliterate.py, normalize.py (search keys and
+                            the shared cleaning of stored text), ids.py
   importers/                one module per source; common.py (COPY helpers), manifest.py, audit.py,
                             headwords.py (shared writer for plain word lists)
   pipeline/                 validate.py, languages.py (refresh-languages), public_seed.py,
@@ -55,7 +56,8 @@ frontend/src/
   app/                      App, Layout, hash router
   pages/                    HomePage, ExplorePage, MethodologyPage
   components/               GraphCanvas, GraphLegend, DetailsPanel, graphModel.ts (pure graph shaping),
-                            edgeStyles.ts
+                            edgeStyles.ts, graphExport.ts (JSON, SVG and PNG downloads),
+                            sourceLabels.ts (plain-English source labels)
   api/client.ts, types/     typed API client
 data/                       config, manifests (audit, sources, pinned downloads), public_seed, benchmark
 scripts/                    fetch_data.py, fetch_valyrian.py, coverage_chart.py, build_fixture.py
@@ -90,12 +92,14 @@ Indexes: `pg_trgm` GIN indexes on the normalised form and the search key for fuz
 |---|---|---|
 | `inherited_form`, `derived_form`, `borrowed_from`, `calque_or_loan_translation`, `etymon`, `has_component`, `variant_of`, `contact_influence`, `reconstructed_ancestor_of` | lexical | directed |
 | `cognate` | lexical | undirected |
-| `related_form` | lexical | not stated |
+| `related_form` | lexical | directed (DPD) / unstated (Jambu) |
 | `semantic_equivalent` | semantic | undirected |
 | `orthographic_similarity_candidate`, `phonetic_similarity_candidate`, `semantic_relatedness_candidate` | similarity | undirected |
 | `language_classification_parent` | classification | directed |
 
-`etymon` is a link whose source does not say whether the word was inherited or borrowed. Candidate and classification types are never mixed into the word-relationship graph. Each source's own label is stored beside the normalised type.
+Six of the 16 types are reserved and unused: `language_classification_parent`, `orthographic_similarity_candidate`, `phonetic_similarity_candidate`, `semantic_relatedness_candidate`, `reconstructed_ancestor_of` and `semantic_equivalent`.
+
+`etymon` is a link whose source does not say whether the word was inherited or borrowed. Candidate and classification types are never mixed into the word-relationship graph. Each source's own label is stored beside the normalised type. Where a source only groups words (Jambu's CDIAL reflexes under a PIE form) or Wiktionary gives an unmarked `{{desc}}` line, the link is `etymon` or yields to a better statement, never a guessed `inherited_form`.
 
 ## 6. API
 
@@ -126,7 +130,7 @@ Everything is under `/api/v1`; interactive docs are at `/docs`.
 
 ## 8. Front end
 
-Hash routes (`#/`, `#/explore?q=…&lang=…`, `#/methodology`), so the build is a static site. `graphModel.ts` merges duplicate records, applies the type and language filters, caps neighbours ("show all" lifts the cap) and writes the sentence for each edge. `GraphCanvas.tsx` only draws. A table beside the canvas is the accessible fallback and stays in step with the selection. Research-use records show a "Research use, not redistributed" note with the citation; the *Open data only* switch sends `open_only=true`.
+Hash routes (`#/`, `#/explore?q=…&lang=…`, `#/methodology`), so the build is a static site. `graphModel.ts` merges duplicate records, applies the type and language filters, caps neighbours ("show all" lifts the cap) and writes the sentence for each edge. `GraphCanvas.tsx` only draws. Download JSON, SVG and PNG buttons above the graph save the words and links shown (`graphExport.ts`). `sourceLabels.ts` shows plain-English source labels, so a reader sees "Wiktionary descendants list" rather than `{{desc}}`; the stored data is unchanged. A table beside the canvas is the accessible fallback and stays in step with the selection. Research-use records show a "Research use, not redistributed" note with the citation; the *Open data only* switch sends `open_only=true`.
 
 ## 9. Security and operations
 
