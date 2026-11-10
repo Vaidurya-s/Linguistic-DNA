@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getGraph, getLanguages, searchLexemes } from '../api/client.ts'
-import { replaceParams } from '../app/router.ts'
+import { parse, replaceParams } from '../app/router.ts'
 import DetailsPanel from '../components/DetailsPanel.tsx'
 import GraphCanvas, { type Selection } from '../components/GraphCanvas.tsx'
 import {
@@ -11,6 +11,13 @@ import {
   mergeDuplicates,
 } from '../components/graphModel.ts'
 import GraphLegend from '../components/GraphLegend.tsx'
+import {
+  downloadFile,
+  downloadText,
+  fileStem,
+  graphToJson,
+  type GraphExporter,
+} from '../components/graphExport.ts'
 import { styleFor } from '../components/edgeStyles.ts'
 import type { GraphEdge, GraphNode, Language, SearchMatch, SearchResponse } from '../types/api.ts'
 
@@ -107,30 +114,60 @@ export default function ExplorePage({ initialQuery = '', initialLanguage = '' }:
     getLanguages().then(setLanguages).catch(() => setLanguages([]))
   }, [])
 
+  // Every search and every graph load gets a number; a response that is no longer the latest is
+  // dropped, so a slow earlier request cannot overwrite a later one.
+  const searchSeq = useRef(0)
+  const graphSeq = useRef(0)
+  const exporter = useRef<GraphExporter | null>(null) // the canvas's SVG and PNG download functions
+  // The URL query this page last ran, so following the URL does not repeat a search that is
+  // already running or shown.
+  const loadedRef = useRef('')
+
+  // Remove the graph, its selection and its details, and drop any graph load still in flight.
+  const clearGraph = useCallback(() => {
+    graphSeq.current += 1
+    setRootId(null)
+    setNodes(new Map())
+    setEdges(new Map())
+    setExpanded(new Set())
+    setTruncated(false)
+    setSelection(null)
+    setShowAll(new Set())
+    setHiddenTypes(new Set())
+    setHiddenGroups(new Set())
+  }, [])
+
   const runSearch = useCallback(async (q: string, lang: string): Promise<SearchResponse | null> => {
     if (!q.trim()) return null
+    const id = ++searchSeq.current
+    loadedRef.current = `${q.trim()}\n${lang}`
     replaceParams('/explore', { q: q.trim(), lang: lang || undefined }) // shareable URL
+    clearGraph() // the old word's graph and details do not belong to the new query
+    setResults(null) // nor do its matches; the list returns with the new ones
     setBusy('Searching…')
     setError(null)
     try {
       const res = await searchLexemes(q.trim(), lang || undefined, openOnlyRef.current)
+      if (id !== searchSeq.current) return null // a newer search replaced this one
       setResults(res)
       setResultsOpen(true)
-      setSelection(null) // the old word's details no longer match the new results
       return res
     } catch (e) {
+      if (id !== searchSeq.current) return null
       setError(`Search failed: ${(e as Error).message}`)
       return null
     } finally {
-      setBusy(null)
+      if (id === searchSeq.current) setBusy(null)
     }
-  }, [])
+  }, [clearGraph])
 
   const expand = useCallback(async (id: string, reset = false) => {
+    const seq = graphSeq.current
     setBusy('Loading connections…')
     setError(null)
     try {
       const g = await getGraph(id, openOnlyRef.current)
+      if (seq !== graphSeq.current) return // the graph was replaced or cleared meanwhile
       setNodes((prev) => {
         const next = reset ? new Map<string, GraphNode>() : new Map(prev)
         g.nodes.forEach((n) => next.set(n.id, n))
@@ -144,31 +181,60 @@ export default function ExplorePage({ initialQuery = '', initialLanguage = '' }:
       setExpanded((prev) => new Set(reset ? [id] : [...prev, id]))
       setTruncated((t) => (reset ? g.truncated : t || g.truncated))
     } catch (e) {
+      if (seq !== graphSeq.current) return
       setError(`Could not load the graph: ${(e as Error).message}`)
     } finally {
-      setBusy(null)
+      if (seq === graphSeq.current) setBusy(null)
     }
   }, [])
 
   const pick = useCallback((m: SearchMatch) => {
+    clearGraph() // the previous word's graph must not stay if this one fails to load
     setResultsOpen(false)
-    setShowAll(new Set())
     setRootId(m.id)
     setSelection({ kind: 'node', id: m.id })
     void expand(m.id, true)
-  }, [expand])
+  }, [clearGraph, expand])
 
-  // Opening a shared link (#/explore?q=…) runs that search once the page is mounted, and
-  // opens the first match that has documented links so the link lands on a graph.
+  // Make the page show what the URL says: the input and language follow the query, and the
+  // search runs, opening the first match that has documented links so a shared link, a "Try"
+  // link or Back/Forward lands on a graph. A URL without a query empties the page.
+  const followUrl = useCallback(async (q: string, lang: string) => {
+    const key = q.trim() ? `${q.trim()}\n${lang}` : ''
+    if (key === loadedRef.current) return
+    setQuery(q)
+    setLanguageId(lang)
+    if (!key) {
+      loadedRef.current = ''
+      searchSeq.current += 1
+      setResults(null)
+      setError(null)
+      setBusy(null)
+      clearGraph()
+      return
+    }
+    const res = await runSearch(q, lang)
+    const first = res?.matches.find((m) => m.relationship_count > 0)
+    if (first) pick(first)
+  }, [runSearch, pick, clearGraph])
+
+  // Props change when the route changes; the listener also catches a link to the query the
+  // props already hold, because the page rewrites the URL itself when you search.
+  const propsUsed = useRef(false)
   useEffect(() => {
-    if (!initialQuery) return
-    const id = window.setTimeout(async () => {
-      const res = await runSearch(initialQuery, initialLanguage)
-      const first = res?.matches.find((m) => m.relationship_count > 0)
-      if (first) pick(first)
-    }, 0)
+    if (!initialQuery && !propsUsed.current) return // a plain #/explore needs nothing on mount
+    propsUsed.current = true
+    const id = window.setTimeout(() => void followUrl(initialQuery, initialLanguage), 0)
     return () => window.clearTimeout(id)
-  }, [initialQuery, initialLanguage, runSearch, pick])
+  }, [initialQuery, initialLanguage, followUrl])
+  useEffect(() => {
+    const onHash = () => {
+      const route = parse(window.location.hash)
+      if (route.path === '/explore') void followUrl(route.params.get('q') ?? '', route.params.get('lang') ?? '')
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [followUrl])
 
   const merged = useMemo(() => mergeDuplicates(nodes.values(), edges.values(), rootId), [nodes, edges, rootId])
   const presentTypes = useMemo(() => [...new Set(merged.edges.map((e) => e.type))].sort(), [merged])
@@ -284,11 +350,13 @@ export default function ExplorePage({ initialQuery = '', initialLanguage = '' }:
             onChange={(e) => {
               openOnlyRef.current = e.target.checked
               setOpenOnly(e.target.checked)
-              setRootId(null)
-              setNodes(new Map())
-              setEdges(new Map())
-              setSelection(null)
+              clearGraph()
               if (query.trim()) void runSearch(query, languageId)
+              else {
+                searchSeq.current += 1
+                setResults(null) // matches found with the other setting no longer apply
+                setBusy(null)
+              }
             }}
           />
           Open data only
@@ -356,6 +424,44 @@ export default function ExplorePage({ initialQuery = '', initialLanguage = '' }:
         <section aria-label="Graph" className="min-w-0">
           {rootId ? (
             <>
+              <div
+                role="group"
+                aria-label="Download the graph shown"
+                className="mb-2 flex flex-wrap items-center justify-end gap-2 text-xs text-slate-700"
+              >
+                <span className="font-semibold">Download:</span>
+                {[
+                  ['JSON', 'Download the words and links shown as JSON'],
+                  ['SVG', 'Download the graph shown as an SVG drawing'],
+                  ['PNG', 'Download the graph shown as a PNG image'],
+                ].map(([kind, label]) => (
+                  <button
+                    key={kind}
+                    type="button"
+                    aria-label={label}
+                    className="rounded border border-slate-300 px-2 py-1 font-medium hover:bg-slate-50"
+                    onClick={() => {
+                      const stem = fileStem(byId.get(rootId)?.form)
+                      if (kind === 'JSON') {
+                        const meta = {
+                          rootId,
+                          openOnly,
+                          pageUrl: window.location.href,
+                          generatedAt: new Date().toISOString(),
+                        }
+                        downloadText(`${stem}.json`, graphToJson(nodeList, edgeList, meta), 'application/json')
+                      } else if (kind === 'SVG' && exporter.current) {
+                        const title = `Linguistic DNA: ${byId.get(rootId)?.form ?? 'graph'}`
+                        downloadText(`${stem}.svg`, exporter.current.svg(title), 'image/svg+xml')
+                      } else if (kind === 'PNG' && exporter.current) {
+                        downloadFile(`${stem}.png`, exporter.current.png())
+                      }
+                    }}
+                  >
+                    {kind}
+                  </button>
+                ))}
+              </div>
               <fieldset className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-700">
                 <legend className="sr-only">Filter the graph</legend>
                 <span className="font-semibold">Show:</span>
@@ -388,6 +494,7 @@ export default function ExplorePage({ initialQuery = '', initialLanguage = '' }:
                 selection={selection}
                 onSelect={setSelection}
                 onExpand={(id) => void expand(id)}
+                exporter={exporter}
               />
               <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                 <GraphLegend />

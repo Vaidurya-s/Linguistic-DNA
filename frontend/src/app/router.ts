@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 
 export type Route = { path: string; params: URLSearchParams }
 
-function parse(hash: string): Route {
+export function parse(hash: string): Route {
   const raw = hash.replace(/^#/, '') || '/'
   const [path, query = ''] = raw.split('?')
   return { path: path || '/', params: new URLSearchParams(query) }

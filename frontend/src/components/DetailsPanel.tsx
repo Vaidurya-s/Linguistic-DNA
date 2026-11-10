@@ -3,6 +3,7 @@ import { getLexeme, getRelationship } from '../api/client.ts'
 import type { LexemeDetail, RelationshipDetail, Source } from '../types/api.ts'
 import type { Selection } from './GraphCanvas.tsx'
 import { describeEdge } from './graphModel.ts'
+import { plainCitation, plainSourceLabel } from './sourceLabels.ts'
 
 const REUSE_LABEL: Record<string, string> = {
   approved: 'approved for reuse',
@@ -118,7 +119,11 @@ export default function DetailsPanel({ selection, onExpand, expanded }: Props) {
           </Field>
           <Field label="Direction">{rel.direction}</Field>
           {rel.source_confidence && <Field label="Confidence">{rel.source_confidence} (as stated by the source)</Field>}
-          {rel.original_label && <Field label="Source label">{rel.original_label}</Field>}
+          {rel.original_label && (
+            <Field label="Source label">
+              <span title={rel.original_label}>{plainSourceLabel(rel.original_label)}</span>
+            </Field>
+          )}
           {rel.notes && <Field label="Note">{rel.notes}</Field>}
         </dl>
         <h3 className="mt-3 text-sm font-semibold">Evidence</h3>
@@ -129,7 +134,7 @@ export default function DetailsPanel({ selection, onExpand, expanded }: Props) {
                 <SourceLine source={e.source} />
               </div>
               <div className="text-slate-600">
-                {e.citation}
+                <span title={e.citation}>{plainCitation(e.citation)}</span>
                 {e.locator && <> · {e.locator}</>}
               </div>
               {e.note && <div className="mt-1 text-xs text-slate-500">{e.note}</div>}

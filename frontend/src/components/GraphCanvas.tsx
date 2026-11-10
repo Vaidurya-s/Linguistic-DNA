@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 import type { GraphEdge } from '../types/api.ts'
 import type { DisplayNode } from './graphModel.ts'
 import { GROUP_COLORS, OTHER_GROUP_COLOR, styleFor } from './edgeStyles.ts'
+import { buildSvg, type GraphExporter, type SvgEdge, type SvgNode } from './graphExport.ts'
 
 const SMALL_GRAPH = 12
 
@@ -15,6 +16,40 @@ type Props = {
   selection: Selection
   onSelect: (selection: Selection) => void
   onExpand: (nodeId: string) => void
+  /** Filled with the download functions while the canvas is mounted. */
+  exporter?: { current: GraphExporter | null }
+}
+
+/** The drawn graph as plain geometry (in the canvas's own coordinates) for the SVG export. */
+function geometry(instance: Core) {
+  const nodes: SvgNode[] = instance.nodes().map((n) => ({
+    id: n.id(),
+    x: n.position('x'),
+    y: n.position('y'),
+    width: n.outerWidth(),
+    height: n.outerHeight(),
+    lines: String(n.data('label')).split('\n'),
+    fill: String(n.data('color')),
+    dashed: n.data('reconstructed') === 1,
+    root: n.data('root') === 1,
+  }))
+  const edges: SvgEdge[] = instance.edges().map((e) => {
+    const from = e.sourceEndpoint()
+    const to = e.targetEndpoint()
+    const mid = e.midpoint()
+    return {
+      id: e.id(),
+      from: [from.x, from.y],
+      to: [to.x, to.y],
+      mid: [mid.x, mid.y],
+      color: String(e.data('color')),
+      line: e.data('line') as SvgEdge['line'],
+      label: String(e.data('label')),
+      arrow: e.data('arrow') === 'triangle',
+    }
+  })
+  const box = instance.elements().boundingBox({ includeLabels: true, includeOverlays: false })
+  return { nodes, edges, bounds: { x1: box.x1, y1: box.y1, x2: box.x2, y2: box.y2 } }
 }
 
 
@@ -52,7 +87,7 @@ function toElements(nodes: DisplayNode[], edges: GraphEdge[], rootId: string): E
   ]
 }
 
-export default function GraphCanvas({ nodes, edges, rootId, selection, onSelect, onExpand }: Props) {
+export default function GraphCanvas({ nodes, edges, rootId, selection, onSelect, onExpand, exporter }: Props) {
   const container = useRef<HTMLDivElement>(null)
   const cy = useRef<Core | null>(null)
   const handlers = useRef({ onSelect, onExpand })
@@ -112,6 +147,16 @@ export default function GraphCanvas({ nodes, edges, rootId, selection, onSelect,
       if (evt.target === instance) handlers.current.onSelect(null)
     })
     cy.current = instance
+    if (exporter) {
+      exporter.current = {
+        svg: (title) => {
+          const g = geometry(instance)
+          return buildSvg(g.nodes, g.edges, g.bounds, title)
+        },
+        // the whole graph at twice the size on white, not just the part in view
+        png: () => instance.png({ full: true, scale: 2, bg: '#ffffff', output: 'base64uri' }),
+      }
+    }
     const observer = new ResizeObserver(() => {
       instance.resize()
       instance.fit(undefined, 16)
@@ -127,8 +172,11 @@ export default function GraphCanvas({ nodes, edges, rootId, selection, onSelect,
     }
     return () => {
       observer.disconnect()
+      if (exporter) exporter.current = null
       instance.destroy()
     }
+    // the exporter ref object never changes; the canvas is created once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
