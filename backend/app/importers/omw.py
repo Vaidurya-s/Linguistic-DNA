@@ -19,7 +19,14 @@ from app.importers.common import copy_rows, sha256_file
 from app.models.enums import ReconstructionStatus
 from app.pipeline.languages import MACROLANGUAGE_MEMBER, Glottolog, canonical_targets
 from app.services.ids import lexeme_id
-from app.services.normalize import form_kind, lexeme_search_key, normalize_form
+from app.services.normalize import (
+    clean_form,
+    form_kind,
+    is_placeholder_form,
+    lexeme_search_key,
+    normalize_form,
+    plain_text,
+)
 
 DATASET = "omw"
 LEXEME_COLS = (
@@ -64,7 +71,7 @@ def parse_lexicon(xml: bytes) -> dict:
             synset_ili[ss.get("id")] = ss.get("ili")
             d = ss.find("Definition")
             if d is not None and d.text:
-                definitions[ss.get("ili")] = d.text.strip()
+                definitions[ss.get("ili")] = plain_text(d.text)
     entries = []
     for e in lex.iter("LexicalEntry"):
         lemma = e.find("Lemma")
@@ -114,7 +121,7 @@ def import_omw(
     # English first: its definitions and lemmas label the shared concepts
     lexicons.sort(key=lambda x: x[1]["language"] != "en")
 
-    stats: dict[str, int] = {"lexicons": 0, "unmapped_lexicons": 0}
+    stats: dict[str, int] = {"lexicons": 0, "unmapped_lexicons": 0, "skipped_placeholder_form": 0}
     with conn.cursor() as cur:
         cur.execute(
             "INSERT INTO import_batch (dataset, version, input_checksums, transformations,"
@@ -168,7 +175,11 @@ def import_omw(
             )
             if lx["language"] == "en":
                 concept_def.update(lx["definitions"])
-            for entry_id, form, pos, ilis in lx["entries"]:
+            for entry_id, raw_form, pos, ilis in lx["entries"]:
+                form = clean_form(raw_form)
+                if is_placeholder_form(form):
+                    stats["skipped_placeholder_form"] += 1
+                    continue
                 if lx["language"] == "en":
                     for ili in ilis:
                         concept_label.setdefault(ili, form)

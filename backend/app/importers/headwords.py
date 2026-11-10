@@ -6,8 +6,6 @@ word cites its dictionary. A dataset is replaced as a whole on re-import, and ID
 deterministic, so a repeat import keeps them.
 """
 
-import html
-import re
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 
@@ -16,7 +14,14 @@ import psycopg
 from app.importers.common import copy_rows
 from app.models.enums import ReconstructionStatus
 from app.services.ids import lexeme_id
-from app.services.normalize import form_kind, lexeme_search_key, normalize_form
+from app.services.normalize import (
+    clean_form,
+    form_kind,
+    is_placeholder_form,
+    lexeme_search_key,
+    normalize_form,
+    plain_text,
+)
 
 LEXEME_COLS = (
     "id",
@@ -37,9 +42,6 @@ LEXEME_COLS = (
     "import_batch_id",
 )
 GLOSS_MAX = 300
-# An HTML tag starts with a letter right after "<" or "</": a bare "<" in running text
-# ("< Persian", "a < b") is not markup and stays.
-_TAG = re.compile(r"</?[A-Za-z][^<>]*>")
 
 
 @dataclass
@@ -73,7 +75,7 @@ def clip(text: str | None, limit: int = GLOSS_MAX) -> str | None:
     are not copied at length; the full entry stays at its source."""
     if not text:
         return None
-    text = " ".join(html.unescape(_TAG.sub("", text)).split())
+    text = plain_text(text)
     if len(text) <= limit:
         return text or None
     return text[:limit].rsplit(" ", 1)[0].rstrip(",;: ") + "…"
@@ -90,7 +92,12 @@ def write_headwords(
     entries: Iterable[Headword],
     default_citation: str,
 ) -> dict:
-    stats = {"lexemes": 0, "skipped_empty": 0, "skipped_duplicate": 0}
+    stats = {
+        "lexemes": 0,
+        "skipped_empty": 0,
+        "skipped_placeholder_form": 0,
+        "skipped_duplicate": 0,
+    }
     rows, seen = [], set()
     with conn.cursor() as cur:
         cur.execute(
@@ -107,15 +114,18 @@ def write_headwords(
         cur.execute("DELETE FROM relationship WHERE dataset = %s", (dataset,))
         cur.execute("DELETE FROM lexeme WHERE dataset = %s", (dataset,))
         for e in entries:
-            form = (e.form or "").strip()
-            if not form or not any(ch.isalpha() for ch in form):
+            form = clean_form(e.form or "")
+            if not form:
                 stats["skipped_empty"] += 1
+                continue
+            if is_placeholder_form(form):
+                stats["skipped_placeholder_form"] += 1
                 continue
             if e.record_id in seen:
                 stats["skipped_duplicate"] += 1
                 continue
             seen.add(e.record_id)
-            native = (e.native_form or "").strip()
+            native = clean_form(e.native_form or "")
             rows.append(
                 (
                     lexeme_id(dataset, e.record_id),

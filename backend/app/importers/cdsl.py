@@ -18,7 +18,7 @@ import psycopg
 from app.importers.common import copy_rows, sha256_file
 from app.models.enums import Direction, ReconstructionStatus, RelationshipStatus
 from app.services.ids import lexeme_id, relationship_id
-from app.services.normalize import form_kind, lexeme_search_key, normalize_form
+from app.services.normalize import form_kind, lexeme_search_key, normalize_form, plain_text
 
 DATASET = "cdsl-mw"
 LANGUAGE = "san"
@@ -48,9 +48,19 @@ def clean_body(body: str) -> str:
     text = re.sub(r"<ls[^>]*>.*?</ls>", "", text)
     text = re.sub(r"<info[^>]*/>", "", text)
     text = re.sub(r"<[^>]+>", "", text)
+    text = plain_text(text)  # leftover {{...}} and [[...]] markup, entities, spacing
     text = re.sub(r"\s+", " ", text).strip(" ,;")
     text = re.sub(r"\s+([,.;)])", r"\1", text)
     return re.sub(r"[,;]+([);])", r"\1", text)[:200]
+
+
+_BODY_POINTER = re.compile(r"\{\{Lbody=(\d+)\}\}")
+
+
+def pointer_target(body: str) -> str | None:
+    """The L id when a record's whole body is a ``{{Lbody=N}}`` pointer to another record."""
+    m = _BODY_POINTER.fullmatch(body.split("¦", 1)[-1].strip())
+    return m.group(1) if m else None
 
 
 def iter_records(path: Path):
@@ -73,9 +83,12 @@ def iter_records(path: Path):
 def import_cdsl_mw(conn: psycopg.Connection, path: Path, version: str) -> dict:
     heads: dict[str, dict] = {}
     compounds: dict[str, list[str]] = defaultdict(list)
+    bodies: dict[str, str] = {}  # cleaned body by L id, for {{Lbody=N}} pointers
     for lid, page, col, k1, k2, body in iter_records(path):
         rec = heads.setdefault(k1, {"L": lid, "page": page, "col": col, "glosses": []})
-        gloss = clean_body(body)
+        target = pointer_target(body)
+        gloss = bodies.get(target, "") if target else clean_body(body)
+        bodies[lid] = gloss
         if gloss and len(rec["glosses"]) < 3:
             rec["glosses"].append(gloss)
         if "—" in k2 and k1 not in compounds:

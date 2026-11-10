@@ -112,3 +112,48 @@ def test_jambu_headword_locators_name_the_dictionary_entry():
     assert headword_locator("6152") == "CDIAL 6152"
     assert headword_locator("d3690") == "DEDR 3690"
     assert headword_locator("f_4xxedqnm7toyk") == "Jambu record f_4xxedqnm7toyk"
+
+
+def test_regrouped_reflex_rule():
+    from app.importers.jambu import is_regrouped_reflex
+
+    assert is_regrouped_reflex("reflex", "IE", "Indo-Aryan")
+    assert is_regrouped_reflex("reflex", "Indo-ir", "Indo-Aryan")
+    assert not is_regrouped_reflex("reflex", "PNur", "Indo-Aryan")
+    assert not is_regrouped_reflex("reflex", "Indo-Aryan", "Indo-ir")  # real reflex
+    assert not is_regrouped_reflex("reflex", "IE", "Tamil")
+    assert not is_regrouped_reflex("borrowed", "IE", "Indo-Aryan")
+
+
+def test_has_form_rejects_blank_and_placeholder_forms():
+    from app.importers.jambu import has_form
+
+    assert has_form({"Form": "dánta"})
+    assert not has_form({"Form": ""})
+    assert not has_form({"Form": "  "})
+    assert not has_form({"Form": "-"})
+
+
+def test_clip_at_word_cuts_on_a_word_boundary():
+    from app.importers.jambu import clip_at_word
+
+    assert clip_at_word("short text", 200) == "short text"
+    out = clip_at_word("alpha beta gamma delta", 14)
+    assert out == "alpha beta…" and len(out) <= 14
+
+
+def test_citation_text_is_readable_and_falls_back_to_the_key():
+    from pathlib import Path
+
+    from app.importers.jambu import AGGREGATE_CITATION, CITATION_LIMIT, JambuImporter
+
+    importer = JambuImporter(None, Path("."), languages={})
+    importer.references = {
+        "dedr": "Thomas Burrow\nand *Emeneau*. [A Dictionary](https://example.org/x).",
+        "long": "word " * 100,
+    }
+    assert importer._citation_text("dedr") == "Thomas Burrow and Emeneau. A Dictionary"
+    assert importer._citation_text("unknown-key") == "unknown-key"  # no reference text
+    assert importer._citation_text("jambu") == AGGREGATE_CITATION
+    long = importer._citation_text("long")
+    assert len(long) <= CITATION_LIMIT and long.endswith("word…")

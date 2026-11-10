@@ -29,10 +29,19 @@ from app.models.enums import (
     SourceConfidence,
 )
 from app.services.ids import lexeme_id, relationship_id
-from app.services.normalize import form_kind, lexeme_search_key, normalize_form
+from app.services.normalize import (
+    clean_form,
+    form_kind,
+    is_placeholder_form,
+    lexeme_search_key,
+    normalize_form,
+    plain_text,
+)
 
 DATASET = "jambu"
 AGGREGATE_SOURCE = "jambu"
+AGGREGATE_CITATION = "Jambu CLDF database"
+CITATION_LIMIT = 200  # characters of bibliography text kept in evidence.citation
 LANGUAGE_CONFIG = REPO_ROOT / "data" / "config" / "languages.csv"
 SOURCE_MAP = REPO_ROOT / "data" / "manifests" / "jambu_source_map.csv"
 
@@ -65,6 +74,11 @@ EDGE_TYPES = {
     "variant": "variant_of",
     "component": "has_component",
 }
+# Jambu groups some CDIAL headwords under a PIE or Proto-Indo-Iranian form as a "reflex"
+# without saying whether the word was inherited or borrowed.
+REGROUPED_PROTO_LANGUAGES = frozenset({"IE", "Indo-ir"})
+CDIAL_LANGUAGE = "Indo-Aryan"
+GROUPING_NOTE = "grouping:cdial; inheritance versus borrowing unresolved"
 COMPARISON_TYPES = {
     "related": "related_form",
     "loan": "borrowed_from",
@@ -72,6 +86,11 @@ COMPARISON_TYPES = {
 }
 
 TRANSFORMATIONS = [
+    "Forms with a blank or placeholder Form (proto nodes without a recorded form) are skipped, "
+    "and so are their links",
+    "evidence.citation: the reference's plain text (at most 200 characters), not the bare key",
+    "Reflex edges from a PIE or Proto-Indo-Iranian form to an Indo-Aryan CDIAL headword are "
+    "grouping, not inheritance: stored as headword -> proto-form etymon, label kept",
     "Scope: target-language forms plus their ancestors/donors/components via edges.csv",
     "normalized_form = NFC, control characters removed, whitespace collapsed; raw form kept",
     "reconstruction_status: '*' prefix or Proto- language -> reconstructed; '√' roots and "
@@ -183,6 +202,32 @@ def clean_reference(text: str) -> tuple[str, str | None]:
     return re.sub(r"\s+", " ", plain).strip(" ."), url_match.group(0) if url_match else None
 
 
+def is_regrouped_reflex(kind: str, child_language: str, parent_language: str) -> bool:
+    """A 'reflex' edge whose child is a PIE or Proto-Indo-Iranian form and whose parent is an
+    Indo-Aryan CDIAL headword. Jambu uses these to group headwords under a proto-form; they do
+    not claim inheritance (the oia -> Indo-ir edges the other way round are real reflexes)."""
+    return (
+        kind == "reflex"
+        and child_language in REGROUPED_PROTO_LANGUAGES
+        and parent_language == CDIAL_LANGUAGE
+    )
+
+
+def has_form(row: dict[str, str]) -> bool:
+    """False for Jambu's proto nodes without a recorded form (blank or placeholder only)."""
+    return not is_placeholder_form(row["Form"])
+
+
+def clip_at_word(text: str, limit: int) -> str:
+    """At most ``limit`` characters, cut at a word boundary and marked with an ellipsis."""
+    if len(text) <= limit:
+        return text
+    cut = text[: limit - 1]
+    if text[limit - 1] != " " and " " in cut:
+        cut = cut.rsplit(" ", 1)[0]
+    return cut.rstrip(" ,;.:") + "…"
+
+
 _SLUG = re.compile(r"[^a-z0-9]+")
 
 
@@ -223,8 +268,19 @@ class JambuImporter:
         self.stats = ImportStats()
         self.references: dict[str, str] = {}
         self.sources_used: set[str] = set()
+        self._citation_texts: dict[str, str] = {}
 
     # -- helpers -----------------------------------------------------------------------
+    def _citation_text(self, key: str) -> str:
+        """Readable evidence.citation for a Jambu source key: the bibliography entry as plain
+        text, or the key itself when references.csv has none."""
+        if key == AGGREGATE_SOURCE:
+            return AGGREGATE_CITATION
+        if key not in self._citation_texts:
+            text = plain_text(clean_reference(self.references.get(key) or key)[0])
+            self._citation_texts[key] = clip_at_word(text, CITATION_LIMIT) or key
+        return self._citation_texts[key]
+
     def source_for(self, key: str) -> str:
         sid = self.source_map.get(key) or f"jambu-ref:{key}"
         self.sources_used.add(key)
@@ -291,11 +347,9 @@ class JambuImporter:
         return {"batch_id": batch_id, **self.stats.counts}
 
     def _scope(self, forms_path: Path, edges_path: Path) -> set[str]:
-        keep = {
-            r["ID"]
-            for r in read_csv(forms_path, FORM_COLUMNS)
-            if self.all_languages or r["Language_ID"] in self.targets
-        }
+        rows = read_csv(forms_path, FORM_COLUMNS)
+        keep = {r["ID"] for r in rows if self.all_languages or r["Language_ID"] in self.targets}
+        formless = {r["ID"] for r in rows if not has_form(r)}  # never imported: do not climb
         parents: dict[str, list[str]] = defaultdict(list)
         self.compounds: set[str] = set()
         for e in read_csv(edges_path, EDGE_COLUMNS):
@@ -306,6 +360,8 @@ class JambuImporter:
         while frontier:
             nxt = []
             for child in frontier:
+                if child in formless:
+                    continue
                 for p in parents.get(child, ()):
                     if p not in keep:
                         keep.add(p)
@@ -317,6 +373,9 @@ class JambuImporter:
         forms = {}
         for r in read_csv(path, FORM_COLUMNS):
             if r["ID"] in keep:
+                if not has_form(r):
+                    self.stats.add("forms_without_form_skipped")
+                    continue
                 r.pop("Etymology", None)  # verbatim entry text: never retained
                 r.pop("Description", None)
                 forms[r["ID"]] = r
@@ -372,7 +431,7 @@ class JambuImporter:
         rows = []
         for fid, r in forms.items():
             jid = r["Language_ID"]
-            form = r["Form"]
+            form = clean_form(r["Form"])
             native = r["Native"] or None
             origin = NativeFormOrigin.source.value if native else None
             translit = form
@@ -438,10 +497,20 @@ class JambuImporter:
                 cites = [Citation(AGGREGATE_SOURCE, None)]
                 note = "No citation in Jambu for this edge or its child form."
             source_ids = [self._cite_source(c) for c in cites]
+            source_lexeme, target_lexeme = lexeme_id(DATASET, child), lexeme_id(DATASET, parent)
+            edge_note = e["Note"] or None
+            if is_regrouped_reflex(
+                e["Kind"], forms[child]["Language_ID"], forms[parent]["Language_ID"]
+            ):
+                # Grouping under a proto-form, not an inheritance claim: headword -> proto-form.
+                source_lexeme, target_lexeme = target_lexeme, source_lexeme
+                type_id = "etymon"
+                edge_note = edge_note or GROUPING_NOTE
+                self.stats.add("edges_reflex_regrouped")
             rels[rid] = (
                 rid,
-                lexeme_id(DATASET, child),
-                lexeme_id(DATASET, parent),
+                source_lexeme,
+                target_lexeme,
                 type_id,
                 Direction.directed.value,
                 RelationshipStatus.documented.value,
@@ -450,12 +519,20 @@ class JambuImporter:
                 e["Kind"],
                 None,
                 e["Rank"] or None,
-                e["Note"] or None,
+                edge_note,
                 DATASET,
                 batch_id,
             )
             for c, sid in zip(cites, source_ids, strict=True):
-                evidence.append((rid, sid, c.key, c.locator or headword_locator(parent), note))
+                evidence.append(
+                    (
+                        rid,
+                        sid,
+                        self._citation_text(c.key),
+                        c.locator or headword_locator(parent),
+                        note,
+                    )
+                )
             self.stats.add(f"edges:{type_id}")
         return rels, evidence
 
@@ -503,7 +580,7 @@ class JambuImporter:
                 batch_id,
             )
             for x, sid in zip(cites, source_ids, strict=True):
-                evidence.append((rid, sid, x.key, x.locator, None))
+                evidence.append((rid, sid, self._citation_text(x.key), x.locator, None))
             self.stats.add(f"comparisons:{type_id}")
         return rels, evidence
 
@@ -517,7 +594,7 @@ class JambuImporter:
         if AGGREGATE_SOURCE not in existing:
             cur.execute(
                 "INSERT INTO source (id, title, reuse_status, dataset_id) VALUES (%s, %s, %s, %s)",
-                (AGGREGATE_SOURCE, "Jambu CLDF database", ReuseStatus.unknown.value, DATASET),
+                (AGGREGATE_SOURCE, AGGREGATE_CITATION, ReuseStatus.unknown.value, DATASET),
             )
         for key in sorted(self.sources_used):
             sid = self.source_map.get(key) or f"jambu-ref:{key}"

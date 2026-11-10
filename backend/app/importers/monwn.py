@@ -19,7 +19,13 @@ from app.importers.common import copy_rows, sha256_file
 from app.importers.headwords import LEXEME_COLS, language_by_iso
 from app.models.enums import ReconstructionStatus
 from app.services.ids import lexeme_id
-from app.services.normalize import form_kind, lexeme_search_key, normalize_form
+from app.services.normalize import (
+    clean_form,
+    form_kind,
+    is_placeholder_form,
+    lexeme_search_key,
+    normalize_form,
+)
 
 DATASET = "monwn"
 SOURCE_ID = "monwn"
@@ -50,10 +56,19 @@ def read_lemmas(tsv: Path) -> list[tuple[str, str]]:
 
 def import_monwn(conn: psycopg.Connection, tsv: Path, omw_en: Path, version: str) -> dict:
     ilis = ili_by_offset(omw_en)
-    stats = {"lemmas": 0, "unmapped_synsets": 0, "lexemes": 0, "senses": 0}
+    stats = {
+        "lemmas": 0,
+        "unmapped_synsets": 0,
+        "skipped_placeholder_form": 0,
+        "lexemes": 0,
+        "senses": 0,
+    }
     by_word: dict[str, set[str]] = defaultdict(set)  # (lemma) -> synsets, one word per lemma
     for synset, word in read_lemmas(tsv):
         stats["lemmas"] += 1
+        if is_placeholder_form(word):
+            stats["skipped_placeholder_form"] += 1
+            continue
         # WordNet 3.0 marks adjective satellites 's'; OMW English files them under 'a'
         ili = ilis.get(synset) or ilis.get(synset[:-1] + ("a" if synset.endswith("s") else "s"))
         if ili:
@@ -93,25 +108,26 @@ def import_monwn(conn: psycopg.Connection, tsv: Path, omw_en: Path, version: str
             labels = dict(cur.fetchall())
         rows, links = [], set()
         for word, concepts in sorted(by_word.items()):
-            lid = lexeme_id(DATASET, word)
+            lid = lexeme_id(DATASET, word)  # from the raw lemma, so ids stay stable
+            form = clean_form(word)
             gloss = "; ".join(dict.fromkeys(labels[c] for c in sorted(concepts) if c in labels))
             rows.append(
                 (
                     lid,
                     lang,
-                    word,
-                    normalize_form(word),
-                    lexeme_search_key(word, lang),
-                    word,
+                    form,
+                    normalize_form(form),
+                    lexeme_search_key(form, lang),
+                    form,
                     "source",
                     gloss[:300] or None,
-                    form_kind(word).value,
+                    form_kind(form).value,
                     ReconstructionStatus.attested.value,
                     None,
                     DATASET,
                     SOURCE_ID,
                     word,
-                    "Mongolian Wordnet (MonWN), entry " + word,
+                    "Mongolian Wordnet (MonWN), entry " + form,
                     batch,
                 )
             )

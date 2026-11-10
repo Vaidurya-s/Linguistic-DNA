@@ -2,6 +2,7 @@ from pathlib import Path
 
 from app.importers.cldf_wordlist import import_cldf_wordlist
 from app.pipeline.validate import run_checks
+from app.services.ids import lexeme_id
 
 FIXTURE = Path(__file__).parent / "fixtures" / "lsi_mini"
 
@@ -135,5 +136,89 @@ def test_borrowing_table_gives_directed_borrowings(db, tmp_path):
             "SELECT reconstruction_status::text FROM lexeme WHERE form = 'dantaḥ'"
         ).fetchone()
         assert status == ("unknown",)  # named by the table, not attested by it
+    finally:
+        db.rollback()
+
+
+def _cognate_copy(tmp_path):
+    import shutil
+
+    data = tmp_path / "cldf"
+    shutil.copytree(Path(__file__).parent / "fixtures" / "cognate_mini", data)
+    return data
+
+
+def test_markup_entities_control_characters_and_placeholders_are_cleaned(db, tmp_path):
+    data = _cognate_copy(tmp_path)
+    (data / "forms.csv").write_text(
+        "ID,Language_ID,Parameter_ID,Value,Form,Source,Loan\n"
+        "Hindi-tooth,Hindi,tooth,&amp;quot;dā̃t&amp;quot;,,fixture,\n"
+        "Bengali-tooth,Bengali,tooth,d\x07ãt​,,fixture,\n"
+        "Hindi-dash,Hindi,tooth,-,,fixture,\n",
+        encoding="utf-8",
+    )
+    (data / "cognates.csv").write_text(
+        "ID,Form_ID,Cognateset_ID\nc1,Hindi-tooth,t1\nc2,Bengali-tooth,t1\nc3,Hindi-dash,t1\n",
+        encoding="utf-8",
+    )
+    (data / "parameters.csv").write_text(
+        "ID,Name,Concepticon_ID,Concepticon_Gloss\ntooth,<i>tooth</i> &amp;amp; fang,1380,TOOTH\n",
+        encoding="utf-8",
+    )
+    try:
+        stats = import_cldf_wordlist(db, data, "lsi", "fixture")
+        assert stats["skipped_placeholder_form"] == 1 and stats["lexemes"] == 2
+        rows = {
+            r[0]: r[1:]
+            for r in db.execute(
+                "SELECT source_record_id, form, gloss FROM lexeme WHERE dataset = 'lsi'"
+            )
+        }
+        assert rows == {
+            "Hindi-tooth": ('"dā̃t"', "tooth & fang"),
+            "Bengali-tooth": ("dãt", "tooth & fang"),
+        }
+        # the skipped form takes no cognate link with it
+        assert stats["cognate_relationships"] == 1
+        assert db.execute(
+            "SELECT count(*) FROM relationship WHERE dataset = 'lsi' AND"
+            " (source_lexeme_id = %s OR target_lexeme_id = %s)",
+            (lexeme_id("lsi", "Hindi-dash"),) * 2,
+        ).fetchone() == (0,)
+    finally:
+        db.rollback()
+
+
+def test_infix_notation_is_kept(db, tmp_path):
+    data = _cognate_copy(tmp_path)
+    (data / "forms.csv").write_text(
+        "ID,Language_ID,Parameter_ID,Value,Form,Source,Loan\n"
+        "Hindi-tooth,Hindi,tooth,l<əm>idiʔ,,fixture,\n",
+        encoding="utf-8",
+    )
+    try:
+        import_cldf_wordlist(db, data, "lsi", "fixture")
+        assert db.execute(
+            "SELECT form FROM lexeme WHERE source_record_id = 'Hindi-tooth'"
+        ).fetchone() == ("l<əm>idiʔ",)
+    finally:
+        db.rollback()
+
+
+def test_placeholder_borrowing_source_words_are_skipped(db, tmp_path):
+    data = _cognate_copy(tmp_path)
+    (data / "borrowings.csv").write_text(
+        "ID,Target_Form_ID,Source_Form_ID,Source_word,Source_languoid_glottocode,Source_certain\n"
+        "b1,Hindi-tooth,,?,sans1269,true\n"
+        "b2,Bengali-tooth,,&amp;quot;dantaḥ&amp;quot;,sans1269,true\n",
+        encoding="utf-8",
+    )
+    try:
+        stats = import_cldf_wordlist(db, data, "lsi", "fixture")
+        assert stats["borrowings"] == 1 and stats["borrowing_source_words"] == 1
+        assert stats["skipped_placeholder_form"] == 1
+        assert db.execute(
+            "SELECT form FROM lexeme WHERE language_id = 'san' AND dataset = 'lsi'"
+        ).fetchall() == [('"dantaḥ"',)]
     finally:
         db.rollback()

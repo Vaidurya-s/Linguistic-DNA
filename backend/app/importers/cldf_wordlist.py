@@ -27,7 +27,15 @@ from app.importers.jambu import (
 )
 from app.models.enums import Direction, ReconstructionStatus, RelationshipStatus
 from app.services.ids import lexeme_id, relationship_id
-from app.services.normalize import form_kind, lexeme_search_key, normalize_form, search_key
+from app.services.normalize import (
+    clean_form,
+    form_kind,
+    is_placeholder_form,
+    lexeme_search_key,
+    normalize_form,
+    plain_text,
+    search_key,
+)
 
 FORM_COLUMNS = ("ID", "Language_ID", "Parameter_ID", "Value")  # Form, Source, Loan optional
 LANGUAGE_COLUMNS = ("ID", "Name", "Glottocode")
@@ -112,7 +120,7 @@ def import_cldf_wordlist(
             doculects[r["ID"]] = (lid, r["Name"])
             other_languages.setdefault(lid, r["Name"])
     params = {r["ID"]: r for r in read_csv(cldf_dir / "parameters.csv", PARAMETER_COLUMNS)}
-    stats: dict[str, int] = {"doculects": len(doculects)}
+    stats: dict[str, int] = {"doculects": len(doculects), "skipped_placeholder_form": 0}
 
     with conn.cursor() as cur:
         cur.execute(
@@ -154,7 +162,11 @@ def import_cldf_wordlist(
         concept_of: dict[str, str | None] = {}
         for p in params.values():
             concept_of[p["ID"]] = (
-                ensure_concept(cur, p["Concepticon_ID"], p.get("Concepticon_Gloss") or p["Name"])
+                ensure_concept(
+                    cur,
+                    p["Concepticon_ID"],
+                    p.get("Concepticon_Gloss") or plain_text(p["Name"]) or p["Name"],
+                )
                 if p.get("Concepticon_ID")
                 else None
             )
@@ -165,7 +177,15 @@ def import_cldf_wordlist(
             lang_id, _ = doc
             param = params.get(f["Parameter_ID"], {})
             raw, native, phonemic = spellings(f, transcription)
-            lid = lexeme_id(dataset, f["ID"])
+            raw = clean_form(raw)
+            if is_placeholder_form(raw):
+                stats["skipped_placeholder_form"] += 1
+                continue
+            native = clean_form(native) if native else None
+            native = None if native and is_placeholder_form(native) else native or None
+            phonemic = clean_form(phonemic) if phonemic else None
+            phonemic = None if phonemic and is_placeholder_form(phonemic) else phonemic or None
+            lid = lexeme_id(dataset, f["ID"])  # from the record id, never the cleaned form
             page = param.get("PageNumber")
             citation = f"{f.get('Source') or dataset}" + (f"[p. {page}]" if page else "")
             rows.append(
@@ -180,7 +200,7 @@ def import_cldf_wordlist(
                     "source" if native else None,
                     None if transcription or raw == native else raw,
                     raw if transcription else phonemic,
-                    param.get("Name"),
+                    plain_text(param.get("Name")) or None,
                     form_kind(raw).value,
                     (
                         ReconstructionStatus.reconstructed
@@ -219,7 +239,7 @@ def import_cldf_wordlist(
             for code, lang in targets.items():
                 language_by_code[code] = lang.id  # configured languages win
             b_lexemes, rels, evidence = borrowing_rows(
-                cldf_dir / "borrowings.csv", language_of, language_by_code, dataset, batch_id
+                cldf_dir / "borrowings.csv", language_of, language_by_code, dataset, batch_id, stats
             )
             copy_rows(cur, "lexeme", BORROWED_SOURCE_COLS, b_lexemes)
             copy_rows(cur, "relationship", REL_COLS, rels)
@@ -259,6 +279,7 @@ def borrowing_rows(
     by_glottocode: dict[str, str],
     dataset: str,
     batch_id: int,
+    stats: dict[str, int] | None = None,
 ) -> tuple[list[tuple], list[tuple], list[tuple]]:
     """Directed borrowings from a CLDF BorrowingTable (WOLD, ACD): the borrowed form ->
     its source form, or -> a source word the table names with its language's glottocode."""
@@ -273,7 +294,11 @@ def borrowing_rows(
             source = candidate if candidate in language_of else None
         word = (r.get("Source_word") or "").strip()
         code = (r.get("Source_languoid_glottocode") or "").strip()
-        if not source and word and code in by_glottocode:
+        shown = clean_form(word)
+        if not source and word and is_placeholder_form(shown):
+            if stats is not None:
+                stats["skipped_placeholder_form"] = stats.get("skipped_placeholder_form", 0) + 1
+        elif not source and word and code in by_glottocode:
             source = lexeme_id(dataset, f"borrowing-source:{code}:{word}")
             if source not in seen:
                 seen.add(source)
@@ -282,14 +307,14 @@ def borrowing_rows(
                     (
                         source,
                         lang,
-                        word,
-                        normalize_form(word),
-                        lexeme_search_key(word, lang),
-                        form_kind(word).value,
+                        shown,
+                        normalize_form(shown),
+                        lexeme_search_key(shown, lang),
+                        form_kind(shown).value,
                         # named by the borrowing table, not attested by it; starred = proto
                         (
                             ReconstructionStatus.reconstructed
-                            if word.startswith("*")
+                            if shown.startswith("*")
                             else ReconstructionStatus.unknown
                         ).value,
                         dataset,

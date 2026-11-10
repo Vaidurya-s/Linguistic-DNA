@@ -61,3 +61,38 @@ def test_all_languages_keeps_every_lexeme(db, tmp_path):
         assert run_checks(db, research=True)["passed"]
     finally:
         db.rollback()
+
+
+def test_wiki_markup_refs_and_placeholder_lemmas_are_cleaned(db, tmp_path):
+    dump = tmp_path / "lexemes.json"
+    boar = "''' ''wild boar''<ref>Smith 2001, p. 4</ref>''' &amp;amp; sow<ref name=a/>"
+    dump.write_text(
+        "[\n"
+        + ",\n".join(
+            json.dumps(x, ensure_ascii=False)
+            for x in (
+                lexeme("L911", "Q1860", "en", "boar​", boar, derived="L912"),
+                lexeme("L912", "Q1860", "en", "-", "nothing"),
+                lexeme("L913", "Q1860", "en", "sow", "<ref>only a note</ref>"),
+            )
+        )
+        + "\n]\n",
+        encoding="utf-8",
+    )
+    try:
+        stats = import_wikidata_lexemes(db, dump, "fixture", all_languages=True)
+        assert stats["skipped_placeholder_form"] == 1 and stats["lexemes"] == 2
+        assert stats.get("etymon", 0) == 0  # the target was skipped, so no link
+        rows = {
+            r[0]: r[1:]
+            for r in db.execute(
+                "SELECT source_record_id, form, gloss FROM lexeme WHERE dataset = %s",
+                ("wikidata-lexemes",),
+            )
+        }
+        assert rows == {"L911": ("boar", "wild boar & sow"), "L913": ("sow", None)}
+        assert db.execute(
+            "SELECT count(*) FROM relationship WHERE dataset = 'wikidata-lexemes'"
+        ).fetchone() == (0,)
+    finally:
+        db.rollback()

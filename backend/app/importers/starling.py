@@ -42,7 +42,14 @@ from app.importers.common import copy_rows, sha256_file
 from app.importers.starling_charset import ESCAPED, GREEK, OCS, SINGLE
 from app.models.enums import ReconstructionStatus
 from app.services.ids import lexeme_id, relationship_id
-from app.services.normalize import form_kind, lexeme_search_key, normalize_form
+from app.services.normalize import (
+    clean_form,
+    form_kind,
+    is_placeholder_form,
+    lexeme_search_key,
+    normalize_form,
+    plain_text,
+)
 
 DATASET = "starling"
 CONFIG = REPO_ROOT / "data" / "config" / "starling.csv"
@@ -441,9 +448,9 @@ def import_starling(
                 form,
                 normalize_form(form),
                 lexeme_search_key(form, lang),
-                native or form,
+                clean_form(native) if native else form,
                 "source",
-                gloss,
+                plain_text(gloss) or None,
                 form_kind(form, False).value,
                 status.value,
                 DATASET,
@@ -495,8 +502,13 @@ def import_starling(
         cfg = config["vasmer"]
         lang = language_of(cfg.code)
         for r in dbs["vasmer"].records:
-            stressed = decode_starling(r.get("WORD", b"") or b"", misses).strip(" ,")
-            if not stressed or not any(c.isalpha() for c in stressed):
+            raw_word = decode_starling(r.get("WORD", b"") or b"", misses).strip(" ,")
+            if not raw_word:
+                continue
+            id_form = normalize_form(strip_stress(raw_word))  # the id stays that of the raw word
+            stressed = clean_form(raw_word)
+            if is_placeholder_form(stressed):
+                stats["skipped_placeholder_form"] += 1
                 continue
             form = strip_stress(stressed)
             general = decode_starling(r.get("GENERAL", b"") or b"", misses)
@@ -504,7 +516,7 @@ def import_starling(
             gloss = f"{m.group(1).strip()} (in Russian)" if m and m.start() < 40 else None
             pages = decode_starling(r.get("PAGES", b"") or b"", misses)
             vasmer_ids[r["NUMBER"]] = add_lexeme(
-                f"ru:{normalize_form(form)}",
+                f"ru:{id_form}",
                 lang,
                 form,
                 gloss,
@@ -550,12 +562,15 @@ def import_starling(
         reflex_fields = [f for f in text_fields if f != main and not _NOT_REFLEX.search(f)]
         for r in db.records:
             number = r.get("NUMBER", "")
-            form = first_line(decode_starling(r.get(main, b"") or b"", misses))
-            if not form or not any(c.isalpha() for c in form):
+            form = clean_form(first_line(decode_starling(r.get(main, b"") or b"", misses)))
+            if not form:
+                continue
+            if is_placeholder_form(form):
+                stats["skipped_placeholder_form"] += 1
                 continue
             gloss = None
             for f in english + [f for f in meaning_fields if f not in english]:
-                g = decode_starling(r.get(f, b"") or b"", misses)
+                g = plain_text(decode_starling(r.get(f, b"") or b"", misses))
                 if g:
                     gloss = g if f in english else f"{g} (in Russian)"
                     break
@@ -601,6 +616,10 @@ def import_starling(
                         continue
                     if not rform:
                         continue
+                    shown = clean_form(rform)
+                    if is_placeholder_form(shown):
+                        stats["skipped_placeholder_form"] += 1
+                        continue
                     if code:
                         rlang = language_of(code)
                     elif field_lang:
@@ -610,13 +629,13 @@ def import_starling(
                     rcode = code or field_code or ""
                     rstatus = (
                         ReconstructionStatus.reconstructed
-                        if rform.startswith("*") or rcode.endswith("-pro")
+                        if shown.startswith("*") or rcode.endswith("-pro")
                         else ReconstructionStatus.attested
                     )
                     rid = add_lexeme(
-                        f"{rlang}:{normalize_form(rform)}",
+                        f"{rlang}:{normalize_form(rform)}",  # the id stays that of the raw form
                         rlang,
-                        rform,
+                        shown,
                         rgloss,
                         rstatus,
                         source,

@@ -260,3 +260,65 @@ def test_import(db, tmp_path):
         assert run_checks(db, research=True)["passed"]
     finally:
         db.rollback()
+
+
+def test_markup_and_placeholder_forms_are_cleaned(db, tmp_path):
+    from app.importers.manifest import load_manifest
+
+    piet = [
+        ("NUMBER", "N", 4),
+        ("PROTO", "C", 6),
+        ("MEANING", "C", 6),
+        ("GERM", "C", 6),
+        ("SLAVNUM", "N", 6),
+    ]
+    vasmer = [("NUMBER", "N", 5), ("WORD", "C", 6), ("GENERAL", "C", 6), ("PAGES", "C", 6)]
+    archive(
+        tmp_path / "IE.exe",
+        {
+            "piet": (
+                piet,
+                [
+                    {
+                        "NUMBER": 1,
+                        "PROTO": b"*ay-er",
+                        "MEANING": b"<b>morning</b> &amp;amp; dawn",
+                        "GERM": b"<i></i> 'x'; *air\x07-a- 'early'",
+                        "SLAVNUM": 5,
+                    },
+                    {"NUMBER": 2, "PROTO": b"-", "MEANING": b"nothing", "GERM": b"*zz 'q'"},
+                ],
+                {"PROTO": "Proto-IE", "GERM": "Germanic"},
+                {"slav": "vasmer"},
+            ),
+            "vasmer": (
+                vasmer,
+                [
+                    {"NUMBER": 5, "WORD": cyr("ут<b>ро</b>,"), "GENERAL": b"", "PAGES": b"4"},
+                    {"NUMBER": 6, "WORD": b"-,", "GENERAL": b"", "PAGES": b"5"},
+                ],
+                {},
+                None,
+            ),
+        },
+    )
+    try:
+        load_manifest(db)
+        stats = import_starling(db, [tmp_path / "IE.exe"], "fixture")
+        assert stats["skipped_placeholder_form"] == 3  # the "-" root, the empty-tag reflex, "-"
+        row = db.execute(
+            "SELECT form, gloss FROM lexeme WHERE id = %s", (sid("piet:1"),)
+        ).fetchone()
+        assert row == ("*ay-er", "morning & dawn")
+        forms = {r[0] for r in db.execute("SELECT form FROM lexeme WHERE dataset = 'starling'")}
+        assert forms == {"*ay-er", "*air-a-", "утро"}
+        # the skipped root has no row and, with it, no link
+        assert db.execute(
+            "SELECT count(*) FROM lexeme WHERE source_record_id = 'piet:2'"
+        ).fetchone() == (0,)
+        assert (
+            db.execute("SELECT count(*) FROM relationship WHERE dataset = 'starling'").fetchone()[0]
+            == 2
+        )  # the Germanic reflex and the Vasmer word, both to piet:1
+    finally:
+        db.rollback()

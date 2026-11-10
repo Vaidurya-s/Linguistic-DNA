@@ -59,3 +59,41 @@ def test_dpd_words_and_links(db, tmp_path):
         assert run_checks(db, research=True)["passed"]
     finally:
         db.rollback()
+
+
+def test_dpd_cleans_markup_and_skips_placeholder_headwords(db, tmp_path):
+    path = tmp_path / "dpd.db"
+    src = sqlite3.connect(path)
+    src.execute(
+        "CREATE TABLE dpd_headwords (id INTEGER, lemma_1 TEXT, meaning_1 TEXT, meaning_2 TEXT,"
+        " sanskrit TEXT, derived_from TEXT, compound_construction TEXT)"
+    )
+    src.executemany(
+        "INSERT INTO dpd_headwords VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [
+            (1, "dha\u200bmma", "<b>nature</b> &amp;amp; law", "", "dha\u200brma", "", ""),
+            (2, "-", "nothing", "", "", "", ""),
+            (3, "kamma", "deed", "", "-", "-", "dhamma + -"),
+            (4, "puñña", "merit", "", "", "-", "kamma + dhamma"),
+        ],
+    )
+    src.commit()
+    src.close()
+    try:
+        stats = import_dpd(db, path, None, "fixture")
+        assert stats["skipped_placeholder_form"] == 2  # the "-" headword and the "-" equivalent
+        assert stats["pali_lexemes"] == 3
+        row = db.execute(
+            "SELECT form, gloss FROM lexeme WHERE source_record_id = '1' AND dataset = 'dpd'"
+        ).fetchone()
+        assert row == ("dhamma", "nature & law")
+        sanskrit = db.execute(
+            "SELECT form FROM lexeme WHERE language_id = 'san' AND dataset = 'dpd'"
+        ).fetchall()
+        assert sanskrit == [("dharma",)]
+        assert db.execute(
+            "SELECT count(*) FROM lexeme WHERE dataset = 'dpd' AND form !~ '[[:alnum:]]'"
+        ).fetchone() == (0,)
+        assert run_checks(db, research=True)["passed"]
+    finally:
+        db.rollback()

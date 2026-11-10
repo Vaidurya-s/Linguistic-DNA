@@ -10,9 +10,10 @@ def scalar(db, sql, *params):
 
 
 def test_counts(db):
-    assert scalar(db, "SELECT count(*) FROM lexeme") == 29
-    assert scalar(db, "SELECT count(*) FROM relationship") == 24
-    assert scalar(db, "SELECT count(*) FROM relationship WHERE type_id = 'inherited_form'") == 22
+    assert scalar(db, "SELECT count(*) FROM lexeme") == 32
+    assert scalar(db, "SELECT count(*) FROM relationship") == 28
+    assert scalar(db, "SELECT count(*) FROM relationship WHERE type_id = 'inherited_form'") == 25
+    assert scalar(db, "SELECT count(*) FROM relationship WHERE type_id = 'etymon'") == 1
 
 
 def test_verbatim_text_is_never_stored(db):
@@ -25,7 +26,9 @@ def test_raw_form_kept_alongside_normalized(db):
     form, normalized = db.execute(
         "SELECT form, normalized_form FROM lexeme WHERE source_record_id = 'f_44lgs3q4625bk'"
     ).fetchone()
-    assert form == "dāt̃ "  # trailing space as in the source
+    # the source has a trailing space; edge whitespace is not part of the word, so it is trimmed
+    # (markup and entities are removed too; the spelling itself is kept as written)
+    assert form == "dāt̃"
     assert normalized == "dāt̃"
 
 
@@ -52,7 +55,11 @@ def test_evidence_keeps_locator_or_marks_inheritance(db):
            JOIN lexeme c ON c.id = r.source_lexeme_id
            WHERE c.source_record_id = 'f_k6wca7tdsaloe'"""
     ).fetchall()
-    assert own == [("CDIAL", "6152", None)]
+    assert len(own) == 1 and own[0][1:] == ("6152", None)
+    citation = own[0][0]
+    assert citation != "CDIAL"  # a readable reference, not the bare source key
+    assert citation.startswith("Ralph Lilley Turner") and "*" not in citation
+    assert len(citation) <= 200
     inherited = db.execute(
         """SELECT e.source_id, e.evidence_note FROM evidence e
            JOIN relationship r ON r.id = e.relationship_id
@@ -60,6 +67,66 @@ def test_evidence_keeps_locator_or_marks_inheritance(db):
            WHERE c.source_record_id = 'f_7wvogd6uksgji'"""
     ).fetchall()
     assert inherited and all(note and "child form" in note for _, note in inherited)
+
+
+def test_every_evidence_citation_is_readable_text_not_a_bare_key(db):
+    bare = db.execute(
+        "SELECT DISTINCT citation FROM evidence WHERE citation IN"
+        " ('CDIAL', 'dedr', 'jambu', 'krishnamurti', 'kannauji')"
+    ).fetchall()
+    assert bare == []
+    assert scalar(db, "SELECT max(length(citation)) FROM evidence") <= 200
+
+
+def test_formless_proto_node_is_skipped_with_its_edge(db):
+    assert scalar(db, "SELECT count(*) FROM lexeme WHERE source_record_id = 'f_fixtureblank1'") == 0
+    assert scalar(db, "SELECT count(*) FROM lexeme WHERE trim(form) = ''") == 0
+    assert (
+        scalar(
+            db,
+            "SELECT count(*) FROM relationship WHERE source_record_id LIKE %s",
+            "%f_fixtureblank1%",
+        )
+        == 0
+    )
+    stats = scalar(db, "SELECT stats FROM import_batch WHERE dataset = 'jambu'")
+    assert stats["forms_without_form_skipped"] == 1
+    assert stats["edges_out_of_scope"] >= 1
+    # the Hindi child of the formless node is still imported
+    assert scalar(db, "SELECT count(*) FROM lexeme WHERE source_record_id = 'f_fixturehi2'") == 1
+
+
+def test_pie_grouping_reflex_becomes_headword_to_proto_etymon(db):
+    rows = db.execute(
+        """SELECT s.form, t.form, r.type_id, r.direction, r.original_label, r.notes,
+                  e.locator, e.citation
+           FROM relationship r JOIN lexeme s ON s.id = r.source_lexeme_id
+           JOIN lexeme t ON t.id = r.target_lexeme_id
+           JOIN evidence e ON e.relationship_id = r.id
+           WHERE r.source_record_id = 'edge:f_fixtureie1->1347'"""
+    ).fetchall()
+    assert len(rows) == 1
+    source, target, type_id, direction, label, notes, locator, citation = rows[0]
+    assert (source, target) == ("ā́rya", "*h₃dónts")  # headword -> proto-form
+    assert (type_id, direction, label) == ("etymon", "directed", "reflex")
+    assert "inheritance versus borrowing unresolved" in notes
+    assert locator == "1347" and citation.startswith("Ralph Lilley Turner")
+    stats = scalar(db, "SELECT stats FROM import_batch WHERE dataset = 'jambu'")
+    assert stats["edges_reflex_regrouped"] == 1
+
+
+def test_pnur_and_ordinary_reflex_edges_stay_inherited_form(db):
+    def link(record):
+        return db.execute(
+            """SELECT s.form, t.form, r.type_id FROM relationship r
+               JOIN lexeme s ON s.id = r.source_lexeme_id
+               JOIN lexeme t ON t.id = r.target_lexeme_id WHERE r.source_record_id = %s""",
+            (record,),
+        ).fetchall()
+
+    assert link("edge:f_fixturepnur1->1347") == [("*dantá", "ā́rya", "inherited_form")]
+    assert link("edge:6152->f_4xxedqnm7toyk") == [("dánta", "Hdántas", "inherited_form")]
+    assert link("edge:f_fixturehi2->f_fixtureie1") == [("dāntā", "*h₃dónts", "inherited_form")]
 
 
 def test_sources_map_to_manifest(db):

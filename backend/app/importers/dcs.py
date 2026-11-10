@@ -14,7 +14,14 @@ import psycopg
 from app.importers.common import copy_rows, sha256_file
 from app.models.enums import ReconstructionStatus
 from app.services.ids import lexeme_id
-from app.services.normalize import form_kind, lexeme_search_key, normalize_form
+from app.services.normalize import (
+    clean_form,
+    form_kind,
+    is_placeholder_form,
+    lexeme_search_key,
+    normalize_form,
+    plain_text,
+)
 
 DATASET = "dcs"
 LANGUAGE = "san"
@@ -37,8 +44,14 @@ LEXEME_COLS = (
 )
 
 
+def _gloss(raw: str | None) -> str | None:
+    """The meanings as plain text; the source's "?", "??" and "???" mean no meaning is known."""
+    text = plain_text(raw)
+    return None if not text or not text.strip("?") else text
+
+
 def import_dcs(conn: psycopg.Connection, dictionary: Path, version: str) -> dict:
-    stats = {"lexemes": 0, "skipped_empty": 0}
+    stats = {"lexemes": 0, "skipped_empty": 0, "skipped_placeholder_form": 0}
     rows = []
     with conn.cursor() as cur:
         cur.execute(
@@ -61,9 +74,12 @@ def import_dcs(conn: psycopg.Connection, dictionary: Path, version: str) -> dict
         cur.execute("DELETE FROM lexeme WHERE dataset = %s", (DATASET,))
         with dictionary.open(encoding="utf-8", newline="") as fh:
             for r in csv.DictReader(fh, delimiter="\t"):
-                word = (r.get("word") or "").strip()
+                word = clean_form(r.get("word") or "")
                 if not word:
                     stats["skipped_empty"] += 1
+                    continue
+                if is_placeholder_form(word):
+                    stats["skipped_placeholder_form"] += 1
                     continue
                 grammar = (r.get("grammar") or "").strip()
                 rows.append(
@@ -74,7 +90,7 @@ def import_dcs(conn: psycopg.Connection, dictionary: Path, version: str) -> dict
                         normalize_form(word),
                         lexeme_search_key(word, LANGUAGE),
                         word,
-                        (r.get("meanings") or "").strip() or None,
+                        _gloss(r.get("meanings")),
                         form_kind(word).value,
                         ReconstructionStatus.attested.value,
                         [f"pos:{grammar}"] if grammar else None,

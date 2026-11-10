@@ -65,3 +65,28 @@ def test_import(db, tmp_path):
         assert db.execute("SELECT count(*) FROM lexeme WHERE dataset = 'monwn'").fetchone() == (4,)
     finally:
         db.rollback()
+
+
+def test_markup_and_placeholder_lemmas(db, tmp_path):
+    tsv = tmp_path / "wn-data-mon.tsv"
+    tsv.write_text(
+        "02084071-n\tmon:lemma\tнох​ой\n"
+        "02084071-n\tmon:lemma\t-\n"
+        "14845743-n\tmon:lemma\t?\n"
+        "14845743-n\tmon:lemma\t&amp;lt;i&amp;gt;ус&amp;lt;/i&amp;gt;\n",
+        encoding="utf-8",
+    )
+    try:
+        load_manifest(db)
+        db.execute(
+            "INSERT INTO language (id, name, iso_code, glottocode, role, is_proto, is_enabled,"
+            " metadata_json) VALUES ('gl-halh1238', 'Halh Mongolian', 'khk', 'halh1238',"
+            " 'other', false, true, '{}')"
+            " ON CONFLICT (id) DO NOTHING"
+        )
+        stats = import_monwn(db, tsv, OMW_EN, "fixture")
+        assert stats["skipped_placeholder_form"] == 2 and stats["lexemes"] == 2
+        forms = {r[0] for r in db.execute("SELECT form FROM lexeme WHERE dataset = 'monwn'")}
+        assert forms == {"нохой", "ус"}
+    finally:
+        db.rollback()

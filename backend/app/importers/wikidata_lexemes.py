@@ -12,6 +12,7 @@ import bz2
 import csv
 import gzip
 import json
+import re
 import urllib.parse
 import urllib.request
 from collections.abc import Iterator
@@ -23,7 +24,14 @@ from app.config import REPO_ROOT
 from app.importers.common import copy_rows, sha256_file
 from app.models.enums import Direction, ReconstructionStatus, RelationshipStatus
 from app.services.ids import lexeme_id, relationship_id
-from app.services.normalize import form_kind, lexeme_search_key, normalize_form
+from app.services.normalize import (
+    clean_form,
+    form_kind,
+    is_placeholder_form,
+    lexeme_search_key,
+    normalize_form,
+    plain_text,
+)
 
 DATASET = "wikidata-lexemes"
 SOURCE_ID = "wikidata-lexemes"
@@ -115,13 +123,24 @@ def slim(entity: dict) -> dict:
     }
 
 
+_REF = re.compile(r"<ref\b[^>]*?(?:/>|>.*?</ref\s*>)", re.DOTALL | re.IGNORECASE)
+_WIKI_EMPHASIS = re.compile(r"'{2,}")
+
+
+def gloss_text(raw: str) -> str:
+    """A sense gloss as plain text: footnote references (with their content) and wiki bold or
+    italic quotes removed first, then markup and entities."""
+    return plain_text(_WIKI_EMPHASIS.sub("", _REF.sub("", raw)))
+
+
 def english_gloss(entity: dict) -> str | None:
-    glosses = [
-        s["glosses"]["en"]["value"]
+    glosses = (
+        gloss_text(s["glosses"]["en"]["value"])
         for s in entity.get("senses", [])
         if "en" in s.get("glosses", {})
-    ]
-    return "; ".join(dict.fromkeys(glosses[:3])) or None
+    )
+    kept = [g for g in glosses if g]
+    return "; ".join(dict.fromkeys(kept[:3])) or None
 
 
 def statement_targets(entity: dict, prop: str) -> Iterator[tuple[str, dict]]:
@@ -233,6 +252,10 @@ def import_wikidata_lexemes(
                     unknown_langs.add(qid)
             lemma = lemma_of(e, prefer) or lemma_of(e, None)
             if not lemma:
+                continue
+            lemma = clean_form(lemma)
+            if is_placeholder_form(lemma):
+                stats["skipped_placeholder_form"] = stats.get("skipped_placeholder_form", 0) + 1
                 continue
             lang_name = names.get(e.get("language", ""), "")
             proto = lang_name.startswith("Proto-")

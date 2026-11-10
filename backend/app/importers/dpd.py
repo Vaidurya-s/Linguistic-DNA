@@ -21,7 +21,14 @@ import psycopg
 from app.importers.common import copy_rows, sha256_file
 from app.models.enums import Direction, ReconstructionStatus, RelationshipStatus
 from app.services.ids import lexeme_id, relationship_id
-from app.services.normalize import form_kind, lexeme_search_key, normalize_form
+from app.services.normalize import (
+    clean_form,
+    form_kind,
+    is_placeholder_form,
+    lexeme_search_key,
+    normalize_form,
+    plain_text,
+)
 
 DATASET = "dpd"
 PALI, SANSKRIT = "pli", "san"
@@ -85,31 +92,38 @@ def import_dpd(conn: psycopg.Connection, db_path: Path, archive: Path | None, ve
     ).fetchall()
     src.close()
 
-    pali: dict[str, dict] = {}  # clean lemma -> {ids, glosses}
+    sanskrit: set[str] = set()
+    links: dict[str, tuple] = {}
+    stats: dict[str, int] = {"skipped_placeholder_form": 0}
+
+    def bump(k: str) -> None:
+        stats[k] = stats.get(k, 0) + 1
+
+    pali: dict[str, dict] = {}  # lemma without homonym number -> {ids, glosses}
     for hid, lemma, m1, m2, *_ in rows:
         key = clean_lemma(lemma)
         if not key:
+            continue
+        if is_placeholder_form(key):
+            bump("skipped_placeholder_form")
             continue
         rec = pali.setdefault(key, {"ids": [], "glosses": []})
         rec["ids"].append(hid)
         if m1 or m2:
             rec["glosses"].append(m1 or m2)
 
-    sanskrit: set[str] = set()
-    links: dict[str, tuple] = {}
-    stats: dict[str, int] = {}
-
-    def bump(k: str) -> None:
-        stats[k] = stats.get(k, 0) + 1
-
     def pali_id(key: str) -> str:
         return lexeme_id(DATASET, f"pli:{key}")
 
     for hid, lemma, _m1, _m2, skt, derived, compound in rows:
         key = clean_lemma(lemma)
+        if key not in pali:  # empty or placeholder headword: no word, so no links
+            continue
         child = pali_id(key)
         eq = sanskrit_equivalent(skt or "")
-        if eq:
+        if eq and is_placeholder_form(eq):
+            bump("skipped_placeholder_form")
+        elif eq:
             sanskrit.add(eq)
             rid = relationship_id(DATASET, "sanskrit", key, eq)
             links.setdefault(
@@ -159,17 +173,19 @@ def import_dpd(conn: psycopg.Connection, db_path: Path, archive: Path | None, ve
 
         lexemes = []
         for key, rec in pali.items():
-            gloss = "; ".join(dict.fromkeys(rec["glosses"][:3])) or None
+            form = clean_form(key)
+            glosses = (plain_text(g) for g in rec["glosses"][:3])
+            gloss = "; ".join(dict.fromkeys(g for g in glosses if g)) or None
             lexemes.append(
                 (
                     pali_id(key),
                     PALI,
-                    key,
-                    normalize_form(key),
-                    lexeme_search_key(key, PALI),
-                    key,
+                    form,
+                    normalize_form(form),
+                    lexeme_search_key(form, PALI),
+                    form,
                     gloss,
-                    form_kind(key).value,
+                    form_kind(form).value,
                     ReconstructionStatus.attested.value,
                     DATASET,
                     DATASET,
@@ -179,16 +195,17 @@ def import_dpd(conn: psycopg.Connection, db_path: Path, archive: Path | None, ve
                 )
             )
         for eq in sorted(sanskrit):
+            skt_form = clean_form(eq)
             lexemes.append(
                 (
                     lexeme_id(DATASET, f"san:{eq}"),
                     SANSKRIT,
-                    eq,
-                    normalize_form(eq),
-                    lexeme_search_key(eq, SANSKRIT),
-                    eq,
+                    skt_form,
+                    normalize_form(skt_form),
+                    lexeme_search_key(skt_form, SANSKRIT),
+                    skt_form,
                     None,
-                    form_kind(eq).value,
+                    form_kind(skt_form).value,
                     ReconstructionStatus.attested.value,
                     DATASET,
                     DATASET,
