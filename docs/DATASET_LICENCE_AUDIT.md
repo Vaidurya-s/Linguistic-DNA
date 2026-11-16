@@ -15,7 +15,7 @@ Audit date: 2026-10-29; sections 4a to 4g were added as sources were imported, t
 
 **What counts as verified.** A licence is "verified" only when it was read from the downloaded artefact itself: a LICENSE file, CLDF `dc:license`, a dataset card, or a README at a pinned commit. Each row names that evidence in `licence_evidence`. A licence quoted only from the research shortlist is marked "claimed", and its row stays BLOCKED.
 
-**The audit CSV has 183 rows:** 2 APPROVED, 142 APPROVED WITH CONDITIONS, 17 RESEARCH USE and 22 BLOCKED.
+**The audit CSV has 187 rows:** 2 APPROVED, 144 APPROVED WITH CONDITIONS, 19 RESEARCH USE and 22 BLOCKED. Four of them (Etymological WordNet, CogNet, Arca Verborum and the Ugric vocabulary) are comparators used only for local benchmarking and are not imported; the CogNet citation and the Arca Verborum DOI in their rows are still to be confirmed on the record pages.
 
 **CC0 packaging is not enough.** CC0 on a package of third-party text does not clear the text inside it. Rows carrying that caveat stay BLOCKED until their upstream sources are identified.
 

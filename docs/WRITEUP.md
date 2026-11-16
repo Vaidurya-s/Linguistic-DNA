@@ -37,11 +37,11 @@ flowchart LR
   API --> UI[React + Cytoscape<br/>static site]
 ```
 
-**Back end.** FastAPI, SQLAlchemy and Alembic on PostgreSQL 16 with `pg_trgm`. Every lexeme and relationship records the dataset it came from, and every source links to a row of the licence audit. The validator runs 32 checks, which fall into four groups:
+**Back end.** FastAPI, SQLAlchemy and Alembic on PostgreSQL 16 with `pg_trgm`. Every lexeme and relationship records the dataset it came from, and every source links to a row of the licence audit. The validator runs 33 checks, which fall into four groups:
 - **Data integrity:** dangling references, a documented edge without evidence, a starred form marked as attested, verbatim dictionary markup.
 - **Licensing:** any row from a BLOCKED dataset, in public mode.
 - **Form classification:** a stem or affix classified as a whole word.
-- **Quality notes** (informational, never blocking): mutual or conflicting ancestry between two words, markup left in forms, glosses or citations, and a citation that is only a bare source key.
+- **Quality notes** (informational, never blocking): mutual or conflicting ancestry between two words, markup left in forms, glosses or citations, a citation that is only a bare source key, and documented cognate links that sit in an oversized cognate component (read from the `layers` schema).
 
 **Front end.** React, TypeScript, Vite and Tailwind. Graph shaping (merging duplicate records, filters, neighbour capping, relation sentences) lives in a pure, unit-tested module. The canvas only draws.
 
@@ -66,7 +66,7 @@ flowchart LR
 
 ## Testing
 
-- **Backend (pytest against PostgreSQL), 190 tests:**
+- **Backend (pytest against PostgreSQL), 374 tests:**
   - importer behaviour, ID stability across re-imports, and a sentinel proving verbatim dictionary text is never stored;
   - a seed that, built from a mixed database, contains only approved data and passes public-mode validation on a fresh load;
   - a multilingual regression suite with one native-script query for each of the 19 modern languages.

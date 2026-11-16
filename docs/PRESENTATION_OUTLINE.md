@@ -112,7 +112,7 @@ Items marked **[verify]** could not be fully confirmed in this session. Check th
 
 - **Evidence first.** Every link has its dataset, a citation and, where known, a page or entry locator. The source's own label is kept next to the normalised type.
 - **Resemblance is not ancestry.** Similar spellings are listed as candidates with a score that is not a measure of relatedness. They are never drawn as links.
-- **Licence audit as data.** `dataset_audit.csv` has 183 rows. Code reads it to decide what enters the public seed. A validator fails the build on anything else.
+- **Licence audit as data.** `dataset_audit.csv` has 187 rows. Code reads it to decide what enters the public seed. A validator fails the build on anything else.
 - **Own romaniser.** A rule-based ISO 15919 romaniser for nine Brahmic scripts (about 300 lines, no external data) handles the language-dependent inherent vowel and the two readings of anusvara.
 - **Uncertainty is shown.** Reconstructed forms carry an asterisk. When a source does not say whether a word was inherited or borrowed, the link says "from", not either.
 - **One concept space.** Words from different datasets share Concepticon meanings, so they can meet without being treated as related.
@@ -126,7 +126,7 @@ Items marked **[verify]** could not be fully confirmed in this session. Check th
 ## Slide 7. Execution 1: data and the licence audit
 
 - 83 pinned inputs in `downloads.json`, each fixed by a git commit or a SHA-256 checksum.
-- 183 audit rows: 2 approved, 142 approved with conditions, 17 research use, 22 blocked.
+- 187 audit rows: 2 approved, 144 approved with conditions, 19 research use, 22 blocked (four of them are comparators used only for local benchmarking, not imported).
 - Open data goes in the public seed. Research-use data (for example Jambu with CDIAL and DEDR, Monier-Williams, the Digital Pāḷi Dictionary) stays in a local research database and is cited on every record. Blocked data is not used.
 - No research-use text is stored in the repository or the public seed.
 
@@ -171,8 +171,8 @@ Items marked **[verify]** could not be fully confirmed in this session. Check th
 | Searchable languages | 25 | 3,748 |
 | Transliteration pairs | 947,189 | 947,189 |
 
-- 190 backend tests and 42 front-end tests pass. CI is green on every push.
-- All validator checks pass on the open seed in public mode (32 checks run).
+- 374 backend tests and 42 front-end tests pass. CI is green on every push.
+- All validator checks pass on the open seed in public mode (33 checks run).
 - Benchmark: 22 of 22 cases pass (unreviewed).
 
 **Say:** The research database is for local study. Only the open seed can be shared.
@@ -217,4 +217,4 @@ Paste the full reference lists from slides 3 and 4, in one style (APA, as above)
 1. Resolve each **[verify]** item: the Digital Pāḷi Dictionary release date is the only reference one left. The CLDF, Lexibank, IE-CoR and Aksharantar entries were checked against the DOI registry's own citation data (the publisher pages blocked automated access, so I used `doi.org` content negotiation instead of a browser).
 2. Read the patents US 2007/0219777 A1 and EA 006373 B1 claims yourself before saying anything about them. The transliteration patents were seen in search results only.
 3. The Aksharantar paper is in *Findings of EMNLP 2023*, not in the main ACL 2023 conference.
-4. The audit has 183 rows (142 "approved with conditions"). The earlier figure of 184 and 143 counted one stale duplicate Wiktionary row, which has been removed from `data/manifests/dataset_audit.csv`.
+4. The audit has 187 rows (144 "approved with conditions"), including four comparator datasets that are not imported. The earlier figure of 184 and 143 counted one stale duplicate Wiktionary row, which has been removed from `data/manifests/dataset_audit.csv`.
