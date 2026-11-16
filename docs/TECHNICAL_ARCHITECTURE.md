@@ -10,9 +10,9 @@ How Linguistic DNA is built. For why the design is the way it is, see [`WRITEUP.
 | Graph | Cytoscape.js | Drawing only; graph shaping is a separate, unit-tested module |
 | API | Python 3.12+, FastAPI, Pydantic | Search, graph assembly, evidence, citations, language profiles |
 | Database | PostgreSQL 16 with `pg_trgm` | Words, links, evidence, sources, the licence audit, indexed search |
-| Schema | SQLAlchemy models and Alembic migrations (0001 to 0006) | Reproducible schema |
+| Schema | SQLAlchemy models and Alembic migrations (0001 to 0007) | Reproducible schema |
 | Import and checks | Python importers and a CLI (`python -m app.cli`) | Reproducible ingestion from pinned inputs, validation, public seed |
-| Tests | pytest against PostgreSQL (190), Vitest (42), a 22-case relationship benchmark | Correctness and regression |
+| Tests | pytest against PostgreSQL (374), Vitest (42), a 22-case relationship benchmark | Correctness and regression |
 | Deployment | Docker API image plus a static site; or everything on one Linux machine | See [`DEPLOYMENT.md`](DEPLOYMENT.md) |
 
 No microservices and no graph database: every query pattern so far is served by indexed PostgreSQL tables.
@@ -30,8 +30,11 @@ flowchart TD
     RAW --> IMP[importers/*<br/>typed links + evidence]
     AUD[dataset_audit.csv] -. gates .-> IMP
     IMP --> DB
-    DB --> VAL[pipeline/validate.py<br/>32 checks]
+    DB --> VAL[pipeline/validate.py<br/>33 checks]
     DB --> SEED[pipeline/public_seed.py<br/>approved rows only]
+    DB --> LAY[layers/*<br/>inferred, candidate, keys, hub]
+    LAY -. separate schema .-> DB
+    RET --> LAY
 ```
 
 ## 3. Repository layout
@@ -43,14 +46,17 @@ backend/app/
   db/                       engine, session, dependencies
   models/                   SQLAlchemy models and the enums (relationship types, statuses)
   schemas/api.py            Pydantic response models
+  schemas/layers.py         response models of the layered and technique routes
   services/                 retrieval.py (queries), transliterate.py, normalize.py (search keys and
                             the shared cleaning of stored text), ids.py
   importers/                one module per source; common.py (COPY helpers), manifest.py, audit.py,
                             headwords.py (shared writer for plain word lists)
   pipeline/                 validate.py, languages.py (refresh-languages), public_seed.py,
                             coverage.py, benchmark.py
+  layers/                   the derived layers and their idempotent *.sql files (inferred, candidate,
+                            keys, romanise, sound_key, hub, lineage, verify, verify_sources)
   cli.py                    every import and pipeline command
-backend/migrations/         Alembic revisions 0001 to 0006
+backend/migrations/         Alembic revisions 0001 to 0007
 backend/tests/              pytest suites; synthetic fixtures under tests/fixtures/
 frontend/src/
   app/                      App, Layout, hash router
@@ -82,6 +88,7 @@ All tables carry the dataset they came from, so the licence audit can be applied
 | `dataset_audit` | The machine-readable licence audit loaded from `data/manifests/dataset_audit.csv` |
 | `import_batch` | One row per import: dataset, version, input checksums, transformations and counts |
 | `transliteration_alias` | Native and romanised spelling pairs (Dakshina, Aksharantar) for romanised search |
+| `layers.*` (schema `layers`) | Computed tables, never mixed into the tables above: `inferred_pair`, `candidate_pair`, `candidate_calibration`, `gloss_token`, `word_key`, `sound_key`, `cognate_component`, `edge_hub_flag`, `source_lineage` and the build records. Created by migration 0007 or `init-layers`; filled by the layer builders (`docs/DATA_PIPELINE.md` § 6). |
 | `translation_link` | Reserved for direct word-to-word translation pairs, kept apart from descent. Empty today: words meet through shared concepts instead |
 
 Indexes: `pg_trgm` GIN indexes on the normalised form and the search key for fuzzy spelling retrieval, plus B-tree indexes on language, native form and the relationship endpoints. IDs are deterministic (`lx_`/`rel_` plus a hash of dataset and source record), so a re-import keeps them.
@@ -108,15 +115,30 @@ Everything is under `/api/v1`; interactive docs are at `/docs`.
 | Endpoint | Parameters | Returns |
 |---|---|---|
 | `GET /search` | `q` (1 to 64 characters), `language_id`, `limit` (1 to 50, default 10), `open_only` | Whole-word matches with how each was found, related forms (stems, affixes, roots, phrases), documented compounds, and spelling candidates, in separate fields |
-| `GET /lexemes/{id}` | | A word with its source, citation and status |
-| `GET /graph/{id}` | `depth` (1 or 2), `relationship_types`, `language_ids`, `limit_nodes` (up to 150, default 50), `open_only` | The neighbourhood of a word: nodes, typed edges, and whether it was truncated |
-| `GET /relationships/{id}` | | A link with its direction, status, and every evidence row |
+| `GET /lexemes/{id}` | `open_only` | A word with its source, citation and status. With `open_only=true`, 404 for a word of a research-use or blocked dataset |
+| `GET /lexemes/{id}/related` | `layers` (comma list of `documented`, `inferred`, `candidate`; default all three), `open_only`, `limit` (1 to 100, default 20), `candidate_gate` (`gloss` or `concept`) | The relatives of a word in three separate blocks. Each item states its evidence kind (below) |
+| `GET /graph/{id}` | `depth` (1 or 2), `relationship_types`, `language_ids`, `limit_nodes` (up to 150, default 50), `open_only` | The neighbourhood of a word: nodes, typed edges, and whether it was truncated. `restricted` and `message` say when `open_only` emptied the graph because the root word is research-use |
+| `GET /relationships/{id}` | `open_only` | A link with its direction, status, and every evidence row. With `open_only=true`, 404 for a link of a research-use or blocked dataset |
+| `GET /search/fuzzy` | `q`, `language_id` (required), `threshold`, `limit`, `open_only` | Trigram-similar spellings inside one language |
+| `GET /search/concept` | `q`, `concept_id` (repeatable) or `from_lexeme_id`, `language_ids`, `limit`, `open_only` | Words that share a concept with the query, ranked by spelling |
+| `GET /search/keys` | `q`, `language_id` (required), `limit`, `open_only` | The same word in another script or spelling, found by rule through the word keys |
+| `GET /search/sound` | `q`, `level` (`exact`, `cons`, `prefix`), `language_ids`, `exclude_language`, `limit`, `open_only` | Words in the same sound-class bucket, ranked by alignment |
 | `GET /languages` | | Searchable languages with family, word and linked-word counts (open-only counts too) |
 | `GET /languages/{id}/profile` | | WALS and PHOIBLE values for a language |
 | `GET /citations` | | Every dataset with its audit decision and required citation, and every cited work with record counts |
 | `GET /health` | | Liveness |
 
-`open_only=true` hides every dataset the audit does not approve for redistribution, from search and from the graph.
+`open_only=true` hides every dataset the audit does not approve for redistribution. It works on every route that takes it: search, the graph, `related` (documented items, inferred chains and the candidate pool), the technique searches, and, on `/lexemes/{id}` and `/relationships/{id}`, it answers 404 for a record of such a dataset. `open_only` defaults to false everywhere.
+
+**Evidence kinds.** Every item of `related` says how it is known:
+
+| `evidence_kind` | Layer | Carries |
+|---|---|---|
+| `documented` | `documented` | The relationship a source states: dataset, type, and its evidence rows (citation, locator). The only kind shown as a cited fact. |
+| `inferred` | `inferred` | A chain of documented ancestry relationships (ids, datasets, citations) that puts two words under one ancestor, and the rule version. A proof over cited steps, not a new claim. |
+| `computed` | `candidate` | A method, its parameters, a score, the gate that made the words comparable and a calibrated precision. No citation. |
+
+The blocks are never merged or re-ordered into one list. If a layer's tables are not built, its block has `status: unavailable` and the others are still returned. A technique search says in `technique` how its matches were found.
 
 ## 7. Query pipeline
 
@@ -127,6 +149,8 @@ Everything is under `/api/v1`; interactive docs are at `/docs`.
 5. Keep whole words apart from stems, affixes and compounds.
 6. Retrieve spelling candidates separately, with `pg_trgm`; they are returned in their own field and never drawn as relationships.
 7. Build a bounded subgraph around the chosen word: documented relationships only, deduplicated, with direction kept.
+
+`/lexemes/{id}/related` and the technique searches are separate paths. They read the documented links for the first block and the `layers` schema (or compute on request) for the others; they never write to `public`.
 
 ## 8. Front end
 

@@ -39,6 +39,10 @@ An evidence-first graph of word relationships: FastAPI + PostgreSQL 16 (`pg_trgm
 - Rebuild data in a second database, so the hosted site never serves a half-built one: `export DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/lsg_build`, `make migrate`, `make FULL=1 research-db`, run the checks, then rename `lsg` to `lsg_old` and `lsg_build` to `lsg` with the API stopped.
 - Agents and tests must use their own `TEST_DATABASE_URL`. The tests wipe it, and `tests/test_public_seed.py` uses a shared scratch database, `lsg_seed_test`, so never run two pytest sessions at once on the same server.
 - Use `clean_form`, `plain_text` and `is_placeholder_form` from `services/normalize.py` in any new importer, and never change `normalize_form`: it feeds the IDs.
+- Derived layers live in the schema `layers` (`backend/app/layers/`, `docs/DATA_PIPELINE.md` § 6), never in `public`. Rebuild them after any re-import (`init-layers`, `seed-lineage`, `build-sound-key`, `python -m app.layers.hub build`, `calibrate-candidates`, the word keys): they are computed from the documented links and go stale. Migration 0007 and `init-layers` run the same idempotent SQL.
+- The stored `layers.cognate_component` is built over all datasets, so it must not be used for held-out evaluation: a component can contain the held-out source's own links. Compute components without the held-out dataset yourself, in a scratch database: `hub.build` (also with `--exclude`) rewrites the stored table.
+- `translit` and `translit_rule` keys of `layers.word_key` are for borrowing and word identity only. Do not use them to propose cognates.
+- A `{{der}}` link is retyped `borrowed_from` only when the entry's own etymology text names that term as the donor. It is a typed, cited statement, never a spelling guess. Re-import Wiktionary to apply it.
 - `make test` needs `TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/lsg_test` exported with the Docker database (the built-in default has no password). The tests wipe that database's `public` schema, so never point them at `lsg`.
 
 ## Style

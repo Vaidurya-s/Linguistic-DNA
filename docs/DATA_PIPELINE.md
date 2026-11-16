@@ -82,19 +82,23 @@ make import-sindhi refresh-languages
 
 | Step | What it does |
 |---|---|
-| `migrate` | Alembic migrations 0001–0006: schema, `pg_trgm`, vocabularies, the `dataset_audit` table and `lexeme.form_kind`, transliteration aliases, the research-use decision, and the global-language tables (`language_stats`, language profiles). |
+| `migrate` | Alembic migrations 0001–0007: schema, `pg_trgm`, vocabularies, the `dataset_audit` table and `lexeme.form_kind`, transliteration aliases, the research-use decision, the global-language tables (`language_stats`, language profiles) and the empty `layers` schema (§ 6). |
 | `import-open` | Every approved dataset, in dependency order: `refresh-languages`, Concepticon, LSI, ASJP, Wikidata Lexemes, transliteration aliases (Dakshina and approved Aksharantar components), Wiktionary, the expert cognate sets (IE-CoR, DravLex, DunniLex, NorthEuraLex, Hale), the Digital Corpus of Sanskrit lexicon, the Open Multilingual Wordnet, the Mongolian Wordnet, WALS and PHOIBLE, then Glottolog classification. Each step first loads the audit and source manifest and registers the configured languages. |
 | `import-jambu` | The restricted development import (§3). Prunes unused auto-created sources afterwards. |
 | `import-research` | The research-use imports: Jambu, Peiros, DPD, Monier-Williams, the research-use and open Lexibank wordlists, StarLing, High Valyrian, Kurdish, Calfa and Sindhi. |
 | `refresh-languages` | Gives every Glottolog language one record, merges the `wkt-`/`jb-`/`wd-`/`gl-` records the sources created into it, refreshes per-language statistics and makes a language searchable from 200 words. Exact duplicate Wiktionary words that merging two codes of one language created are joined. Run it after any import that adds languages. |
 | `research-db` | `import-open`, `import-research`, Glottolog, `refresh-languages`, `rekey-search` and `validate --research`. |
 | `db-size` | The database size and the words and links per dataset. |
-| `validate` | 32 data-quality and provenance checks (16 errors, 8 informational, 4 release and 4 research-use), plus "every row traces to an audit record". Writes `reports/validation.json`. |
+| `validate` | 33 data-quality and provenance checks (16 errors, 9 informational, 4 release and 4 research-use), plus "every row traces to an audit record". Writes `reports/validation.json`. |
 | `validate-public` | Same, but rows from BLOCKED datasets also fail. This is the gate for any deployment. |
 | `coverage` | Per-language table in `reports/coverage.md`. |
 | `benchmark` | Runs `data/benchmark/relationships.csv`; results stay provisional until a person reviews the cases. |
 | `public-seed` | Exports audit-approved rows to `data/public_seed/`, with `ATTRIBUTION.md` and `manifest.json` (counts and checksums). |
 | `load-public-seed` | Loads the seed into a freshly migrated database, for deployments. |
+| `init-layers` | Creates every table of the `layers` schema from `backend/app/layers/*.sql`. Idempotent; the migration runs the same files. |
+| `seed-lineage` | Writes the documented source lineage (which dataset is derived from which) into `layers.source_lineage`. |
+| `build-sound-key` | Builds `layers.sound_key` for the searchable languages (`--languages a,b` for some). |
+| `verify-link <relationship_id>` | Re-reads the dataset's own file under `data/raw` and checks that it says what the stored link says. A check that cannot be made is reported as `unsupported`, never as a pass. |
 
 **Wordlists (LSI, ASJP).**
 - Each doculect becomes a `variety` of its language, matched by glottocode.
@@ -118,6 +122,7 @@ make import-sindhi refresh-languages
   - the parent's marked-borrowed line yields to the descendant's own `{{inh}}`;
   - mutual "inherited" pairs, where each page lists the other as a descendant, are dropped;
   - when the descendant's entry has no template but its etymology sentence starts "Borrowed", "Learned borrowing" or "Semi-learned borrowing" (and does not also say "Inherited"), the link is `borrowed_from`, with the label "{{desc}} + entry etymology text" and the citation "etymology text (borrowing)".
+- A `{{der}}` link is only `etymon`. It is retyped `borrowed_from` by the same rule, from the entry's own text: the entry's etymology opens with a borrowing sentence ("Borrowed from French jus"), the words after "from" are a language name followed by the link's target term, and that language fits the target's language code (a variety such as "Late Latin" may add words before its parent's name). One link per entry is retyped, the first whose language fits; none when the entry's own templates already say `bor`, `inh` or calque, or when the text also says "Inherited". The label becomes "{{der}} + entry etymology text". The importer reports `links_retyped_der_by_etymology_text` beside the `{{desc}}` count. Re-import Wiktionary (and rebuild the layers, § 6) to apply the rule to existing data.
 - Proto-languages follow the language name ("Proto-X"). The `-pro` code ending is only a fallback when the name is unknown (`oc-pro` is Provençal).
 - Languages Wiktionary mentions only by code are named from the ISO 639-3 table (`--iso`; the Makefile passes it).
 - Terms a template names but that have no entry are created from the template, in their own language.
@@ -234,3 +239,37 @@ make validate-research benchmark db-size
 ```
 
 Then stop the API, rename `lsg` to `lsg_old` and `lsg_build` to `lsg`, and start the API again. Keep `lsg_old` until the new one has been checked in the app. Run the tests only against their own `TEST_DATABASE_URL`, never against `lsg` or `lsg_build`.
+
+After the swap, rebuild the layers (§ 6) in the new database: they are computed from the documented links and are out of date after any re-import.
+
+## 6. Derived layers (the `layers` schema)
+
+The documented graph holds only what a source states. Everything computed from it lives in a separate schema, `layers`, and never feeds `public` (the `relationship` and `evidence` tables). Every row carries its method and parameters; inferred rows also carry the ids of the documented relationships they rest on.
+
+| Module (`backend/app/layers/`) | Table(s) | What it holds |
+|---|---|---|
+| `inferred.py` | `inferred_pair`, view `inferred_chain_step` | Two words that documented ancestry puts under one ancestor, as an ordered chain of documented relationship ids. Steps follow inherited, etymon and derived links; loans, calques and variants are never followed. Capped searches say so. |
+| `candidate.py`, `calibrate.py` | `candidate_pair`, `candidate_calibration`, `gloss_token` | Same-meaning words ranked by a sound-aware score, with the gate that made them comparable and a precision calibrated on held-out expert cognate judgements (`calibrate-candidates` fits it). No citation: a suggestion. |
+| `keys.py`, `romanise.py` | `word_key`, `word_key_build` | The same word in another script or spelling, by rule (`fold`, `translit`, `translit_rule`). `translit` and `translit_rule` are for borrowing and word identity only. |
+| `sound_key.py` | `sound_key`, `sound_key_build` | A sound-class skeleton that puts words that may be related in one bucket, so a search compares only the bucket. |
+| `hub.py` | `cognate_component`, `edge_hub_flag`, `cognate_component_build` | Connected components of the documented cognate links, and the edges that sit in an oversized component (more than 5,000 words; homograph chaining). Nothing is deleted. |
+| `lineage.py` | `source_lineage` | Which dataset is derived from which, only where a document says so. Datasets that share a lineage do not count as independent corroboration. |
+| `verify.py`, `verify_sources.py` | none | Re-checks a stored link against the original source file (`verify-link`). |
+
+Setting up and rebuilding:
+
+```bash
+cd backend
+python -m app.cli init-layers          # creates the tables (migration 0007 does the same)
+python -m app.cli seed-lineage
+python -m app.cli build-sound-key
+python -m app.layers.hub build         # cognate components; `stats` prints the sizes
+python -m app.cli calibrate-candidates # precision per score bin, from the IE-CoR files in data/raw
+```
+
+The word keys and the gloss tokens are built by `app.layers.keys.build` and `app.layers.candidate.build_gloss_tokens` (Python calls, no command line yet). The cutoff of `hub build` is 5,000 words. It was chosen on the development half of the multi-family gold: a cutoff of 50 lost 11.7% of the true links there (14.4% on the test half), a cutoff of 5,000 lost 0.6% (1.7%) and still flags the largest components (the biggest holds 287,939 words). `calibrate-candidates` reads `data/raw/iecor/cldf`, scores the gold pairs on the words of the approved datasets (IE-CoR and DunniLex are held out) and fits the calibration on the development concepts only; rerun it after a re-import that changes IE-CoR words or glosses. Inferred and candidate pairs are computed on request and can be stored with `materialise_inferred` and `materialise_candidates`.
+
+- **Rebuild after every re-import.** The layers are computed from the documented links. After an import changes `relationship`, rebuild them, or they describe the old graph.
+- **Keep them out of evaluation.** `layers.cognate_component` is built over every dataset. A held-out evaluation must compute components itself, without the held-out source, in a scratch database: `hub.build` (also with `--exclude`) rewrites the stored table.
+- **Missing tables are not an error.** If a layer's tables are not built, the API answers `status: unavailable` for that layer only.
+- The `oversized_cognate_component` check of `validate` reads `layers.edge_hub_flag` and counts flagged edges; it is 0 when the layer is not built.

@@ -1,6 +1,6 @@
 # Evaluation and Testing Plan — Linguistic DNA
 
-> **Status (2026-11-03): the evaluation plan, partly carried out.** What exists: a 22-case relationship and lookup benchmark in `data/benchmark/relationships.csv` (`make benchmark`; all cases pass, none reviewed yet by a linguist), 190 backend tests against PostgreSQL, 42 frontend tests, and 32 data-quality checks (`validate`). Candidate-retrieval precision and recall (§ 4) are not measured, because no phonetic candidates exist yet.
+> **Status (2026-11-03): the evaluation plan, partly carried out.** What exists: a 22-case relationship and lookup benchmark in `data/benchmark/relationships.csv` (`make benchmark`; all cases pass, none reviewed yet by a linguist), 374 backend tests against PostgreSQL, 42 frontend tests, 35 experiment-helper tests (`experiments/tests`, outside the repository) and 33 data-quality checks (`validate`). Candidate retrieval (§ 4) now exists as the `candidate` layer; its precision against expert judgements is measured in the benchmark report (not in the repository), not by the test suite.
 
 ## 1. Purpose
 
@@ -98,6 +98,16 @@ Do not set an arbitrary top-k precision target before inspecting dataset quality
 - relationship-type mapping;
 - graph depth and node limits;
 - reconstruction/status display logic.
+
+Since the layers were added (`backend/tests/test_layers_*.py`, `test_validate_hub.py`, `test_migration_layers.py`), the unit and integration tests also cover:
+
+- the `{{der}}` retype rule of the Wiktionary importer (`test_wiktionary.py`);
+- the layer builders and their gates: inferred chains, candidates, word keys, sound keys, hub components and lineage;
+- `verify-link` against synthetic raw files;
+- `open_only` on every route, including 404 for research-use records and the empty graph;
+- that migration 0007 creates every table the `layers/*.sql` files declare, and that `init-layers` after it changes nothing.
+
+How well the layers perform (precision against expert cognate and WOLD borrowing judgements, on a dev/test split) is reported in the benchmark report (not in the repository). It is not a unit test.
 
 ### Data-validation tests
 

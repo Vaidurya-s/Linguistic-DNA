@@ -183,6 +183,20 @@ Each source's own label is kept beside the normalised type, so nothing is silent
 
 Meaning is kept apart from history: words that share a meaning meet through shared concepts (Concepticon and the wordnets' interlingual index, 5.6 million word–concept links), never through drawn edges. Language profiles (WALS features, PHOIBLE sound inventories) are served per language at `GET /api/v1/languages/{id}/profile`.
 
+## Layers: documented, inferred, candidate
+
+Relatives of a word come in three layers that are never merged. `GET /api/v1/lexemes/{id}/related?layers=documented,inferred,candidate&open_only=` returns them as three separate blocks, documented first, and every item states its evidence kind.
+
+| Layer | Evidence kind | What it is | What it carries |
+|---|---|---|---|
+| `documented` | `documented` | A relationship a source dataset states. | Its dataset, its type, and the evidence rows (citation, locator). The only layer that is ever shown as a cited fact. |
+| `inferred` | `inferred` | A pair that a chain of documented ancestry relationships (inherited, etymon, derived; never loans) puts under one ancestor. | The ordered ids of the documented relationships the chain rests on, each with its dataset and citation, and the rule version. It is a short proof over cited steps, not a new claim. |
+| `candidate` | `computed` | Same-meaning words of other languages ranked by a sound-aware similarity score. | A method, its parameters, a score, the gate that made the words comparable and a precision calibrated on held-out expert cognate judgements (only inside the calibration domain). No citation: it is a suggestion. |
+
+`open_only=true` applies to every layer: it keeps research-use and blocked datasets out of the documented items, out of the chains and out of the candidate pool, and it answers 404 for a word of such a dataset. The same parameter now works on `GET /lexemes/{id}` and `GET /relationships/{id}` (404 for research-use records) and on the graph (an empty graph with a message when the root word is research-use). If a layer cannot be computed (its tables are not built), its block says `status: unavailable` and the other layers are still returned.
+
+Other search techniques, each saying how a word was found: `/search/fuzzy` (trigram spelling, one language), `/search/concept` (words sharing a concept, ranked by spelling), `/search/keys` (the same word in another script or spelling, by rule), `/search/sound` (sound-class skeleton blocking plus alignment). `python -m app.cli verify-link <relationship_id>` re-reads the original CLDF source and checks a stored link against it; `python -m app.cli init-layers` creates every layer table (idempotent; migration 0007 does the same). The layers are computed from the documented links, so rebuild them after any re-import (`docs/DATA_PIPELINE.md` § 6). The benchmark report (not in the repository) holds the measured precision.
+
 ## Gallery
 
 <table>
