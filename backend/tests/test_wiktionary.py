@@ -599,3 +599,119 @@ def test_ety_tree_template_and_tree_text_are_read(db, tmp_path):
         assert _types(db, wid("hi", "mez"), wid("pt", "mesa")) == ["borrowed_from"]
     finally:
         db.rollback()
+
+
+def _der_entry(word, code, lang, text, templates, **extra):
+    entry = {
+        "word": word,
+        "lang": lang,
+        "lang_code": code,
+        "senses": [{"glosses": ["x"]}],
+        "etymology_templates": [
+            {"name": n, "args": {"1": code, "2": a[0], "3": a[1], **({"4": a[2]} if a[2:] else {})}}
+            for n, a in templates
+        ],
+    }
+    if text is not None:
+        entry["etymology_text"] = text
+    return {**entry, **extra}
+
+
+def _donor_entries():
+    named = [
+        ("bicycle", "en", "English"),
+        ("prosodie", "fr", "French"),
+        ("προσῳδία", "grc", "Ancient Greek"),
+        ("maşa", "ota", "Ottoman Turkish"),
+        ("māša", "fa", "Persian"),
+        ("corrōsiō", "la", "Latin"),
+        ("riva", "sv", "Swedish"),
+        ("camera", "la", "Latin"),
+    ]
+    return [
+        {"word": w, "lang": n, "lang_code": c, "senses": [{"glosses": ["t"]}]} for w, c, n in named
+    ]
+
+
+def test_der_link_is_typed_borrowed_when_the_entry_text_names_it_as_donor(db, tmp_path):
+    """Serbo-Croatian bajs: only a {{der}} template, but the entry's own sentence says
+    "Borrowed and shortened from English bicycle"."""
+    lines = [
+        *_donor_entries(),
+        _der_entry(
+            "bajs",
+            "sh",
+            "Serbo-Croatian",
+            "Borrowed and shortened from English bicycle.",
+            [("der", ("en", "bicycle"))],
+        ),
+        # a learned borrowing from a variety merged into Latin
+        _der_entry(
+            "korozija",
+            "hr",
+            "Croatian",
+            "Learned borrowing from Late Latin corrōsiōnem.",
+            [("der", ("la-lat", "corrōsiō", "corrōsiōnem"))],
+        ),
+        # {{der}} + Borrowed text but a different donor word (the link is a deeper ancestor)
+        _der_entry(
+            "prozodija",
+            "ro",
+            "Romanian",
+            "Borrowed from French prosodie, from Ancient Greek προσῳδία (prosōidía).",
+            [("der", ("grc", "προσῳδία"))],
+        ),
+        # same form in two languages: the text's first donor is Ottoman Turkish, not Persian
+        _der_entry(
+            "masa",
+            "el",
+            "Greek",
+            "Borrowed from Ottoman Turkish ماشه, from Classical Persian ماشه.",
+            [("der", ("fa", "ماشه"))],
+        ),
+        # inherited text, no text, a bor template next to the der, an inh template
+        _der_entry(
+            "a1", "sv", "Swedish", "Inherited from Old Swedish riva.", [("der", ("sv", "riva"))]
+        ),
+        _der_entry("a2", "sv", "Swedish", None, [("der", ("sv", "riva"))]),
+        _der_entry(
+            "a3",
+            "sv",
+            "Swedish",
+            "Borrowed from French prosodie, from Latin camera.",
+            [("bor", ("fr", "prosodie")), ("der", ("la", "camera"))],
+        ),
+        _der_entry(
+            "a4",
+            "sv",
+            "Swedish",
+            "Borrowed from Latin camera.",
+            [("inh", ("la", "camera")), ("der", ("la", "camera"))],
+        ),
+        # an ordinary non-borrowing sentence
+        _der_entry("a5", "sv", "Swedish", "From Latin camera.", [("der", ("la", "camera"))]),
+    ]
+    try:
+        stats = _run(db, tmp_path, lines)
+        assert _types(db, wid("sh", "bajs"), wid("en", "bicycle")) == ["borrowed_from"]
+        assert _types(db, wid("hr", "korozija"), wid("la-lat", "corrōsiō")) == ["borrowed_from"]
+        assert _types(db, wid("ro", "prozodija"), wid("grc", "προσῳδία")) == ["etymon"]
+        assert _types(db, wid("el", "masa"), wid("fa", "ماشه")) == ["etymon"]
+        assert _types(db, wid("sv", "a1"), wid("sv", "riva")) == ["etymon"]
+        assert _types(db, wid("sv", "a2"), wid("sv", "riva")) == ["etymon"]
+        assert _types(db, wid("sv", "a3"), wid("la", "camera")) == ["etymon"]
+        assert _types(db, wid("sv", "a3"), wid("fr", "prosodie")) == ["borrowed_from"]
+        assert _types(db, wid("sv", "a4"), wid("la", "camera")) == ["etymon", "inherited_form"]
+        assert _types(db, wid("sv", "a5"), wid("la", "camera")) == ["etymon"]
+        assert stats["links_retyped_der_by_etymology_text"] == 2
+        # the template stays in original_label, the reason is stated, the citation is honest
+        label, cite, loc = db.execute(
+            "SELECT r.original_label, e.citation, e.locator FROM relationship r JOIN evidence e"
+            " ON e.relationship_id = r.id WHERE r.source_lexeme_id = %s",
+            (wid("sh", "bajs"),),
+        ).fetchone()
+        assert label == "{{der}} + entry etymology text"
+        assert cite == "Wiktionary, “bajs”, etymology text (borrowing)"
+        assert "{{" not in cite and loc == "https://en.wiktionary.org/wiki/bajs"
+    finally:
+        db.rollback()
