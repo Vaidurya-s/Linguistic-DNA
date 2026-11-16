@@ -281,6 +281,20 @@ CHECKS = [
                AND sl.name ~ '^(Proto-|Old |Middle )'
                AND tl.role = 'modern'""",
     ),
+    Check(
+        "oversized_cognate_component",
+        "info",
+        "Documented cognate edges that layers.edge_hub_flag marks as part of an oversized cognate "
+        "component (more words than the cutoff of the last `python -m app.layers.hub build`, "
+        "default 5000): homograph chaining joins unrelated words, so these edges should not be "
+        "followed transitively. 0 when the layer has not been built. Reads the layer table "
+        "(built from the documented edges; rebuild it after an import) and deletes nothing.",
+        """SELECT CASE WHEN to_regclass('layers.edge_hub_flag') IS NULL THEN 0
+             ELSE (xpath('/row/c/text()', query_to_xml(
+               'SELECT count(*) AS c FROM layers.edge_hub_flag f JOIN relationship r'
+               ' ON r.id = f.relationship_id WHERE f.reason = ''oversized_component''',
+               false, true, '')))[1]::text::bigint END""",
+    ),
 ]
 
 

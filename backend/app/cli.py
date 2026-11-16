@@ -191,6 +191,24 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("build-public-seed")
     sub.add_parser("load-public-seed")
     sub.add_parser("ensure-seed", help="load the public seed if the database has no lexemes")
+    sub.add_parser(
+        "init-layers",
+        help="create the layers schema tables from the shipped app/layers/*.sql files (idempotent)",
+    )
+    sub.add_parser("seed-lineage", help="write the documented source lineage (layers schema)")
+    cc = sub.add_parser(
+        "calibrate-candidates",
+        help="fit layers.candidate_calibration on the dev half of the IE-CoR cognate judgements",
+    )
+    cc.add_argument("--raw", type=Path, help="data/raw directory (default: <repo>/data/raw)")
+    cc.add_argument("--dry-run", action="store_true", help="compute the bins, store nothing")
+    sk = sub.add_parser("build-sound-key", help="build layers.sound_key for enabled languages")
+    sk.add_argument("--languages", help="comma-separated language ids (default: all enabled)")
+    vl = sub.add_parser(
+        "verify-link", help="re-check a stored link against the dataset's original source file"
+    )
+    vl.add_argument("relationship_id")
+    vl.add_argument("--raw", type=Path, help="data/raw directory (default: <repo>/data/raw)")
     args = parser.parse_args(argv)
     if args.cmd == "benchmark":
         return _benchmark(args.database_url)
@@ -349,6 +367,31 @@ def main(argv: list[str] | None = None) -> int:
             }
         elif args.cmd == "rekey-search":
             result = rekey_search(conn)
+        elif args.cmd == "init-layers":
+            result = init_layers(conn)
+        elif args.cmd == "seed-lineage":
+            from app.layers import lineage
+
+            result = {"lineage_rows": lineage.seed(conn)}
+        elif args.cmd == "calibrate-candidates":
+            from app.layers import calibrate
+
+            kwargs = {"raw_root": args.raw} if args.raw else {}
+            result = calibrate.calibrate(
+                conn, store=not args.dry_run, log=lambda m: print(m, flush=True), **kwargs
+            )
+        elif args.cmd == "build-sound-key":
+            from app.layers import sound_key
+
+            langs = args.languages.split(",") if args.languages else None
+            result = sound_key.build(conn, langs, log=lambda m: print(m, flush=True))
+        elif args.cmd == "verify-link":
+            from app.layers import verify
+
+            kwargs = {"raw_root": args.raw} if args.raw else {}
+            found = verify.verify_link(conn, args.relationship_id, **kwargs)
+            print(found.line())
+            return {"pass": 0, "unsupported": 0}.get(found.status, 1)
         elif args.cmd == "build-public-seed":
             result = build_public_seed(conn)
         elif args.cmd == "load-public-seed":
@@ -398,6 +441,19 @@ def main(argv: list[str] | None = None) -> int:
             return 0
     print(json.dumps(result, indent=2, default=str))
     return 0
+
+
+def init_layers(conn) -> dict:
+    """Apply the SQL file of every shipped layer (app.layers.SHIPPED_SQL). Each file is idempotent
+    (create ... if not exists), so this can be run at any time."""
+    from app.layers import SHIPPED_SQL
+    from app.layers import __file__ as layers_init
+
+    applied = []
+    for name in SHIPPED_SQL:
+        conn.execute((Path(layers_init).parent / name).read_text(encoding="utf-8"))
+        applied.append(name)
+    return {"applied": applied}
 
 
 def _benchmark(url: str | None) -> int:
