@@ -4,6 +4,7 @@ Documented relations and computed candidates are returned in separate fields and
 merged (docs/LINGUISTIC_ENGINE.md §2, §6).
 """
 
+import re
 import unicodedata
 
 from sqlalchemy import Connection, text
@@ -16,6 +17,10 @@ EXTRA_SCRIPT_LANGUAGES = {"Deva": ["oia", "pra", "pli", "x-apabhramsha", "x-asho
 MATCH_RANK = {"exact": 0, "native_exact": 1, "transliteration": 2, "loose": 3}
 
 OPEN_DECISIONS = ("APPROVED", "APPROVED WITH CONDITIONS")
+RESTRICTED_ROOT_MESSAGE = (
+    "This word comes from a dataset that is available for research use only, so it is not shown "
+    "in the open-data view. Turn off 'open data only' to see it with its citation."
+)
 
 
 def open_datasets(conn: Connection, open_only: bool) -> list[str] | None:
@@ -339,7 +344,9 @@ def _compounds_containing(
     )
 
 
-def get_lexeme(conn: Connection, lexeme_id: str) -> dict | None:
+def get_lexeme(conn: Connection, lexeme_id: str, open_only: bool = False) -> dict | None:
+    """One word with its source and concepts. With open_only, a word of a dataset that is not
+    approved for redistribution (research use, blocked or unaudited) is treated as not found."""
     row = (
         conn.execute(
             text(f"""
@@ -353,6 +360,8 @@ def get_lexeme(conn: Connection, lexeme_id: str) -> dict | None:
         .first()
     )
     if not row:
+        return None
+    if open_only and row["dataset"] not in (open_datasets(conn, True) or []):
         return None
     out = dict(row)
     out["source"] = _source(conn, out.pop("source_id"), out.pop("dataset"))
@@ -376,9 +385,21 @@ def build_graph(
     limit_nodes: int,
     open_only: bool = False,
 ) -> dict | None:
-    if not conn.execute(text("SELECT 1 FROM lexeme WHERE id = :id"), {"id": root}).first():
+    root_row = conn.execute(text("SELECT dataset FROM lexeme WHERE id = :id"), {"id": root}).first()
+    if not root_row:
         return None
     ds = open_datasets(conn, open_only)
+    if ds is not None and root_row[0] not in ds:
+        # The word itself is research-use (or blocked) data: an open-only view shows nothing of it.
+        return {
+            "root_lexeme_id": root,
+            "nodes": [],
+            "edges": [],
+            "truncated": False,
+            "warnings": [RESTRICTED_ROOT_MESSAGE],
+            "restricted": True,
+            "message": RESTRICTED_ROOT_MESSAGE,
+        }
     seen = {root}
     frontier = [root]
     edges: dict[str, dict] = {}
@@ -405,6 +426,8 @@ def build_graph(
               AND r.status <> 'rejected'
               AND (CAST(:types AS text[]) IS NULL OR r.type_id = ANY(:types))
               AND (CAST(:ds AS text[]) IS NULL OR r.dataset = ANY(:ds))
+              -- an open-only view also drops links whose far end is a word of a restricted dataset
+              AND (CAST(:ds AS text[]) IS NULL OR (s.dataset = ANY(:ds) AND tg.dataset = ANY(:ds)))
             -- When the node cap bites, keep word histories before compounds, and words in
             -- configured languages before dialects and other reference languages.
             ORDER BY CASE r.type_id
@@ -443,6 +466,7 @@ def build_graph(
                 WHERE (r.source_lexeme_id = l.id OR r.target_lexeme_id = l.id)
                   AND (CAST(:ds AS text[]) IS NULL OR r.dataset = ANY(:ds))) AS degree
         FROM lexeme l JOIN language g ON g.id = l.language_id WHERE l.id = ANY(:ids)
+          AND (CAST(:ds AS text[]) IS NULL OR l.dataset = ANY(:ds))
     """,
         {"ids": list(seen), "ds": ds},
     )
@@ -458,7 +482,10 @@ def build_graph(
     }
 
 
-def get_relationship(conn: Connection, rel_id: str) -> dict | None:
+def get_relationship(conn: Connection, rel_id: str, open_only: bool = False) -> dict | None:
+    """One relationship with its evidence. With open_only, a relationship of a dataset that is
+    not approved for redistribution, or one that touches a word of such a dataset, is treated as
+    not found."""
     row = (
         conn.execute(
             text("""
@@ -475,6 +502,14 @@ def get_relationship(conn: Connection, rel_id: str) -> dict | None:
     )
     if not row:
         return None
+    if open_only:
+        ds = open_datasets(conn, True) or []
+        ends = conn.execute(
+            text("SELECT dataset FROM lexeme WHERE id = ANY(:ids)"),
+            {"ids": [row["source"], row["target"]]},
+        ).all()
+        if row["dataset"] not in ds or any(e[0] not in ds for e in ends):
+            return None
     out = dict(row)
     dataset = out.pop("dataset")
     lex = {
@@ -550,3 +585,464 @@ def get_language_profile(conn: Connection, language_id: str) -> dict | None:
 
 def _rows(conn: Connection, sql: str, params: dict) -> list[dict]:
     return [dict(r) for r in conn.execute(text(sql), params).mappings()]
+
+
+# --- layered retrieval ---------------------------------------------------------
+# Three separate blocks, never merged: documented (cited relationships), inferred (chains of
+# documented ancestry, layers/inferred.py) and candidate (computed similarity,
+# layers/candidate.py).
+
+LAYERS = ("documented", "inferred", "candidate")
+_TYPE_RANK = """CASE r.type_id
+    WHEN 'inherited_form' THEN 0 WHEN 'borrowed_from' THEN 1 WHEN 'etymon' THEN 2
+    WHEN 'cognate' THEN 3 WHEN 'calque_or_loan_translation' THEN 4 WHEN 'derived_form' THEN 5
+    WHEN 'related_form' THEN 6 WHEN 'has_component' THEN 8 ELSE 7 END"""
+
+
+def _summaries(conn: Connection, ids: list[str]) -> dict[str, dict]:
+    if not ids:
+        return {}
+    rows = _rows(
+        conn,
+        f"""SELECT {LEXEME_FIELDS} FROM lexeme l JOIN language g ON g.id = l.language_id
+            WHERE l.id = ANY(:ids)""",
+        {"ids": ids},
+    )
+    return {r["id"]: r for r in rows}
+
+
+def _documented_block(conn: Connection, lexeme_id: str, ds: list[str] | None, limit: int) -> dict:
+    fields = re.sub(r"\bl\.", "o.", LEXEME_FIELDS)
+    rows = _rows(
+        conn,
+        f"""
+        SELECT r.id AS relationship_id, r.type_id AS type, t.label, t.namespace::text AS namespace,
+               r.direction::text AS direction, r.status::text AS status, r.dataset, r.source_id,
+               CASE WHEN r.source_lexeme_id = :id THEN 'source' ELSE 'target' END AS role,
+               {fields}
+        FROM relationship r
+        JOIN relationship_type t ON t.id = r.type_id
+        JOIN lexeme o ON o.id = CASE WHEN r.source_lexeme_id = :id THEN r.target_lexeme_id
+                                     ELSE r.source_lexeme_id END
+        JOIN language g ON g.id = o.language_id
+        WHERE (r.source_lexeme_id = :id OR r.target_lexeme_id = :id) AND r.status <> 'rejected'
+          AND (CAST(:ds AS text[]) IS NULL OR (r.dataset = ANY(:ds) AND o.dataset = ANY(:ds)))
+        ORDER BY {_TYPE_RANK}, g.name, o.form, r.id
+        LIMIT :lim
+        """,
+        {"id": lexeme_id, "ds": ds, "lim": limit + 1},
+    )
+    truncated = len(rows) > limit
+    rows = rows[:limit]
+    ev: dict[str, list[dict]] = {}
+    dataset_of = {r["relationship_id"]: r["dataset"] for r in rows}
+    if rows:
+        for e in _rows(
+            conn,
+            """SELECT relationship_id, citation, locator, evidence_note AS note, source_id
+               FROM evidence WHERE relationship_id = ANY(:ids) ORDER BY id""",
+            {"ids": [r["relationship_id"] for r in rows]},
+        ):
+            rel = e.pop("relationship_id")
+            e["source"] = _source(conn, e.pop("source_id"), dataset_of[rel])
+            ev.setdefault(rel, []).append(e)
+    own = {"relationship_id", "type", "label", "namespace", "direction", "status", "dataset",
+           "source_id", "role"}  # fmt: skip
+    items = []
+    for r in rows:
+        items.append(
+            {
+                **{k: r[k] for k in own},
+                "other": {k: v for k, v in r.items() if k not in own},
+                "evidence": ev.get(r["relationship_id"], []),
+            }
+        )
+    return {"count": len(items), "truncated": truncated, "items": items}
+
+
+_UP = ("inherited_form", "etymon", "derived_form")
+
+
+def _inferred_partners(pg, lexeme_id: str, ds: list[str] | None, cap: int = 150) -> list[str]:
+    """Words that may share an ancestor with `lexeme_id`: other descendants of the ancestors it
+    reaches by documented ancestry (up to three steps). Only a way to propose partners: whether a
+    chain really exists is decided by the inferred layer's own function."""
+    ds_sql = " AND r.dataset = ANY(%(ds)s)" if ds is not None else ""
+    args = {"ds": ds, "up": list(_UP)}
+    ancestors: set[str] = set()
+    frontier = [lexeme_id]
+    for _ in range(3):
+        if not frontier:
+            break
+        rows = pg.execute(
+            "SELECT r.target_lexeme_id FROM relationship r WHERE r.source_lexeme_id = ANY(%(f)s)"
+            " AND r.type_id = ANY(%(up)s) AND r.direction = 'directed'"
+            + ds_sql
+            + " UNION SELECT r.source_lexeme_id FROM relationship r"
+            " WHERE r.target_lexeme_id = ANY(%(f)s) AND r.type_id = 'reconstructed_ancestor_of'"
+            + ds_sql,
+            {**args, "f": frontier},
+        ).fetchall()
+        frontier = [r[0] for r in rows if r[0] not in ancestors and r[0] != lexeme_id]
+        ancestors.update(frontier)
+    if not ancestors:
+        return []
+    rows = pg.execute(
+        "SELECT r.source_lexeme_id FROM relationship r WHERE r.target_lexeme_id = ANY(%(a)s)"
+        " AND r.type_id = ANY(%(up)s) AND r.direction = 'directed'"
+        + ds_sql
+        + " UNION SELECT r.target_lexeme_id FROM relationship r"
+        " WHERE r.source_lexeme_id = ANY(%(a)s) AND r.type_id = 'reconstructed_ancestor_of'"
+        + ds_sql,
+        {**args, "a": sorted(ancestors)},
+    ).fetchall()
+    direct = {
+        r[0]
+        for r in pg.execute(
+            "SELECT target_lexeme_id FROM relationship WHERE source_lexeme_id = %s"
+            " UNION SELECT source_lexeme_id FROM relationship WHERE target_lexeme_id = %s",
+            (lexeme_id, lexeme_id),
+        ).fetchall()
+    }
+    partners = sorted({r[0] for r in rows} - direct - {lexeme_id})
+    return partners[:cap]
+
+
+def _inferred_items(pg, lexeme_id: str, ds: list[str] | None, limit: int) -> list[dict]:
+    """Inferred relatives from layers/inferred.py: [{'chain': InferredChain, 'other': id}]."""
+    from app.layers import inferred as inf
+
+    walker = inf.AncestryWalker(pg, max_depth=6, datasets=ds)
+    found = []
+    for partner in _inferred_partners(pg, lexeme_id, ds):
+        chain, _ = walker.chain(lexeme_id, partner)
+        if chain is not None:
+            found.append({"chain": chain, "other": partner})
+    found.sort(key=lambda f: (f["chain"].depth, f["other"]))
+    return found[: limit + 1]
+
+
+def _candidate_items(
+    pg, lexeme_id: str, ds: list[str] | None, limit: int, gate: str = "gloss"
+) -> list:
+    """Candidates from layers/candidate.py, best score first."""
+    from app.layers import candidate as cand
+
+    return cand.candidates_for(pg, lexeme_id, k=limit + 1, gate=gate, datasets=ds)
+
+
+def _chain_steps(conn: Connection, chain_ids: list[str]) -> list[dict]:
+    if not chain_ids:
+        return []
+    rows = {
+        r["id"]: r
+        for r in _rows(
+            conn,
+            """SELECT r.id, r.type_id AS type, r.dataset,
+                      (SELECT e.citation FROM evidence e WHERE e.relationship_id = r.id
+                       ORDER BY e.id LIMIT 1) AS citation,
+                      (SELECT e.locator FROM evidence e WHERE e.relationship_id = r.id
+                       ORDER BY e.id LIMIT 1) AS locator
+               FROM relationship r WHERE r.id = ANY(:ids)""",
+            {"ids": chain_ids},
+        )
+    }
+    return [
+        {
+            "relationship_id": rid,
+            "type": rows[rid]["type"] if rid in rows else "unknown",
+            "dataset": rows[rid]["dataset"] if rid in rows else "unknown",
+            "citation": rows[rid]["citation"] if rid in rows else None,
+            "locator": rows[rid]["locator"] if rid in rows else None,
+        }
+        for rid in chain_ids
+    ]
+
+
+def related_layers(
+    conn: Connection,
+    lexeme_id: str,
+    layers: list[str] | None = None,
+    open_only: bool = False,
+    limit: int = 20,
+    candidate_gate: str = "gloss",
+) -> dict | None:
+    """Documented, inferred and candidate relatives of one word, in three separate blocks.
+
+    A layer that fails (its tables are not built, or its module is missing) is reported in the
+    block's status and in `warnings`; the other layers are still returned. None when the word is
+    unknown, or hidden by open_only."""
+    if get_lexeme(conn, lexeme_id, open_only) is None:
+        return None
+    wanted = [x for x in LAYERS if x in (layers or LAYERS)]
+    ds = open_datasets(conn, open_only)
+    out: dict = {
+        "lexeme_id": lexeme_id,
+        "open_only": open_only,
+        "layers_requested": wanted,
+        "documented": None,
+        "inferred": None,
+        "candidate": None,
+        "warnings": [],
+    }
+    if "documented" in wanted:
+        out["documented"] = _documented_block(conn, lexeme_id, ds, limit)
+    pg = conn.connection.driver_connection
+
+    if "inferred" in wanted:
+        block = {"count": 0, "truncated": False, "items": [], "status": "ok"}
+        try:
+            with conn.begin_nested():
+                found = _inferred_items(pg, lexeme_id, ds, limit)
+            block["truncated"] = len(found) > limit
+            found = found[:limit]
+            lex = _summaries(
+                conn,
+                sorted(
+                    {f["other"] for f in found}
+                    | {f["chain"].ancestor_id for f in found if f["chain"].ancestor_id}
+                ),
+            )
+            for f in found:
+                c = f["chain"]
+                if f["other"] not in lex:
+                    continue
+                block["items"].append(
+                    {
+                        "other": lex[f["other"]],
+                        "kind": c.kind,
+                        "depth": c.depth,
+                        "ancestor": lex.get(c.ancestor_id) if c.ancestor_id else None,
+                        "chain_relationship_ids": list(c.relationship_ids),
+                        "chain": _chain_steps(conn, list(c.relationship_ids)),
+                        "datasets": list(c.datasets),
+                        "capped": bool(c.capped),
+                        "rule_version": c.rule_version,
+                    }
+                )
+            block["count"] = len(block["items"])
+        except Exception as exc:  # a layer that is missing must not take the answer down
+            block["status"] = "unavailable"
+            out["warnings"].append(f"inferred layer unavailable: {type(exc).__name__}")
+        out["inferred"] = block
+
+    if "candidate" in wanted:
+        block = {"count": 0, "truncated": False, "items": [], "status": "ok"}
+        try:
+            with conn.begin_nested():
+                found = _candidate_items(pg, lexeme_id, ds, limit, candidate_gate)
+            block["truncated"] = len(found) > limit
+            found = found[:limit]
+            lex = _summaries(conn, [c.lexeme_id for c in found])
+            for c in found:
+                if c.lexeme_id not in lex:
+                    continue
+                block["items"].append(
+                    {
+                        "other": lex[c.lexeme_id],
+                        "method": c.method,
+                        "score": float(c.score),
+                        "gate": c.gate,
+                        "gate_via": c.gate_via,
+                        "calibrated_precision": c.calibrated_precision,
+                        "calibrated": bool(c.calibrated),
+                        "stratum": c.stratum,
+                        "n_sources": c.n_sources,
+                        "params": dict(c.params),
+                    }
+                )
+            block["count"] = len(block["items"])
+        except Exception as exc:
+            block["status"] = "unavailable"
+            out["warnings"].append(f"candidate layer unavailable: {type(exc).__name__}")
+        out["candidate"] = block
+    return out
+
+
+# --- extra search techniques ---------------------------------------------------
+# Each returns the same match shape as /search with its own match_type, so a reader sees how a
+# word was found. None of them creates a relationship.
+
+
+def _matches(
+    conn: Connection,
+    scored: list[tuple[str, float | None, str | None]],
+    match_type: str,
+    ds: list[str] | None,
+    limit: int,
+) -> list[dict]:
+    """Search matches (id, score, via) -> match dicts in the given order."""
+    ids = [s[0] for s in scored]
+    if not ids:
+        return []
+    rows = {
+        r["id"]: r
+        for r in _rows(
+            conn,
+            f"""SELECT {LEXEME_FIELDS},
+                   (SELECT count(*) FROM relationship r
+                    WHERE (r.source_lexeme_id = l.id OR r.target_lexeme_id = l.id)
+                      AND (CAST(:ds AS text[]) IS NULL OR r.dataset = ANY(:ds)))
+                       AS relationship_count, 1 AS duplicate_count
+                FROM lexeme l JOIN language g ON g.id = l.language_id
+                WHERE l.id = ANY(:ids) AND (CAST(:ds AS text[]) IS NULL OR l.dataset = ANY(:ds))""",
+            {"ids": ids, "ds": ds},
+        )
+    }
+    out = []
+    for lex_id, score, via in scored:
+        if lex_id in rows and len(out) < limit:
+            out.append({**rows[lex_id], "match_type": match_type, "via": via, "score": score})
+    return out
+
+
+def _technique_response(q: str, technique: str, matches: list[dict], warnings: list[str]) -> dict:
+    if not matches:
+        warnings.append("No word matches under this technique.")
+    return {
+        "query": q,
+        "normalized_query": normalize_form(q),
+        "technique": technique,
+        "matches": matches,
+        "warnings": warnings,
+    }
+
+
+def fuzzy_search(
+    conn: Connection,
+    q: str,
+    language_id: str,
+    limit: int = 10,
+    threshold: float = 0.4,
+    open_only: bool = False,
+) -> dict:
+    """Trigram-similar spellings inside ONE language (pg_trgm on the loose search key).
+
+    Restricting by language keeps the candidate set to that language's words; the result is a
+    list of similar spellings, not of relatives."""
+    key = search_key(q)
+    ds = open_datasets(conn, open_only)
+    warnings: list[str] = []
+    scored: list[tuple[str, float | None, str | None]] = []
+    if len(key) < 3:
+        warnings.append("Fuzzy search needs at least three letters.")
+    else:
+        conn.execute(
+            text("SELECT set_config('pg_trgm.similarity_threshold', :t, true)"),
+            {"t": str(threshold)},
+        )
+        rows = conn.execute(
+            text("""
+            SELECT l.id, similarity(l.search_key, :key) AS score FROM lexeme l
+            WHERE l.language_id = :lang AND l.search_key % :key AND l.form_kind = 'word'
+              AND (CAST(:ds AS text[]) IS NULL OR l.dataset = ANY(:ds))
+            ORDER BY score DESC, l.id LIMIT :lim"""),
+            {"key": key, "lang": language_id, "ds": ds, "lim": limit * 3},
+        ).all()
+        scored = [(r[0], float(r[1]), None) for r in rows]
+    return _technique_response(q, "fuzzy", _matches(conn, scored, "fuzzy", ds, limit), warnings)
+
+
+def concept_gated_search(
+    conn: Connection,
+    q: str,
+    concept_ids: list[str],
+    language_ids: list[str] | None = None,
+    limit: int = 10,
+    open_only: bool = False,
+) -> dict:
+    """Words that share one of the given concepts (lexeme_concept), ranked by trigram similarity
+    of their spelling to the query. The concept is the gate: a similar spelling with another
+    meaning is never returned."""
+    key = search_key(q)
+    ds = open_datasets(conn, open_only)
+    rows = conn.execute(
+        text("""
+        SELECT l.id, similarity(l.search_key, :key) AS score
+        FROM lexeme_concept lc JOIN lexeme l ON l.id = lc.lexeme_id
+        JOIN language g ON g.id = l.language_id
+        WHERE lc.concept_id = ANY(:cids) AND g.is_enabled AND l.form_kind = 'word'
+          AND (CAST(:langs AS text[]) IS NULL OR l.language_id = ANY(:langs))
+          AND (CAST(:ds AS text[]) IS NULL OR l.dataset = ANY(:ds))
+        ORDER BY score DESC, l.id LIMIT :lim"""),
+        {"key": key, "cids": concept_ids, "langs": language_ids, "ds": ds, "lim": limit * 3},
+    ).all()
+    scored = [(r[0], float(r[1]), None) for r in rows]
+    return _technique_response(
+        q, "concept_gated", _matches(conn, scored, "concept_gated", ds, limit), []
+    )
+
+
+def key_search(
+    conn: Connection, q: str, language_id: str, limit: int = 10, open_only: bool = False
+) -> dict:
+    """Words of one language that spell the query the same way under the word-identity keys
+    (layers/keys.py): the native spelling, then its case/diacritic fold, then its romanisation.
+    `via` names the key that matched, so a reader can see HOW two spellings were matched."""
+    from app.layers import keys
+
+    pg = conn.connection.driver_connection
+    ds = open_datasets(conn, open_only)
+    warnings: list[str] = []
+    try:
+        with conn.begin_nested():
+            found = keys.resolve_form(pg, language_id, q)
+    except Exception as exc:  # the key table is not built: fall back to the native spelling
+        warnings.append(f"word keys unavailable ({type(exc).__name__}); native spelling only")
+        with conn.begin_nested():
+            found = keys.resolve_form(pg, language_id, q, kinds=("native",))
+    scored = [(lex_id, None, kind) for lex_id, kind in found]
+    kinds = {lex_id: kind for lex_id, kind in found}
+    matches = _matches(conn, scored, "key", ds, limit)
+    for m in matches:
+        m["via"] = kinds[m["id"]]
+    return _technique_response(q, "keys", matches, warnings)
+
+
+def sound_search(
+    conn: Connection,
+    q: str,
+    level: str = "cons",
+    language_ids: list[str] | None = None,
+    exclude_language: str | None = None,
+    limit: int = 10,
+    open_only: bool = False,
+) -> dict:
+    """Words in the query's sound-class bucket (layers/sound_key.py), ranked by the alignment
+    score of layers/candidate.py when it exists. Computed: a likely relative, not a record."""
+    from app.layers import sound_key
+
+    pg = conn.connection.driver_connection
+    ds = open_datasets(conn, open_only)
+    warnings: list[str] = []
+    key = sound_key.skey(q)
+    if not key:
+        return _technique_response(q, "sound", [], ["The query has no consonant to key on."])
+    with conn.begin_nested():
+        ids = sound_key.block(
+            pg, key, level, language_ids, exclude_language, datasets=ds, limit=3000
+        )
+    if len(ids) >= 3000:
+        warnings.append("The sound bucket is large and was cut at 3000 words.")
+    scored: list[tuple[str, float | None, str | None]] = []
+    if ids:
+        try:
+            from app.layers import candidate as cand
+
+            qtext = cand.scoring_text(q, None, search_key(q))
+            rows = conn.execute(
+                text(
+                    "SELECT id, form, transliteration, search_key FROM lexeme WHERE id = ANY(:ids)"
+                ),
+                {"ids": ids},
+            ).all()
+            scored = [
+                (r[0], cand.score("blend", qtext, cand.scoring_text(r[1], r[2], r[3])), key)
+                for r in rows
+            ]
+        except ImportError:
+            scored = [(i, None, key) for i in ids]
+        scored.sort(key=lambda s: (-(s[1] or 0.0), s[0]))
+    return _technique_response(
+        q, "sound", _matches(conn, scored[: limit * 3], "sound_block", ds, limit), warnings
+    )

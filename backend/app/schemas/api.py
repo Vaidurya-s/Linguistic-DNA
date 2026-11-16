@@ -142,6 +142,10 @@ class GraphResponse(BaseModel):
     edges: list[GraphEdge]
     truncated: bool
     warnings: list[str]
+    # True when open_only was on and the root word belongs to a research-use or blocked dataset:
+    # the graph is then empty and `message` says why (nothing of the word is shown).
+    restricted: bool = False
+    message: str | None = None
 
 
 class EvidenceOut(BaseModel):
